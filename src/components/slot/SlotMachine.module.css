@@ -29,27 +29,104 @@
 }
 
 .reelHeaders {
-  display: flex;
   flex-shrink: 0;
-  background: #02020a;
-  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
+  background: linear-gradient(180deg, #09091a 0%, #05050f 100%);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.6), inset 0 -1px 0 rgba(201,162,39,0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle scanline texture */
+.reelHeaders::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255,255,255,0.008) 2px,
+    rgba(255,255,255,0.008) 3px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.reelHeadersInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  padding: 0 clamp(22px, 3.5vw, 38px);
+}
+
+.reelHeaderSep {
+  flex-shrink: 0;
+  width: 5px;
+  background: linear-gradient(
+    180deg,
+    rgba(201, 162, 39, 0.45) 0%,
+    rgba(201, 162, 39, 0.15) 40%,
+    rgba(201, 162, 39, 0.15) 60%,
+    rgba(201, 162, 39, 0.45) 100%
+  );
 }
 
 .reelHeader {
   flex: 1;
-  text-align: center;
-  font-family: var(--f-ui);
-  font-weight: 700;
-  font-size: clamp(9px, 1.4vw, 12px);
-  letter-spacing: clamp(1.5px, 0.5vw, 4px);
-  color: rgba(140, 148, 190, 0.75);
-  padding: clamp(5px, 0.8vh, 9px) 0;
-  text-transform: uppercase;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(6px, 0.9vh, 10px) 4px clamp(5px, 0.7vh, 8px);
+  overflow: hidden;
 }
 
-.reelHeaderActive {
-  color: rgba(201, 162, 39, 0.95);
-  text-shadow: 0 0 12px rgba(201, 162, 39, 0.45);
+.reelHeaderLabel {
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: clamp(8px, 1.1vw, 11px);
+  letter-spacing: clamp(2px, 0.55vw, 4px);
+  text-transform: uppercase;
+  color: rgba(98, 108, 158, 0.72);
+  white-space: nowrap;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.reelHeaderActive .reelHeaderLabel {
+  color: rgba(218, 176, 60, 0.98);
+  text-shadow:
+    0 0 10px rgba(201, 162, 39, 0.6),
+    0 0 24px rgba(201, 162, 39, 0.25);
+}
+
+/* Bottom active indicator bar */
+.reelHeaderBar {
+  position: absolute;
+  bottom: 0;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 162, 39, 0.9) 30%,
+    rgba(255, 220, 100, 1) 50%,
+    rgba(201, 162, 39, 0.9) 70%,
+    transparent 100%
+  );
+  border-radius: 1px;
+  box-shadow: 0 0 6px rgba(201, 162, 39, 0.7);
+}
+
+/* Active column background glow */
+.reelHeaderActive::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 110%, rgba(201, 162, 39, 0.09) 0%, transparent 68%);
+  pointer-events: none;
 }
 
 .controls {

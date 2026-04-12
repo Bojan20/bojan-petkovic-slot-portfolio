@@ -374,14 +374,17 @@ export function SlotMachine() {
 
       {/* Reel Headers */}
       <div className={styles.reelHeaders}>
-        {section.headers.map((h, i) => (
-          <div
-            key={i}
-            className={`${styles.reelHeader} ${i === 0 ? styles.reelHeaderActive : ''}`}
-          >
-            {h}
-          </div>
-        ))}
+        <div className={styles.reelHeadersInner}>
+          {section.headers.map((h, i) => (
+            <div key={i} style={{ display: 'contents' }}>
+              {i > 0 && <div className={styles.reelHeaderSep} />}
+              <div className={`${styles.reelHeader} ${i === 0 ? styles.reelHeaderActive : ''}`}>
+                <span className={styles.reelHeaderLabel}>{h || '·'}</span>
+                {i === 0 && <div className={styles.reelHeaderBar} />}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Frame + Reels zone */}
