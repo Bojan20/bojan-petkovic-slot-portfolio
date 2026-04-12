@@ -75,7 +75,21 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
     return cols
   }
 
-  // career / contact — 2 columns
+  // career — 3 columns (COMPANY + ROLE & SCOPE + KEY MILESTONES)
+  if (secId === 'career') {
+    const cols: CellData[][] = [[], [], []]
+    for (let k = 0; k < n; k++) {
+      const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
+      const isC = k === half
+      const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
+      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: d.period || '', color: d.color, center: isC, itemIndex })
+      cols[1]!.push({ type: 'detail', text: d.desc, color: d.color, center: isC })
+      cols[2]!.push({ type: 'tools', tools: d.highlights || [], color: d.color, center: isC })
+    }
+    return cols
+  }
+
+  // contact — 2 columns
   const cols: CellData[][] = [[], []]
   for (let k = 0; k < n; k++) {
     const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
