@@ -7,7 +7,7 @@ interface CellProps {
   onGameCellClick?: (itemIndex: number) => void
 }
 
-export function Cell({ data, height: _height, onGameCellClick }: CellProps) {
+export function Cell({ data, height, onGameCellClick }: CellProps) {
   const isCenter = data.center
   const cls = [
     styles.cell,
@@ -26,7 +26,7 @@ export function Cell({ data, height: _height, onGameCellClick }: CellProps) {
   return (
     <div
       className={cls}
-      style={{}}
+      style={{ height: `${height}px`, boxSizing: 'border-box' }}
       onClick={handleClick}
     >
       {/* Ambient color layer */}
