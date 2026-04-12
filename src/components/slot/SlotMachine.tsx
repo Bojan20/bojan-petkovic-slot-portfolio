@@ -135,21 +135,16 @@ export function SlotMachine() {
   const [showSecL, setShowSecL] = useState(false)
   const [showSecR, setShowSecR] = useState(false)
 
-  // Measure actual rendered cell height (CSS aspect-ratio: 1 makes them square)
+  // Measure cell height — 3 visible rows fill the zone completely
   useEffect(() => {
     function measure() {
       const el = reelsInnerRef.current
       if (!el) return
-      // Find first rendered cell and read its actual height
-      const firstCell = el.querySelector('[data-col="0"] [data-strip] > div') as HTMLElement | null
-      if (firstCell && firstCell.offsetHeight > 0) {
-        setCellHeight(firstCell.offsetHeight)
-        return
-      }
-      // Fallback: calculate from zone height
       const zoneH = el.clientHeight
-      const h = Math.round((zoneH - 12) / 3)
-      setCellHeight(h)
+      const gapY = 6   // margin-bottom on each cell
+      // 3 visible cells + 2 gaps (the 3rd cell has margin that is clipped)
+      const h = Math.floor((zoneH - 2 * gapY) / 3)
+      if (h > 0) setCellHeight(h)
     }
 
     measure()
