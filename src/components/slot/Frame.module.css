@@ -1,0 +1,115 @@
+/**
+ * Frame Styles — WoO fluted gold pillars & medallions
+ */
+
+.frame {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(20, 16, 8, 0.95) 0%,
+    rgba(8, 6, 4, 0.98) 100%
+  );
+  border: 3px solid var(--g500);
+  border-radius: 8px;
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(139, 105, 20, 0.08);
+  overflow: hidden;
+}
+
+/* ═══ Fluted Gold Pillars ═══ */
+.pillar {
+  position: relative;
+  width: clamp(18px, 3vw, 32px);
+  flex-shrink: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--g500) 0px,
+      var(--g400) 2px,
+      var(--g300) 4px,
+      var(--g400) 6px,
+      var(--g500) 8px
+    );
+  clip-path: polygon(
+    20% 0%, 80% 0%,
+    100% 3%, 100% 97%,
+    80% 100%, 20% 100%,
+    0% 97%, 0% 3%
+  );
+  z-index: 2;
+}
+
+.left {
+  border-right: 1px solid var(--g400);
+}
+
+.right {
+  border-left: 1px solid var(--g400);
+}
+
+/* ═══ Gleam animation on pillars ═══ */
+.gleam {
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(247, 232, 160, 0.15) 40%,
+    rgba(247, 232, 160, 0.25) 50%,
+    rgba(247, 232, 160, 0.15) 60%,
+    transparent 100%
+  );
+  animation: gleam-slide 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.gleam2 {
+  animation-delay: 2s;
+  opacity: 0.5;
+}
+
+@keyframes gleam-slide {
+  0% { top: -30%; }
+  100% { top: 110%; }
+}
+
+/* ═══ Reel area ═══ */
+.reelArea {
+  flex: 1;
+  padding: var(--frame-inset);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══ Corner Medallions ═══ */
+.medallion {
+  position: absolute;
+  width: clamp(16px, 2.5vw, 24px);
+  height: clamp(16px, 2.5vw, 24px);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      var(--g400) 0deg,
+      var(--g200) 15deg,
+      var(--g400) 30deg
+    );
+  border: 2px solid var(--g300);
+  box-shadow:
+    0 0 6px rgba(201, 162, 39, 0.3),
+    inset 0 0 3px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+.mtl { top: 6px; left: 6px; }
+.mtr { top: 6px; right: 6px; }
+.mbl { bottom: 6px; left: 6px; }
+.mbr { bottom: 6px; right: 6px; }

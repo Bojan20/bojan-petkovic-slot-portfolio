@@ -1,0 +1,157 @@
+/**
+ * Cell Styles — WoO authentic
+ *
+ * Gold border, dark interior, corner sparkles on center.
+ */
+
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border: 2.5px solid var(--border-cell);
+  border-radius: var(--cell-radius);
+  background: var(--bg-cell);
+  overflow: hidden;
+  transition: opacity var(--duration-normal) ease,
+              filter var(--duration-normal) ease;
+  cursor: default;
+  user-select: none;
+}
+
+/* ═══ Center row — full brightness, glow ═══ */
+.center {
+  opacity: 1;
+  filter: brightness(1);
+  border-color: var(--g300);
+  box-shadow:
+    0 0 12px rgba(240, 216, 120, 0.15),
+    0 0 4px rgba(201, 162, 39, 0.2) inset,
+    0 0 24px rgba(240, 216, 120, 0.08);
+}
+
+.center[role='button'] {
+  cursor: pointer;
+}
+
+.center[role='button']:hover {
+  border-color: var(--g200);
+  box-shadow:
+    0 0 20px rgba(240, 216, 120, 0.25),
+    0 0 6px rgba(201, 162, 39, 0.3) inset,
+    0 0 32px rgba(240, 216, 120, 0.12);
+}
+
+/* ═══ Non-center — dimmed but visible ═══ */
+.dim {
+  opacity: 0.62;
+  filter: brightness(0.78);
+}
+
+/* ═══ Icon ═══ */
+.icon {
+  font-size: clamp(20px, 3vw, 32px);
+  line-height: 1;
+}
+
+.dim .icon {
+  filter: brightness(0.75) saturate(0.65);
+}
+
+/* ═══ Title ═══ */
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(10px, 1.4vw, 14px);
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.dim .title {
+  color: var(--text-muted);
+}
+
+/* ═══ Role ═══ */
+.role {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(8px, 1.1vw, 11px);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.dim .role {
+  color: var(--text-body);
+}
+
+/* ═══ Tags ═══ */
+.tags {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: clamp(6px, 0.8vw, 8px);
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(64, 200, 248, 0.12);
+  color: var(--ice);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.dim .tag {
+  opacity: 0.45;
+}
+
+/* ═══ Demo indicator ═══ */
+.demo {
+  font-family: var(--font-display);
+  font-size: clamp(7px, 0.9vw, 9px);
+  font-weight: 600;
+  color: var(--win-green);
+  letter-spacing: 0.5px;
+}
+
+.dim .demo {
+  color: var(--text-dim);
+}
+
+/* ═══ Corner sparkles (center only) ═══ */
+.sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--g200);
+  opacity: 0;
+  animation: sparkle-pulse 3s ease-in-out infinite;
+}
+
+.tl { top: 4px; left: 4px; animation-delay: 0s; }
+.tr { top: 4px; right: 4px; animation-delay: 0.75s; }
+.bl { bottom: 4px; left: 4px; animation-delay: 1.5s; }
+.br { bottom: 4px; right: 4px; animation-delay: 2.25s; }
+
+@keyframes sparkle-pulse {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 0.6; transform: scale(1); }
+}

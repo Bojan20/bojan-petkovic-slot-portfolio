@@ -1,0 +1,73 @@
+/**
+ * SlotMachine Layout — WoO proportions
+ *
+ * Max 1100×820, centered, no full-viewport stretch.
+ */
+
+.machine {
+  width: min(100vw, var(--slot-max-w));
+  height: min(100vh, var(--slot-max-h));
+  height: min(100dvh, var(--slot-max-h));
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-deep);
+  box-shadow:
+    0 0 60px rgba(0, 0, 0, 0.8),
+    0 0 120px rgba(139, 105, 20, 0.06);
+}
+
+/* ═══ Frame wrapper — takes remaining space ═══ */
+.frameWrapper {
+  flex: 1;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+/* ═══ Reel grid — 5 columns ═══ */
+.reelGrid {
+  display: flex;
+  gap: var(--cell-gap-x);
+  height: 100%;
+  flex: 1;
+}
+
+/* ═══ Controls ═══ */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  min-height: 80px;
+}
+
+/* ═══ Bottom strip ═══ */
+.bottomStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: rgba(12, 10, 8, 0.9);
+  border-top: 1px solid var(--g600);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(8px, 1vw, 10px);
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.coin {
+  font-size: 14px;
+}
+
+.jpLabel {
+  font-family: var(--font-mono);
+  font-size: clamp(7px, 0.9vw, 9px);
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}

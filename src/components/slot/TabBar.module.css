@@ -1,0 +1,58 @@
+/**
+ * TabBar Styles — WoO gold/chrome
+ */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(10px, 1.3vw, 13px);
+  letter-spacing: 0.8px;
+  transition: all var(--duration-normal) ease;
+  border: 1px solid transparent;
+  border-bottom: none;
+}
+
+.tab:hover:not(:disabled) {
+  color: var(--text-muted);
+  background: var(--bg-surface);
+}
+
+.tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.active {
+  color: var(--g200);
+  background: rgba(201, 162, 39, 0.12);
+  border-color: var(--border-frame);
+  text-shadow: 0 0 8px rgba(240, 216, 120, 0.2);
+}
+
+.icon {
+  font-size: clamp(12px, 1.5vw, 16px);
+}
+
+.label {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .label {
+    display: inline;
+  }
+}
