@@ -100,8 +100,8 @@ export function SlotMachine() {
     getColData(0, 0)
   )
 
-  // Spin class per column (reserved for future CSS class toggling)
-  const [spinClasses] = useState<string[]>([])
+  // Active GSAP spin tweens (one per column)
+  const spinTweensRef = useRef<(gsap.core.Tween | null)[]>([])
 
   // Swipe indicators
   const [showSecL, setShowSecL] = useState(false)
@@ -164,16 +164,27 @@ export function SlotMachine() {
         })
       })
 
-      // Phase 2: Start spinning
+      // Phase 2: Start spinning — pure GSAP repeat tween (CSS module keyframes are scoped, unusable via JS string)
       setTimeout(() => {
         setSpinPhase('spinning')
         if (styles.reelsZoneSpinning) reelsZoneRef.current?.classList.add(styles.reelsZoneSpinning)
 
-        strips.forEach((strip) => {
+        const cellStep = -(cellHeight + 6)   // one cell slot upward = items scroll down
+
+        strips.forEach((strip, i) => {
           if (!strip) return
           gsap.killTweensOf(strip)
+          gsap.set(strip, { y: 0 })
           strip.style.filter = 'blur(4px) brightness(0.68)'
-          strip.style.animation = 'rspin 0.07s linear infinite'
+
+          const t = gsap.to(strip, {
+            y: cellStep,
+            duration: 0.07,
+            ease: 'none',
+            repeat: -1,
+            onRepeat: () => { gsap.set(strip, { y: 0 }) },
+          })
+          spinTweensRef.current[i] = t
         })
       }, 140)
 
@@ -186,8 +197,10 @@ export function SlotMachine() {
           const col = cols[i]
           if (!strip || !col) return
 
-          // Stop spinning
-          strip.style.animation = ''
+          // Stop spinning — kill GSAP tween, reset transform
+          spinTweensRef.current[i]?.kill()
+          spinTweensRef.current[i] = null
+          gsap.set(strip, { y: 0 })
           strip.style.filter = ''
 
           // Phase 3: Landing pulse on column
@@ -236,7 +249,7 @@ export function SlotMachine() {
         }, d)
       })
     },
-    [isSpinning, currentSectionIdx, setSpinning, setSpinPhase, setItemIdx, tickJackpot]
+    [isSpinning, currentSectionIdx, cellHeight, setSpinning, setSpinPhase, setItemIdx, tickJackpot]
   )
 
   function flashWin() {
@@ -399,7 +412,6 @@ export function SlotMachine() {
                     colIndex={ci}
                     cellHeight={cellHeight}
                     isGameReel={ci === 0}
-                    spinClass={spinClasses[ci]}
                     onGameCellClick={handleGameCellClick}
                   />
                 </div>
