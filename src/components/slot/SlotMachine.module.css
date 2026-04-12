@@ -30,27 +30,27 @@
 
 .reelHeaders {
   flex-shrink: 0;
-  background: linear-gradient(180deg, #09091a 0%, #05050f 100%);
-  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.6), inset 0 -1px 0 rgba(201,162,39,0.06);
   position: relative;
+  background: linear-gradient(180deg, #0c0c1e 0%, #060614 100%);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.30);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
   overflow: hidden;
 }
 
-/* Subtle scanline texture */
+/* Gold top line */
 .reelHeaders::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255,255,255,0.008) 2px,
-    rgba(255,255,255,0.008) 3px
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 162, 39, 0.4) 15%,
+    rgba(201, 162, 39, 0.4) 85%,
+    transparent 100%
   );
   pointer-events: none;
-  z-index: 0;
 }
 
 .reelHeadersInner {
@@ -60,15 +60,16 @@
   padding: 0 clamp(22px, 3.5vw, 38px);
 }
 
+/* Gold pillar separator — same as reelSep */
 .reelHeaderSep {
   flex-shrink: 0;
   width: 5px;
   background: linear-gradient(
     180deg,
-    rgba(201, 162, 39, 0.45) 0%,
-    rgba(201, 162, 39, 0.15) 40%,
-    rgba(201, 162, 39, 0.15) 60%,
-    rgba(201, 162, 39, 0.45) 100%
+    rgba(201, 162, 39, 0.55) 0%,
+    rgba(201, 162, 39, 0.18) 35%,
+    rgba(201, 162, 39, 0.18) 65%,
+    rgba(201, 162, 39, 0.55) 100%
   );
 }
 
@@ -79,54 +80,70 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: clamp(6px, 0.9vh, 10px) 4px clamp(5px, 0.7vh, 8px);
+  gap: clamp(2px, 0.3vh, 4px);
+  padding: clamp(5px, 0.8vh, 9px) 4px clamp(6px, 0.9vh, 10px);
   overflow: hidden;
+  transition: background 0.2s;
+}
+
+/* Active column subtle fill */
+.reelHeaderActive {
+  background: radial-gradient(ellipse at 50% 100%, rgba(201, 162, 39, 0.08) 0%, transparent 70%);
+}
+
+.reelHeaderIcon {
+  font-size: clamp(9px, 1.2vw, 12px);
+  line-height: 1;
+  color: rgba(88, 98, 150, 0.6);
+  transition: color 0.2s, filter 0.2s;
+}
+
+.reelHeaderActive .reelHeaderIcon {
+  color: rgba(201, 162, 39, 0.85);
+  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.6));
 }
 
 .reelHeaderLabel {
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(8px, 1.1vw, 11px);
-  letter-spacing: clamp(2px, 0.55vw, 4px);
+  font-size: clamp(7px, 1vw, 10px);
+  letter-spacing: clamp(1.8px, 0.5vw, 3.5px);
   text-transform: uppercase;
-  color: rgba(98, 108, 158, 0.72);
+  color: rgba(105, 115, 168, 0.78);
   white-space: nowrap;
+  line-height: 1;
   transition: color 0.2s, text-shadow 0.2s;
 }
 
 .reelHeaderActive .reelHeaderLabel {
-  color: rgba(218, 176, 60, 0.98);
+  color: rgba(222, 182, 68, 0.98);
   text-shadow:
-    0 0 10px rgba(201, 162, 39, 0.6),
-    0 0 24px rgba(201, 162, 39, 0.25);
+    0 0 8px rgba(201, 162, 39, 0.55),
+    0 0 20px rgba(201, 162, 39, 0.22);
 }
 
-/* Bottom active indicator bar */
+/* Bottom indicator bar — all cols, but only visible when active */
 .reelHeaderBar {
   position: absolute;
   bottom: 0;
-  left: 18%;
-  right: 18%;
+  left: 15%; right: 15%;
   height: 2px;
+  border-radius: 1px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(201, 162, 39, 0.9) 30%,
-    rgba(255, 220, 100, 1) 50%,
-    rgba(201, 162, 39, 0.9) 70%,
+    rgba(201, 162, 39, 0.88) 30%,
+    rgba(255, 224, 110, 1) 50%,
+    rgba(201, 162, 39, 0.88) 70%,
     transparent 100%
   );
-  border-radius: 1px;
-  box-shadow: 0 0 6px rgba(201, 162, 39, 0.7);
+  box-shadow: 0 0 7px rgba(201, 162, 39, 0.65);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-/* Active column background glow */
-.reelHeaderActive::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 110%, rgba(201, 162, 39, 0.09) 0%, transparent 68%);
-  pointer-events: none;
+.reelHeaderActive .reelHeaderBar {
+  opacity: 1;
 }
 
 .controls {

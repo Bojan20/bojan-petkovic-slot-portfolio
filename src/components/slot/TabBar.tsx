@@ -20,7 +20,8 @@ export function TabBar({ sections, activeSectionIdx, onChange, disabled }: TabBa
           role="tab"
           aria-selected={i === activeSectionIdx}
         >
-          {section.label}
+          <span className={styles.tabIcon}>{section.icon}</span>
+          <span className={styles.tabLabel}>{section.label}</span>
         </button>
       ))}
     </div>

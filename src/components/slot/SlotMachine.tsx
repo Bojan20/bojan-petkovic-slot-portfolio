@@ -379,8 +379,9 @@ export function SlotMachine() {
             <div key={i} style={{ display: 'contents' }}>
               {i > 0 && <div className={styles.reelHeaderSep} />}
               <div className={`${styles.reelHeader} ${i === 0 ? styles.reelHeaderActive : ''}`}>
-                <span className={styles.reelHeaderLabel}>{h || '·'}</span>
-                {i === 0 && <div className={styles.reelHeaderBar} />}
+                <span className={styles.reelHeaderIcon}>{section.headerIcons[i]}</span>
+                <span className={styles.reelHeaderLabel}>{h}</span>
+                <div className={styles.reelHeaderBar} />
               </div>
             </div>
           ))}

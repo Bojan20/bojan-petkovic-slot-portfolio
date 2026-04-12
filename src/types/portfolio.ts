@@ -4,7 +4,9 @@ export type CellType = 'game' | 'scope' | 'work' | 'tools' | 'demo' | 'simple' |
 export interface SectionDef {
   id: SectionId
   label: string
+  icon: string       // Tab icon symbol
   headers: string[]  // Column header labels
+  headerIcons: string[] // Column header icon symbols
   numCols: number
 }
 
