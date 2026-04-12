@@ -10,7 +10,7 @@ import type { ProjectItem, SkillItem, SimpleItem, SectionDef } from '../types'
 // ============================================================
 
 export const SECTIONS: SectionDef[] = [
-  { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'SCOPE', 'THE WORK', 'DEMO'],   headerIcons: ['⬡', '◎', '◆', '▶'], numCols: 4 },
+  { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'DETAILS', 'DEMO'],   headerIcons: ['⬡', '◎', '▶'], numCols: 3 },
   { id: 'skills',   label: 'SKILLS',   icon: '◉', headers: ['SKILL', 'DETAILS', 'TOOLS'],                    headerIcons: ['◈', '◎', '⚙'],           numCols: 3 },
   { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'STORY', 'HIGHLIGHTS'],               headerIcons: ['◈', '◎', '◆'],            numCols: 3 },
   { id: 'career',   label: 'CAREER',   icon: '◆', headers: ['COMPANY', 'ROLE & SCOPE', 'KEY MILESTONES'],    headerIcons: ['◆', '◎', '★'],             numCols: 3 },
