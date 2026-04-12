@@ -134,17 +134,30 @@ export function SlotMachine() {
   const [showSecL, setShowSecL] = useState(false)
   const [showSecR, setShowSecR] = useState(false)
 
-  // Measure cell height on mount/resize
+  // Measure cell height on mount/resize — target square cells
   useEffect(() => {
     function measure() {
       const el = reelsInnerRef.current
       if (!el) return
       const zoneH = el.clientHeight
       const gapY = 6
-      const h = Math.round((zoneH - 2 * gapY) / 3)
+      const maxByHeight = Math.round((zoneH - 2 * gapY) / 3)
+
+      // Get actual rendered column width for square cells
+      // Use RAF to ensure cols are painted before querying
+      const firstCol = el.querySelector('[data-col="0"]') as HTMLElement | null
+      const colW = firstCol ? firstCol.clientWidth : 0
+
+      // Use column width for square cells, bounded by available height
+      const h = colW > 0 ? Math.min(colW, maxByHeight) : maxByHeight
       setCellHeight(h)
     }
+
+    // First pass — may not have cols yet
     measure()
+    // Second pass after paint — cols are rendered
+    const raf = requestAnimationFrame(measure)
+    return () => cancelAnimationFrame(raf)
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
   }, [])
