@@ -5,7 +5,8 @@
   align-items: center;
   justify-content: center;
   gap: clamp(3px, 0.6vh, 7px);
-  padding: clamp(8px, 1.4vh, 18px) clamp(5px, 1vw, 12px);
+  padding: clamp(5px, 1vw, 12px);
+  aspect-ratio: 1;
   position: relative;
   overflow: hidden;
   background: rgba(10, 9, 8, 0.5);

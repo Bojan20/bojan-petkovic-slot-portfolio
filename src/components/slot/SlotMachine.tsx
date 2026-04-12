@@ -34,7 +34,7 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
   const secId = SECTIONS[sectionIdx]!.id
 
   if (secId === 'projects') {
-    const cols: CellData[][] = [[], [], [], [], []]
+    const cols: CellData[][] = [[], [], [], []]
     for (let k = 0; k < n; k++) {
       const p = wrap(arr as typeof PROJECTS, centerIdx - half + k) as typeof PROJECTS[0]
       const isC = k === half
@@ -42,8 +42,7 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
       cols[0]!.push({ type: 'game', ico: p.ico, name: p.name, studio: p.studio, color: p.color, center: isC, itemIndex })
       cols[1]!.push({ type: 'scope', scope: p.scope, color: p.color, center: isC })
       cols[2]!.push({ type: 'work', text: p.work, color: p.color, center: isC })
-      cols[3]!.push({ type: 'tools', tools: p.tools, color: p.color, center: isC })
-      cols[4]!.push({ type: 'demo', demo: p.demo, color: p.color, center: isC })
+      cols[3]!.push({ type: 'demo', demo: p.demo, color: p.color, center: isC })
     }
     return cols
   }
