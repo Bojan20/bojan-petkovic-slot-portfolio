@@ -135,18 +135,27 @@ export function SlotMachine() {
   const [showSecL, setShowSecL] = useState(false)
   const [showSecR, setShowSecR] = useState(false)
 
-  // Measure cell height — 3 visible rows fill the zone completely
+  // Measure cell height — target square cells (width = height)
+  // If zone is tall enough for 3 × colWidth, cells are square.
+  // Otherwise fill the zone height evenly.
   useEffect(() => {
     function measure() {
       const el = reelsInnerRef.current
       if (!el) return
       const zoneH = el.clientHeight
-      const gapY = 6   // margin-bottom on each cell
-      // 3 visible cells + 2 gaps (the 3rd cell has margin that is clipped)
-      const h = Math.floor((zoneH - 2 * gapY) / 3)
+      const gapY = 6
+      const maxByHeight = Math.floor((zoneH - 2 * gapY) / 3)
+
+      // Read actual column width after paint
+      const firstCol = el.querySelector('[data-col="0"]') as HTMLElement | null
+      const colW = firstCol ? firstCol.clientWidth : 0
+
+      // Square = colWidth, but capped to fit 3 rows in zone
+      const h = colW > 0 ? Math.min(colW, maxByHeight) : maxByHeight
       if (h > 0) setCellHeight(h)
     }
 
+    // Two-pass: first for fallback, second after columns paint
     measure()
     const raf = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)

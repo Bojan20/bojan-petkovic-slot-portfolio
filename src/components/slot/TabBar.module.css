@@ -37,8 +37,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  padding: clamp(4px, 0.7vh, 7px) clamp(4px, 0.8vw, 10px);
+  gap: 0px;
+  padding: clamp(2px, 0.35vh, 4px) clamp(4px, 0.8vw, 10px);
   font-family: var(--f-ui);
   font-weight: 700;
   font-size: clamp(9px, 1.3vw, 12px);
@@ -111,10 +111,7 @@
 }
 
 .tabIcon {
-  font-size: clamp(11px, 1.6vw, 16px);
-  line-height: 1;
-  opacity: 0.65;
-  transition: opacity 0.15s;
+  display: none;
 }
 
 .active .tabIcon {

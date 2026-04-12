@@ -18,7 +18,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(
     90deg,
     #0a0a20 0%, #282870 7%, #6060b8 18%,
@@ -32,8 +32,8 @@
   background: rgba(2, 2, 8, 0.92);
   border: 1.5px solid var(--amb-dim);
   border-radius: 6px;
-  margin: clamp(2px, 0.35vh, 4px) 0 clamp(2px, 0.3vh, 3px);
-  padding: clamp(3px, 0.55vh, 6px) clamp(10px, 2.2vw, 24px);
+  margin: clamp(1px, 0.2vh, 2px) 0 clamp(1px, 0.15vh, 2px);
+  padding: clamp(2px, 0.35vh, 4px) clamp(10px, 2.2vw, 24px);
   position: relative;
   overflow: hidden;
   box-shadow: 0 0 36px var(--amb-glow), inset 0 0 60px rgba(232, 192, 96, 0.015);
@@ -55,7 +55,7 @@
 .title {
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(16px, 3.6vw, 34px);
+  font-size: clamp(12px, 2.5vw, 22px);
   letter-spacing: clamp(5px, 1.6vw, 16px);
   text-align: center;
   line-height: 1;
@@ -72,32 +72,19 @@
   font-family: var(--f-ui);
   font-weight: 600;
   text-align: center;
-  font-size: clamp(8px, 1.2vw, 11px);
+  font-size: clamp(6px, 0.9vw, 9px);
   letter-spacing: clamp(2px, 0.65vw, 5px);
   color: var(--ice);
   opacity: 0.82;
-  margin-top: clamp(2px, 0.3vh, 4px);
+  margin-top: 1px;
   position: relative;
   z-index: 1;
 }
 
 .ledStrip {
-  display: flex;
-  gap: 3px;
-  justify-content: center;
-  padding: clamp(2px, 0.3vh, 4px) 0;
-  flex-wrap: wrap;
+  display: none;
 }
 
 .led {
-  width: clamp(4px, 1vw, 7px);
-  height: clamp(4px, 1vw, 7px);
-  border-radius: 50%;
-  flex-shrink: 0;
-  animation: lp 1.4s ease-in-out infinite;
-}
-
-@keyframes lp {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.07; transform: scale(0.4); }
+  display: none;
 }
