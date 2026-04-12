@@ -26,7 +26,7 @@ describe('portfolio data', () => {
   })
 
   it('has 5 about entries', () => {
-    expect(ABOUT_DATA).toHaveLength(7)
+    expect(ABOUT_DATA).toHaveLength(5)
   })
 
   it('has 4 career entries', () => {

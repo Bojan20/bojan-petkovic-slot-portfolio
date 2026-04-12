@@ -110,111 +110,95 @@ export const PROJECTS: ProjectItem[] = [
 
 export const SKILLS_DATA: SkillItem[] = [
   {
-    ico: '🎰',
-    name: 'SLOT AUDIO',
-    desc: 'Full sonic identity — base ambience through free spins to jackpot celebration. 50+ titles shipped.',
-    tools: ['FMOD', 'Wwise', 'Howler.js'],
-    color: '#ffd700',
-  },
-  {
     ico: '🎵',
-    name: 'COMPOSITION',
-    desc: 'Adaptive layered music that follows game state in real time — loops, stingers, dynamic transitions.',
-    tools: ['Logic Pro', 'Reaper', 'Kontakt'],
-    color: '#00e5ff',
+    name: 'MUSIC PRODUCTION',
+    desc: 'Adaptive layered compositions — base game loops, free spin escalation, jackpot fanfares. Seamless state transitions timed to volatility and player engagement.',
+    tools: ['Logic Pro', 'Reaper', 'Kontakt', 'Spitfire'],
+    color: '#ffd700',
   },
   {
     ico: '🔊',
     name: 'SOUND DESIGN',
-    desc: 'Custom SFX libraries — reel mechanics, wins, UI feedback, ambience, transition effects.',
-    tools: ['iZotope RX', 'Logic Pro', 'Reaper'],
-    color: '#ff00aa',
+    desc: '200+ custom SFX per title — reel mechanics, coin physics, win escalation, UI feedback, ambience layers. Every asset purpose-built from scratch.',
+    tools: ['iZotope RX', 'Logic Pro', 'Reaper', 'Krotos'],
+    color: '#00e5ff',
   },
   {
     ico: '⚙️',
-    name: 'INTEGRATION',
-    desc: 'Wiring audio into Phaser, Unity, PixiJS with event-driven playback logic.',
-    tools: ['Phaser 3', 'Unity', 'PixiJS'],
+    name: 'AUDIO INTEGRATION',
+    desc: 'Event-driven playback systems wired directly into game engines. Trigger maps, state machines, volume ducking, spatial positioning.',
+    tools: ['Howler.js', 'Phaser 3', 'Unity', 'PixiJS'],
     color: '#00ff88',
+  },
+  {
+    ico: '🎛️',
+    name: 'AUDIO DIRECTION',
+    desc: 'Creative leadership across full titles — defining sonic identity, setting quality standards, supervising mix, final sign-off on every game state.',
+    tools: ['Confluence', 'Figma', 'JIRA', 'Slack'],
+    color: '#ff00aa',
   },
   {
     ico: '🧪',
     name: 'AUDIO QA',
-    desc: 'Systematic trigger verification across all game states before release.',
-    tools: ['JIRA', 'TestRail', 'Custom'],
+    desc: 'Systematic trigger verification across every game state — base, free spins, bonus, jackpot. Zero audio defects at launch across 50+ certified titles.',
+    tools: ['TestRail', 'JIRA', 'Custom Scripts'],
     color: '#9944ff',
   },
   {
-    ico: '🎛️',
-    name: 'DIRECTION',
-    desc: 'Creative lead — from brief to delivery. Team mentoring. Quality standards.',
-    tools: ['Confluence', 'Figma', 'Slack'],
+    ico: '🎰',
+    name: 'SLOT SPECIALIZATION',
+    desc: 'Deep domain expertise in real-money slot audio. Regulatory compliance (EU, UK, AUS), player psychology, session fatigue management, volatility-aware audio design.',
+    tools: ['FMOD', 'Wwise', 'Howler.js', 'Tone.js'],
     color: '#ff6600',
   },
 ]
 
 // ============================================================
-// ABOUT (7 aspects — one per reel row)
-// Col 0: PROFILE (simple — icon + role + subtitle)
-// Col 1: STORY   (detail — bio paragraph)
-// Col 2: STATS   (tools — stat/highlight badges)
+// ABOUT (5 personal aspects — WHO is Bojan)
+// Col 0: PROFILE (simple — icon + title + subtitle)
+// Col 1: STORY   (detail — personal paragraph)
+// Col 2: FACTS   (tools — personal stat badges)
 // ============================================================
 
 export const ABOUT_DATA: SimpleItem[] = [
   {
-    ico: '🎵',
-    name: 'AUDIO PRODUCER',
-    period: 'Senior · Full Pipeline',
-    desc: '8+ years in slot and interactive game audio. Full pipeline ownership — concept, composition, implementation logic, QA, and final release preparation.',
-    highlights: ['8+ YEARS', '50+ TITLES', 'FULL PIPELINE', 'REAL MONEY'],
+    ico: '👤',
+    name: 'WHO I AM',
+    period: 'Belgrade, Serbia',
+    desc: 'Senior audio professional from Belgrade, Serbia. 8+ years specializing in iGaming and slot audio production. Classically trained musician turned game audio expert — every score and sound effect carries musical intent and technical precision.',
+    highlights: ['BELGRADE, RS', '8+ YEARS', 'IGAMING SPECIALIST', 'MUSICIAN'],
     color: '#ffd700',
   },
   {
-    ico: '🔊',
-    name: 'SOUND DESIGNER',
-    period: 'Custom Libraries · FX',
-    desc: '200+ custom SFX assets per title — reel mechanics, coin physics, win escalation, ambience layers. Every asset purpose-built from scratch for the game.',
-    highlights: ['200+ SFX/TITLE', 'CUSTOM LIBRARIES', 'TRIGGER LOGIC', 'QA VALIDATED'],
+    ico: '🎯',
+    name: 'MY PHILOSOPHY',
+    period: 'Zero-Defect · Full Pipeline',
+    desc: 'Full pipeline ownership from concept to certified release. Every asset purpose-built, every trigger QA-verified, every mix balanced for long casino sessions. Audio is not decoration — it drives player engagement and brand identity.',
+    highlights: ['FULL OWNERSHIP', 'ZERO DEFECTS', 'PURPOSE-BUILT', 'BRAND IDENTITY'],
     color: '#00e5ff',
   },
   {
-    ico: '🎼',
-    name: 'COMPOSER',
-    period: 'Adaptive Music · State Sync',
-    desc: 'Adaptive layered music systems — base game, free spins, feature escalation. Seamless state transitions timed to volatility flow and player engagement.',
-    highlights: ['ADAPTIVE LAYERS', 'STATE SYNC', 'LONG-SESSION', 'FEATURE RAMP'],
+    ico: '🌍',
+    name: 'WORK STYLE',
+    period: 'Remote Worldwide',
+    desc: 'Remote delivery to studios across EU, UK, North America, and Australia. Comfortable managing 10+ parallel titles under tight release cycles. Clear communication, structured milestones, predictable delivery — every single time.',
+    highlights: ['REMOTE WW', '10+ PARALLEL', 'EU · UK · US · AUS', 'ON-TIME ALWAYS'],
     color: '#9944ff',
   },
   {
-    ico: '🎛️',
-    name: 'AUDIO DIRECTOR',
-    period: 'Creative Lead · Standards',
-    desc: 'Creative direction across full titles — defined audio identity, set quality standards, supervised mix, validated all game states before final sign-off.',
-    highlights: ['CREATIVE DIR.', 'MIX SUPERVISION', 'FINAL DELIVERY', 'BRAND AUDIO'],
+    ico: '🎹',
+    name: 'MUSICAL ROOTS',
+    period: 'Classical · Performance',
+    desc: 'BA in Accordion & Piano Performance from Faculty of Music Belgrade. Classical foundation in harmony, counterpoint, orchestration, and live performance. This training shapes every adaptive composition and dynamic score.',
+    highlights: ['BA MUSIC PERF.', 'HARMONY', 'ORCHESTRATION', 'LIVE PERFORMER'],
     color: '#ff00aa',
-  },
-  {
-    ico: '👥',
-    name: 'TEAM LEAD',
-    period: 'IGT · 3-person team',
-    desc: 'Led team of 3 sound designers at IGT. Task planning, performance mentoring, EU regulated market compliance, and creative direction across multiple simultaneous titles.',
-    highlights: ['IGT 2020–2024', '3-PERSON TEAM', 'EU REGULATED', 'MENTORING'],
-    color: '#ff6600',
-  },
-  {
-    ico: '🎓',
-    name: 'EDUCATION',
-    period: 'SAE · Faculty of Music',
-    desc: 'SAE Institute Belgrade — Audio Production Diploma (Studio Recording, Mixing, Post, Interactive Media). Faculty of Music Belgrade — BA Accordion & Piano Performance.',
-    highlights: ['SAE BELGRADE', 'FACULTY OF MUSIC', 'BA MUSIC PERF.', 'AUDIO DIPLOMA'],
-    color: '#00ff88',
   },
   {
     ico: '⚡',
     name: 'INNOVATION',
-    period: 'AI Workflow · Remote WW',
-    desc: 'AI-assisted production tools for faster iteration. Logic Pro + Reaper + iZotope RX + Howler.js pipeline. Remote worldwide delivery — EU, UK, North America, AUS.',
-    highlights: ['AI WORKFLOW', 'REMOTE WW', 'LOGIC + REAPER', 'IZOTOPE RX'],
+    period: 'AI · Modern Workflow',
+    desc: 'AI-assisted production for faster iteration without quality loss. Custom toolchains built around Logic Pro, Reaper, iZotope RX, and Howler.js. Always exploring new tech to push slot audio quality forward.',
+    highlights: ['AI WORKFLOW', 'CUSTOM TOOLS', 'FAST ITERATION', 'TECH-FORWARD'],
     color: '#00ffcc',
   },
 ]
