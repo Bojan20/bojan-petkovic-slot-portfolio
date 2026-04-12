@@ -251,14 +251,17 @@
   left: 0;
   right: 0;
   top: 0;
-  height: 34%;
+  /* Dynamic: covers everything above cell[2] (top visible row).
+     = zone_center - 1.5 * cellH - 2*gap ≈ 50% - cellH - 6px
+     Soft fade still bleeds slightly into cell[2] for slot machine atmosphere. */
+  height: calc(50% - var(--cell-h, 80px));
   z-index: 50;
   pointer-events: none;
   background: linear-gradient(
     180deg,
     rgba(3, 5, 8, 0.97) 0%,
-    rgba(3, 5, 8, 0.7) 32%,
-    rgba(3, 5, 8, 0.14) 72%,
+    rgba(3, 5, 8, 0.7) 30%,
+    rgba(3, 5, 8, 0.14) 70%,
     transparent 100%
   );
 }
@@ -269,14 +272,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 34%;
+  height: calc(50% - var(--cell-h, 80px));
   z-index: 50;
   pointer-events: none;
   background: linear-gradient(
     0deg,
     rgba(3, 5, 8, 0.97) 0%,
-    rgba(3, 5, 8, 0.7) 32%,
-    rgba(3, 5, 8, 0.14) 72%,
+    rgba(3, 5, 8, 0.7) 30%,
+    rgba(3, 5, 8, 0.14) 70%,
     transparent 100%
   );
 }

@@ -126,8 +126,9 @@ export function SlotMachine() {
     tickJackpot,
   } = useSlotStore()
 
-  // Measured cell height
+  // Measured cell height + zone height (needed for correct stripTop)
   const [cellHeight, setCellHeight] = useState(0)
+  const [zoneHeight, setZoneHeight] = useState(0)
   const reelsInnerRef = useRef<HTMLDivElement>(null)
   const flashRef = useRef<HTMLDivElement>(null)
   const reelsZoneRef = useRef<HTMLDivElement>(null)
@@ -165,7 +166,10 @@ export function SlotMachine() {
       const maxByHeight = Math.floor((zoneH - 2 * gapY) / 3)
       // Square: use colWidth, but cap to fit 3 rows in available height
       const h = colW > 0 ? Math.min(colW, maxByHeight) : maxByHeight
-      if (h > 0) setCellHeight(h)
+      if (h > 0) {
+        setCellHeight(h)
+        setZoneHeight(zoneH)
+      }
     }
 
     measure()
@@ -414,6 +418,13 @@ export function SlotMachine() {
 
   const section = SECTIONS[currentSectionIdx]!
 
+  // stripTop: positions cell[3] (center) at exact vertical center of the zone
+  // Formula: strip_top + 3*(cellHeight+6) = zoneH/2 - cellHeight/2
+  //        → strip_top = zoneH/2 - 3.5*cellHeight - 18
+  const stripTop = zoneHeight > 0 && cellHeight > 0
+    ? Math.round(zoneHeight / 2 - 3.5 * cellHeight - 18)
+    : -(cellHeight * 2 + 12)  // fallback until zone measured
+
   return (
     <div className={styles.machine}>
       {/* Header */}
@@ -449,6 +460,7 @@ export function SlotMachine() {
           <div
             ref={reelsZoneRef}
             className={`${styles.reelsZone} ${isSpinning ? styles.reelsZoneSpinning : ''}`}
+            style={{ '--cell-h': `${cellHeight}px` } as React.CSSProperties}
             onTouchStart={handleZoneTouchStart}
             onTouchMove={handleZoneTouchMove}
             onTouchEnd={handleZoneTouchEnd}
@@ -475,6 +487,7 @@ export function SlotMachine() {
                     cells={cells}
                     colIndex={ci}
                     cellHeight={cellHeight}
+                    stripTop={stripTop}
                     isGameReel={ci === 0}
                     onGameCellClick={handleGameCellClick}
                   />

@@ -7,6 +7,7 @@ interface ReelColumnProps {
   cells: CellData[]  // 7 cells (3 visible + buffer)
   colIndex: number
   cellHeight: number
+  stripTop: number   // passed from SlotMachine — positions cell[3] at zone center
   isGameReel?: boolean
   spinClass?: string
   onGameCellClick?: (itemIndex: number) => void
@@ -14,15 +15,12 @@ interface ReelColumnProps {
 
 // Ref points to the outer column div
 export const ReelColumn = forwardRef<HTMLDivElement, ReelColumnProps>(
-  function ReelColumn({ cells, colIndex, cellHeight, isGameReel, spinClass, onGameCellClick }, ref) {
+  function ReelColumn({ cells, colIndex, cellHeight, stripTop, isGameReel, spinClass, onGameCellClick }, ref) {
     const columnCls = [
       styles.column,
       isGameReel ? styles.gameReel : '',
       spinClass || '',
     ].filter(Boolean).join(' ')
-
-    // Strip top offset: center row (index 3 of 7) sits in the visible middle
-    const stripTop = -(cellHeight * 2 + 6 * 2)
 
     return (
       <div ref={ref} className={columnCls} data-col={colIndex}>
