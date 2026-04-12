@@ -149,7 +149,13 @@ export function SlotMachine() {
       setSpinning(true)
       setSpinPhase('windup')
 
-      const numCols = getColData(currentSectionIdx, newIdx).length
+      // Set target data IMMEDIATELY so it's ready under the blur
+      // When columns land and blur clears, the correct symbols are already there
+      const targetData = getColData(currentSectionIdx, newIdx)
+      setColData(targetData)
+      setItemIdx(newIdx)
+
+      const numCols = targetData.length
       const cols = colRefs.current.slice(0, numCols)
       const strips = stripRefs.current.slice(0, numCols)
 
@@ -233,12 +239,11 @@ export function SlotMachine() {
             )
           }, 0)
 
-          // If last column
+          // If last column — finalize
           if (i === numCols - 1) {
             setTimeout(() => {
               if (styles.reelsZoneSpinning) reelsZoneRef.current?.classList.remove(styles.reelsZoneSpinning)
-              setColData(getColData(currentSectionIdx, newIdx))
-              setItemIdx(newIdx)
+              // Data already set at spin start — no swap needed
               flashWin()
               waveLanding(numCols)
               setSpinPhase('landed')
