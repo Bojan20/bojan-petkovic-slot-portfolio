@@ -32,22 +32,24 @@
   display: flex;
   flex-shrink: 0;
   background: #02020a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
 }
 
 .reelHeader {
   flex: 1;
   text-align: center;
   font-family: var(--f-ui);
-  font-weight: 600;
-  font-size: clamp(7px, 1.2vw, 10px);
-  letter-spacing: clamp(1px, 0.4vw, 3px);
-  color: #282840;
-  padding: clamp(3px, 0.55vh, 6px) 0;
+  font-weight: 700;
+  font-size: clamp(9px, 1.4vw, 12px);
+  letter-spacing: clamp(1.5px, 0.5vw, 4px);
+  color: rgba(140, 148, 190, 0.75);
+  padding: clamp(5px, 0.8vh, 9px) 0;
+  text-transform: uppercase;
 }
 
 .reelHeaderActive {
-  color: rgba(201, 162, 39, 0.55);
+  color: rgba(201, 162, 39, 0.95);
+  text-shadow: 0 0 12px rgba(201, 162, 39, 0.45);
 }
 
 .controls {
