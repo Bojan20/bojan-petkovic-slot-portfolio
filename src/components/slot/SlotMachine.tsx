@@ -147,26 +147,27 @@ export function SlotMachine() {
   const [showSecR, setShowSecR] = useState(false)
 
   // Measure cell height — target square cells (width = height)
-  // If zone is tall enough for 3 × colWidth, cells are square.
-  // Otherwise fill the zone height evenly.
+  // Calculate column width mathematically (no DOM chicken-and-egg)
   useEffect(() => {
     function measure() {
       const el = reelsInnerRef.current
       if (!el) return
+      const zoneW = el.clientWidth
       const zoneH = el.clientHeight
       const gapY = 6
+      const numCols = SECTIONS[currentSectionIdx]?.numCols ?? 5
+      const sepW = 5           // reelSep width
+      const gapX = 6           // reelsInner flex gap
+      const numSeps = numCols - 1
+      // 9 flex children (5 cols + 4 seps) = 8 gaps total
+      const totalGaps = (numCols + numSeps - 1) * gapX
+      const colW = Math.floor((zoneW - numSeps * sepW - totalGaps) / numCols)
       const maxByHeight = Math.floor((zoneH - 2 * gapY) / 3)
-
-      // Read actual column width after paint
-      const firstCol = el.querySelector('[data-col="0"]') as HTMLElement | null
-      const colW = firstCol ? firstCol.clientWidth : 0
-
-      // Square = colWidth, but capped to fit 3 rows in zone
+      // Square: use colWidth, but cap to fit 3 rows in available height
       const h = colW > 0 ? Math.min(colW, maxByHeight) : maxByHeight
       if (h > 0) setCellHeight(h)
     }
 
-    // Two-pass: first for fallback, second after columns paint
     measure()
     const raf = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
@@ -174,7 +175,7 @@ export function SlotMachine() {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', measure)
     }
-  }, [])
+  }, [currentSectionIdx])
 
   // Update col data when section/item changes
   useEffect(() => {
