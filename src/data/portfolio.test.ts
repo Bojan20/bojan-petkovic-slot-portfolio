@@ -30,7 +30,7 @@ describe('portfolio data', () => {
   })
 
   it('has 4 career entries', () => {
-    expect(EXP_DATA).toHaveLength(6)
+    expect(EXP_DATA).toHaveLength(4)
   })
 
   it('has 3 contact entries', () => {

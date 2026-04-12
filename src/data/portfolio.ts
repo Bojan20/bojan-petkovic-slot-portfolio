@@ -186,11 +186,11 @@ export const ABOUT_DATA: SimpleItem[] = [
     color: '#9944ff',
   },
   {
-    ico: '🎹',
-    name: 'MUSICAL ROOTS',
-    period: 'Classical · Performance',
-    desc: 'BA in Accordion & Piano Performance from Faculty of Music Belgrade. Classical foundation in harmony, counterpoint, orchestration, and live performance. This training shapes every adaptive composition and dynamic score.',
-    highlights: ['BA MUSIC PERF.', 'HARMONY', 'ORCHESTRATION', 'LIVE PERFORMER'],
+    ico: '🎓',
+    name: 'EDUCATION',
+    period: 'SAE · Faculty of Music',
+    desc: 'SAE Institute Belgrade — Audio Production Diploma (studio recording, mixing, post-production, interactive media). Faculty of Music Belgrade — BA in Accordion & Piano Performance. Classical harmony, orchestration, and live performance training.',
+    highlights: ['SAE DIPLOMA', 'BA MUSIC PERF.', 'AUDIO PRODUCTION', 'CLASSICAL'],
     color: '#ff00aa',
   },
   {
@@ -204,7 +204,7 @@ export const ABOUT_DATA: SimpleItem[] = [
 ]
 
 // ============================================================
-// CAREER (4)
+// CAREER (4 — work experience only, no education)
 // ============================================================
 
 export const EXP_DATA: SimpleItem[] = [
@@ -239,22 +239,6 @@ export const EXP_DATA: SimpleItem[] = [
     desc: 'Independent audio contractor for emerging iGaming studios. Built custom SFX libraries, composed adaptive music systems, and established the production workflow that became the foundation for VanVinkl studio methodology.',
     highlights: ['INDEPENDENT', 'CUSTOM LIBS', 'ADAPTIVE MUSIC', 'WORKFLOW DEV'],
     color: '#ff6600',
-  },
-  {
-    ico: '🎓',
-    name: 'SAE INSTITUTE',
-    period: 'Audio Production Diploma',
-    desc: 'SAE Institute Belgrade — Audio Production Diploma. Studio recording, mixing, mastering, post-production, and interactive media audio. Hands-on training with industry-standard DAWs, outboard gear, and spatial audio workflows.',
-    highlights: ['SAE BELGRADE', 'STUDIO REC.', 'MIXING & POST', 'INTERACTIVE'],
-    color: '#9944ff',
-  },
-  {
-    ico: '🎹',
-    name: 'FACULTY OF MUSIC',
-    period: 'BA Performance',
-    desc: 'Faculty of Music Belgrade — BA in Accordion & Piano Performance. Classical training in harmony, composition theory, orchestration, and live performance. Musical foundation that informs every game score and adaptive composition.',
-    highlights: ['BA MUSIC', 'COMPOSITION', 'ORCHESTRATION', 'LIVE PERF.'],
-    color: '#00ff88',
   },
 ]
 
