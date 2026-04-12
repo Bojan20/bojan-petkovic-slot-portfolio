@@ -1,41 +1,41 @@
-/**
- * SpinButton — WoO circular design
- *
- * Dark metal gradient, gold border, pulsing ring animation.
- * Disabled during spin, wiggle animation when idle.
- */
-
-import { memo } from 'react'
 import styles from './SpinButton.module.css'
 
 interface SpinButtonProps {
   isSpinning: boolean
+  credits: number
+  jackpot: number
   onClick: () => void
 }
 
-const SpinButton = memo(function SpinButton({
-  isSpinning,
-  onClick,
-}: SpinButtonProps) {
+export function SpinButton({ isSpinning, credits, jackpot, onClick }: SpinButtonProps) {
   return (
-    <div className={styles.wrapper}>
-      {/* Pulsing ring */}
-      <span
-        className={`${styles.ring} ${isSpinning ? styles.spinning : ''}`}
-      />
+    <>
+      {/* CREDITS stat box */}
+      <div className={styles.statBox}>
+        <div className={styles.statLbl}>CREDITS</div>
+        <div className={styles.statValRed}>{credits}</div>
+      </div>
 
-      <button
-        className={`${styles.btn} ${isSpinning ? styles.disabled : styles.idle}`}
-        onClick={onClick}
-        disabled={isSpinning}
-        aria-label={isSpinning ? 'Spinning...' : 'Spin the reels'}
-      >
-        <span className={styles.label}>
-          {isSpinning ? '⏳' : 'SPIN'}
-        </span>
-      </button>
-    </div>
+      {/* Circular SPIN button */}
+      <div className={styles.spinWrap}>
+        <button
+          className={`${styles.btn} ${!isSpinning ? styles.isIdle : ''}`}
+          onClick={onClick}
+          disabled={isSpinning}
+          aria-label={isSpinning ? 'Spinning…' : 'Spin the reels'}
+        >
+          <div className={styles.ring} />
+          <span className={styles.label}>{isSpinning ? '· · ·' : 'SPIN'}</span>
+        </button>
+      </div>
+
+      {/* JACKPOT stat box */}
+      <div className={styles.statBox}>
+        <div className={styles.statLbl}>JACKPOT</div>
+        <div className={styles.statValGold}>${jackpot.toLocaleString()}</div>
+      </div>
+    </>
   )
-})
+}
 
 export default SpinButton

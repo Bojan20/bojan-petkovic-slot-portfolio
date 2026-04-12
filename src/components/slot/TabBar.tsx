@@ -1,44 +1,30 @@
-/**
- * TabBar — Category filter tabs
- *
- * Gold active state, WoO style inactive tabs.
- */
-
-import { memo } from 'react'
-import type { PortfolioCategory, TabDef } from '../../types'
+import type { SectionDef } from '../../types'
 import styles from './TabBar.module.css'
 
 interface TabBarProps {
-  tabs: TabDef[]
-  activeTab: PortfolioCategory
-  onTabChange: (tab: PortfolioCategory) => void
-  disabled?: boolean
+  sections: SectionDef[]
+  activeSectionIdx: number
+  onChange: (idx: number) => void
+  disabled: boolean
 }
 
-const TabBar = memo(function TabBar({
-  tabs,
-  activeTab,
-  onTabChange,
-  disabled,
-}: TabBarProps) {
+export function TabBar({ sections, activeSectionIdx, onChange, disabled }: TabBarProps) {
   return (
-    <nav className={styles.tabBar} role="tablist" aria-label="Portfolio categories">
-      {tabs.map((tab) => (
+    <div className={styles.tabs} role="tablist">
+      {sections.map((section, i) => (
         <button
-          key={tab.id}
-          className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-          onClick={() => onTabChange(tab.id)}
+          key={section.id}
+          className={`${styles.tab} ${i === activeSectionIdx ? styles.active : ''}`}
+          onClick={() => !disabled && onChange(i)}
           disabled={disabled}
           role="tab"
-          aria-selected={activeTab === tab.id}
-          aria-controls={`panel-${tab.id}`}
+          aria-selected={i === activeSectionIdx}
         >
-          <span className={styles.icon}>{tab.icon}</span>
-          <span className={styles.label}>{tab.label}</span>
+          {section.label}
         </button>
       ))}
-    </nav>
+    </div>
   )
-})
+}
 
 export default TabBar

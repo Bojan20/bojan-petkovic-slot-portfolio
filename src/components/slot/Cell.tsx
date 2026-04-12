@@ -1,65 +1,123 @@
-/**
- * Cell — Single reel cell (WoO style)
- *
- * Gold border, dark interior, tool badges, scope indicator.
- * Center row cells get enhanced glow + sparkle.
- */
-
-import { memo } from 'react'
-import type { ReelCell } from '../../types'
+import type { CellData } from '../../types'
 import styles from './Cell.module.css'
 
 interface CellProps {
-  cell: ReelCell
-  isCenter: boolean
-  onClick?: () => void
+  data: CellData
+  height: number
+  onGameCellClick?: (itemIndex: number) => void
 }
 
-const Cell = memo(function Cell({ cell, isCenter, onClick }: CellProps) {
+export function Cell({ data, height, onGameCellClick }: CellProps) {
+  const isCenter = data.center
+  const cls = [
+    styles.cell,
+    isCenter ? styles.center : styles.dim,
+    data.type === 'game' ? styles.gameCell : '',
+  ].filter(Boolean).join(' ')
+
+  const handleClick = () => {
+    if (data.type === 'game' && data.itemIndex !== undefined) {
+      onGameCellClick?.(data.itemIndex)
+    }
+  }
+
+  const bgStyle = data.color ? { background: data.color } : {}
+
   return (
     <div
-      className={`${styles.cell} ${isCenter ? styles.center : styles.dim}`}
-      onClick={isCenter && cell.hasDemo ? onClick : undefined}
-      role={isCenter && cell.hasDemo ? 'button' : undefined}
-      tabIndex={isCenter && cell.hasDemo ? 0 : undefined}
-      aria-label={isCenter ? `${cell.title} — ${cell.role}` : undefined}
+      className={cls}
+      style={{ height: `${height}px` }}
+      onClick={handleClick}
     >
-      {/* Icon */}
-      <span className={styles.icon}>{cell.icon}</span>
+      {/* Ambient color layer */}
+      <div className={styles.colorBg} style={bgStyle} />
 
-      {/* Title */}
-      <span className={styles.title}>{cell.title}</span>
-
-      {/* Role/Studio */}
-      <span className={styles.role}>{cell.role}</span>
-
-      {/* Tags */}
-      <div className={styles.tags}>
-        {cell.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className={styles.tag}>
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      {/* Demo indicator */}
-      {cell.hasDemo && (
-        <span className={styles.demo}>
-          {isCenter ? '▶ PLAY' : '▶'}
-        </span>
+      {data.type === 'game' && (
+        <>
+          <div className={styles.icon}>{data.ico}</div>
+          <div className={styles.gameName}>{data.name}</div>
+          {data.studio && <div className={styles.gameStudio}>{data.studio}</div>}
+        </>
       )}
 
-      {/* Center sparkle corners */}
-      {isCenter && (
+      {data.type === 'scope' && data.scope && (
+        <div className={styles.scopeBadges}>
+          {(
+            [
+              { key: 'music' as const, label: 'MUSIC' },
+              { key: 'sfx' as const, label: 'SFX' },
+              { key: 'integration' as const, label: 'INTEGR.' },
+              { key: 'qa' as const, label: 'QA' },
+            ] as const
+          ).map(({ key, label }) => {
+            const on = data.scope![key]
+            return (
+              <div
+                key={key}
+                className={`${styles.scopeBadge} ${on ? styles.scopeOn : styles.scopeOff}`}
+              >
+                <div className={styles.scopeDot} />
+                {label}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {data.type === 'work' && (
+        <div className={styles.workText}>{data.text}</div>
+      )}
+
+      {data.type === 'tools' && data.tools && (
+        <div className={styles.toolsGrid}>
+          {data.tools.map((t) => (
+            <div key={t} className={styles.toolBadge}>
+              {t}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.type === 'demo' && (
+        <div className={styles.demoCell}>
+          <div className={styles.demoBtn}>
+            <div className={styles.demoTri} />
+          </div>
+          <div className={styles.demoWave}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <div
+                key={i}
+                className={styles.demoBar}
+                style={{
+                  height: `${3 + Math.sin(i * 1.4) * 7}px`,
+                  animationDelay: `${i * 0.1}s`,
+                }}
+              />
+            ))}
+          </div>
+          <div className={styles.demoLabel}>
+            {data.demo === 'video' ? '▶ VIDEO' : '▶ LISTEN'}
+          </div>
+        </div>
+      )}
+
+      {/* simple = icon + name (+ period) — col 0 for skills/about/career/contact */}
+      {data.type === 'simple' && (
         <>
-          <span className={`${styles.sparkle} ${styles.tl}`} />
-          <span className={`${styles.sparkle} ${styles.tr}`} />
-          <span className={`${styles.sparkle} ${styles.bl}`} />
-          <span className={`${styles.sparkle} ${styles.br}`} />
+          <div className={styles.icon}>{data.ico}</div>
+          <div className={styles.gameName}>{data.name}</div>
+          {(data.studio || data.period) && (
+            <div className={styles.gameStudio}>{data.studio || data.period}</div>
+          )}
         </>
+      )}
+
+      {/* detail = description text — col 1 for skills/about/career/contact */}
+      {data.type === 'detail' && (
+        <div className={styles.workText}>{data.text}</div>
       )}
     </div>
   )
-})
+}
 
 export default Cell

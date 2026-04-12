@@ -1,9 +1,10 @@
 export type {
-  ReelCell,
-  AudioTrack,
-  PortfolioCategory,
-  TabDef,
-  ReelColumn,
-  SlotState,
+  SectionId,
+  CellType,
+  SectionDef,
+  ProjectItem,
+  SkillItem,
+  SimpleItem,
+  CellData,
   SpinPhase,
 } from './portfolio'

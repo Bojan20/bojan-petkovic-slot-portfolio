@@ -1,39 +1,90 @@
-/**
- * ReelColumn Styles
- *
- * Overflow hidden container with inner strip that scrolls.
- */
-
 .column {
   flex: 1;
-  overflow: hidden;
   position: relative;
-  min-width: 0;
+  overflow: hidden;
+  background: var(--screen-bg, #030508);
+}
+
+.column.gameReel {
+  cursor: grab;
+}
+
+.column.gameReel:active {
+  cursor: grabbing;
 }
 
 .strip {
   display: flex;
   flex-direction: column;
-  gap: var(--cell-gap-y);
+  position: absolute;
+  width: 100%;
   will-change: transform;
+  transform-origin: center bottom;
 }
 
-/* Chrome separator between columns */
-.column + .column::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -1px;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(
-    180deg,
-    transparent 5%,
-    var(--g500) 20%,
-    var(--g400) 50%,
-    var(--g500) 80%,
-    transparent 95%
-  );
-  opacity: 0.3;
-  z-index: 2;
+/* WoO Windup */
+@keyframes reelWindup {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.windup .strip {
+  animation: reelWindup 0.12s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Motion blur during spin */
+.spinning .strip {
+  animation: rspin 0.07s linear infinite;
+  filter: blur(4px) brightness(0.68);
+}
+
+@keyframes rspin {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(calc(-100% / 7)); }
+}
+
+/* Multi-bounce */
+@keyframes reelSnap {
+  0%   { transform: translateY(-12px) scaleY(1); }
+  18%  { transform: translateY(8px) scaleY(0.94) scaleX(1.03); }
+  30%  { transform: translateY(-5px) scaleY(1.03) scaleX(0.98); }
+  44%  { transform: translateY(4px) scaleY(0.97) scaleX(1.015); }
+  56%  { transform: translateY(-2.5px) scaleY(1.01); }
+  68%  { transform: translateY(1.5px) scaleY(0.99); }
+  78%  { transform: translateY(-0.8px); }
+  88%  { transform: translateY(0.4px); }
+  100% { transform: translateY(0) scaleY(1) scaleX(1); }
+}
+
+.snapping .strip {
+  animation: reelSnap 0.48s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  filter: none !important;
+}
+
+/* Landing pulse */
+@keyframes landPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+
+.landing {
+  animation: landPulse 0.12s ease-out;
+}
+
+/* Win outer glow */
+@keyframes reelWin {
+  0%, 100% { box-shadow: none; border-color: transparent; }
+  20% {
+    box-shadow: 0 0 18px rgba(212, 168, 75, 0.2), 0 0 40px rgba(201, 162, 39, 0.08);
+    border-color: rgba(212, 168, 75, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 168, 75, 0.3), 0 0 60px rgba(201, 162, 39, 0.12);
+    border-color: rgba(212, 168, 75, 0.25);
+  }
+}
+
+.win {
+  animation: reelWin 0.6s ease-out 3;
 }

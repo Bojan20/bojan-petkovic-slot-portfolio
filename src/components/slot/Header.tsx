@@ -1,41 +1,37 @@
-/**
- * Header — Top bar with name, credits, jackpot
- *
- * JetBrains Mono for numeric displays, Rajdhani for labels.
- */
-
-import { memo } from 'react'
 import styles from './Header.module.css'
 
-interface HeaderProps {
-  credits: number
-  jackpot: number
-}
+const LED_COLORS = ['#ffd700', '#00ffcc', '#ff00aa', '#9944ff']
 
-const Header = memo(function Header({ credits, jackpot }: HeaderProps) {
+export function Header() {
   return (
-    <header className={styles.header}>
-      {/* Credits */}
-      <div className={styles.display}>
-        <span className={styles.label}>CREDITS</span>
-        <span className={styles.value}>{credits.toLocaleString()}</span>
+    <div className={styles.header}>
+      {/* Name marquee box */}
+      <div className={styles.marqueeBox}>
+        <div className={styles.title}>BOJAN PETKOVIC</div>
+        <div className={styles.subtitle}>
+          AUDIO PRODUCER &nbsp;·&nbsp; SOUND DESIGNER &nbsp;·&nbsp; COMPOSER
+        </div>
       </div>
 
-      {/* Title */}
-      <div className={styles.title}>
-        <span className={styles.name}>BOJAN PETKOVIC</span>
-        <span className={styles.subtitle}>Portfolio Machine</span>
+      {/* LED strip */}
+      <div className={styles.ledStrip}>
+        {Array.from({ length: 30 }, (_, i) => {
+          const color = LED_COLORS[i % 4]!
+          return (
+            <div
+              key={i}
+              className={styles.led}
+              style={{
+                background: color,
+                boxShadow: `0 0 5px ${color}`,
+                animationDelay: `${i * 0.04}s`,
+              }}
+            />
+          )
+        })}
       </div>
-
-      {/* Jackpot */}
-      <div className={styles.display}>
-        <span className={styles.label}>JACKPOT</span>
-        <span className={`${styles.value} ${styles.jackpot}`}>
-          ${jackpot.toLocaleString()}
-        </span>
-      </div>
-    </header>
+    </div>
   )
-})
+}
 
 export default Header

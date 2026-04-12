@@ -7,27 +7,35 @@ import { useSlotStore } from './slotStore'
 
 describe('slotStore', () => {
   beforeEach(() => {
-    // Reset store
     useSlotStore.setState({
-      activeTab: 'all',
+      currentSectionIdx: 0,
+      currentItemIdx: 0,
       isSpinning: false,
       spinPhase: 'idle',
-      credits: 1000,
-      jackpot: 48750,
-      centerRow: [],
+      credits: 777,
+      jackpot: 1337,
     })
   })
 
   it('starts with default values', () => {
     const state = useSlotStore.getState()
-    expect(state.activeTab).toBe('all')
+    expect(state.currentSectionIdx).toBe(0)
+    expect(state.currentItemIdx).toBe(0)
     expect(state.isSpinning).toBe(false)
-    expect(state.credits).toBe(1000)
+    expect(state.credits).toBe(777)
+    expect(state.jackpot).toBe(1337)
   })
 
-  it('sets active tab', () => {
-    useSlotStore.getState().setActiveTab('games')
-    expect(useSlotStore.getState().activeTab).toBe('games')
+  it('sets section and resets item index', () => {
+    useSlotStore.getState().setSection(2)
+    const state = useSlotStore.getState()
+    expect(state.currentSectionIdx).toBe(2)
+    expect(state.currentItemIdx).toBe(0)
+  })
+
+  it('sets item index', () => {
+    useSlotStore.getState().setItemIdx(3)
+    expect(useSlotStore.getState().currentItemIdx).toBe(3)
   })
 
   it('toggles spinning', () => {
@@ -37,14 +45,9 @@ describe('slotStore', () => {
     expect(useSlotStore.getState().isSpinning).toBe(false)
   })
 
-  it('increments credits', () => {
-    useSlotStore.getState().incrementCredits(50)
-    expect(useSlotStore.getState().credits).toBe(1050)
-  })
-
-  it('increments credits by 1 as default', () => {
-    useSlotStore.getState().incrementCredits()
-    expect(useSlotStore.getState().credits).toBe(1001)
+  it('sets spin phase', () => {
+    useSlotStore.getState().setSpinPhase('spinning')
+    expect(useSlotStore.getState().spinPhase).toBe('spinning')
   })
 
   it('ticks jackpot by random amount', () => {

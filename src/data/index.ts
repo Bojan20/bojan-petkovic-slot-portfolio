@@ -1,9 +1,1 @@
-export {
-  TABS,
-  PROJECT_CELLS,
-  SKILL_CELLS,
-  ABOUT_CELLS,
-  CAREER_CELLS,
-  ALL_CELLS,
-  getCellsByCategory,
-} from './portfolio'
+export { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from './portfolio'

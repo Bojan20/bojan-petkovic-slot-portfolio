@@ -1,112 +1,161 @@
-/**
- * SpinButton Styles — WoO circular dark metal
- */
+.spinWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
 
-.wrapper {
+/* WoO StatBox — dark recessed LCD */
+.statBox {
+  background: linear-gradient(180deg, rgba(30, 25, 20, 0.9) 0%, rgba(10, 8, 6, 0.95) 100%);
+  border: 1px solid rgba(217, 180, 74, 0.2);
+  border-radius: 10px;
+  padding: clamp(6px, 1vh, 10px) clamp(10px, 2vw, 18px);
+  min-width: clamp(62px, 11vw, 100px);
+  text-align: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 150, 0.07),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 10px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.statLbl {
+  font-family: var(--f-mono);
+  font-size: clamp(5px, 0.72vw, 7px);
+  letter-spacing: 1.8px;
+  color: rgba(201, 162, 39, 0.35);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.statValRed {
+  font-family: var(--f-mono);
+  font-size: clamp(13px, 2.2vw, 20px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--red);
+  text-shadow: 0 0 8px rgba(204, 17, 51, 0.4);
+}
+
+.statValGold {
+  font-family: var(--f-mono);
+  font-size: clamp(13px, 2.2vw, 20px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--amb);
+  text-shadow: 0 0 14px var(--amb-glow);
+}
+
+/* WoO circular SPIN button */
+.btn {
   position: relative;
+  width: clamp(56px, 10vw, 80px);
+  height: clamp(56px, 10vw, 80px);
+  border-radius: 50%;
+  border: 5px solid;
+  border-color: var(--g200) var(--g400) var(--g500) var(--g300);
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 15%, rgba(255, 250, 220, 0.5) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(217, 180, 74, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 85%, rgba(0, 0, 0, 0.6) 0%, transparent 60%),
+    linear-gradient(180deg, #3c3223 0%, #231e14 50%, #19140f 100%);
+  color: var(--g100);
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  box-shadow:
+    inset 0 3px 6px rgba(255, 230, 150, 0.2),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4),
+    0 0 35px rgba(217, 180, 74, 0.25),
+    0 0 60px rgba(217, 180, 74, 0.15),
+    0 10px 35px rgba(0, 0, 0, 0.5),
+    0 25px 60px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease-out,
+    border-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ═══ Pulsing ring ═══ */
+.btn:active {
+  transform: scale(0.94);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 -2px 4px rgba(255, 230, 150, 0.1),
+    0 0 20px rgba(217, 180, 74, 0.15),
+    0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* Ring — pulse halo around button */
 .ring {
   position: absolute;
-  width: calc(var(--spin-btn-size) + 16px);
-  height: calc(var(--spin-btn-size) + 16px);
+  inset: -6px;
   border-radius: 50%;
-  border: 2px solid var(--g400);
-  opacity: 0.4;
-  animation: ring-pulse 2s ease-in-out infinite;
+  border: 2px solid rgba(246, 224, 138, 0.35);
   pointer-events: none;
 }
 
-.ring.spinning {
-  animation: ring-spin 0.8s linear infinite;
-  border-style: dashed;
-  opacity: 0.6;
-}
-
-/* ═══ Button ═══ */
-.btn {
-  width: var(--spin-btn-size);
-  height: var(--spin-btn-size);
-  border-radius: 50%;
-  background: linear-gradient(
-    145deg,
-    var(--btn-light) 0%,
-    var(--btn-mid) 40%,
-    var(--btn-dark) 100%
-  );
-  border: 4px solid;
-  border-color: var(--g200) var(--g400) var(--g500) var(--g300);
-  box-shadow:
-    0 0 8px rgba(240, 216, 120, 0.15),
-    inset 0 1px 3px rgba(255, 255, 255, 0.08),
-    0 4px 12px rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--duration-fast) ease,
-              box-shadow var(--duration-fast) ease;
+/* Spin label */
+.label {
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: clamp(9px, 1.6vw, 13px);
+  letter-spacing: clamp(2px, 0.4vw, 4px);
+  color: var(--g100);
+  text-shadow: 0 0 12px rgba(240, 216, 120, 0.5), 0 1px 0 rgba(0, 0, 0, 0.8);
   position: relative;
   z-index: 1;
 }
 
-.btn:active:not(:disabled) {
-  transform: scale(0.95);
+/* Idle wiggle + glow */
+.isIdle {
+  animation:
+    woBtnIdleWiggle 2s ease-in-out infinite,
+    woBtnIdleGlow 1.5s ease-in-out infinite;
 }
 
-/* ═══ Idle wiggle ═══ */
-.idle {
-  animation: idle-wiggle 3s ease-in-out infinite,
-             idle-glow 2s ease-in-out infinite;
+@keyframes woBtnIdleGlow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255, 200, 100, 0.3)); }
+  50% { filter: brightness(1.08) drop-shadow(0 0 18px rgba(255, 200, 100, 0.55)); }
 }
 
-.idle:hover {
-  box-shadow:
-    0 0 16px rgba(240, 216, 120, 0.3),
-    inset 0 1px 3px rgba(255, 255, 255, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.5);
-  transform: scale(1.05);
-  animation: none;
+@keyframes woBtnIdleWiggle {
+  0% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.4), 0 0 25px rgba(217, 180, 74, 0.2), 0 8px 25px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+  15% {
+    transform: scale(1.08) rotate(-4deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.25), inset 0 -3px 6px rgba(0, 0, 0, 0.3), 0 0 40px rgba(217, 180, 74, 0.45), 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  30% {
+    transform: scale(1.10) rotate(3deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.3), inset 0 -3px 6px rgba(0, 0, 0, 0.25), 0 0 48px rgba(217, 180, 74, 0.5), 0 12px 35px rgba(0, 0, 0, 0.35);
+  }
+  45% {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.22), inset 0 -3px 6px rgba(0, 0, 0, 0.35), 0 0 32px rgba(217, 180, 74, 0.35), 0 9px 28px rgba(0, 0, 0, 0.45);
+  }
+  60% {
+    transform: scale(1.03) rotate(1deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.18), inset 0 -3px 6px rgba(0, 0, 0, 0.4), 0 0 28px rgba(217, 180, 74, 0.25), 0 9px 27px rgba(0, 0, 0, 0.48);
+  }
+  75%, 100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: inset 0 2px 4px rgba(255, 230, 150, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.4), 0 0 25px rgba(217, 180, 74, 0.2), 0 8px 25px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
 }
 
-/* ═══ Disabled (spinning) ═══ */
-.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  animation: none;
+/* Ring pulse during idle */
+.isIdle .ring {
+  animation: woBtnRingPulse 2s ease-in-out infinite;
 }
 
-/* ═══ Label ═══ */
-.label {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(12px, 2vw, 16px);
-  color: var(--g200);
-  letter-spacing: 2px;
-  text-shadow: 0 0 6px rgba(240, 216, 120, 0.3);
-}
-
-/* ═══ Animations ═══ */
-@keyframes ring-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.08); opacity: 0.6; }
-}
-
-@keyframes ring-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes idle-wiggle {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-3deg) scale(1.03); }
-  75% { transform: rotate(3deg) scale(1.06); }
-}
-
-@keyframes idle-glow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
+@keyframes woBtnRingPulse {
+  0%, 100% { transform: scale(1); border-color: rgba(246, 224, 138, 0.35); }
+  50% { transform: scale(1.07); border-color: rgba(246, 224, 138, 0.75); }
 }

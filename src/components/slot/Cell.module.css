@@ -1,157 +1,383 @@
-/**
- * Cell Styles — WoO authentic
- *
- * Gold border, dark interior, corner sparkles on center.
- */
-
 .cell {
-  position: relative;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: 2.5px solid var(--border-cell);
-  border-radius: var(--cell-radius);
-  background: var(--bg-cell);
+  gap: clamp(3px, 0.6vh, 7px);
+  padding: clamp(8px, 1.4vh, 18px) clamp(5px, 1vw, 12px);
+  position: relative;
   overflow: hidden;
-  transition: opacity var(--duration-normal) ease,
-              filter var(--duration-normal) ease;
-  cursor: default;
-  user-select: none;
-}
-
-/* ═══ Center row — full brightness, glow ═══ */
-.center {
-  opacity: 1;
-  filter: brightness(1);
-  border-color: var(--g300);
+  background: rgba(10, 9, 8, 0.5);
+  border: 2.5px solid rgba(212, 168, 75, 0.35);
+  border-radius: 4px;
+  margin-bottom: 6px;
   box-shadow:
-    0 0 12px rgba(240, 216, 120, 0.15),
-    0 0 4px rgba(201, 162, 39, 0.2) inset,
-    0 0 24px rgba(240, 216, 120, 0.08);
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(201, 162, 39, 0.08);
+  transition: opacity 0.22s, filter 0.22s, box-shadow 0.3s, border-color 0.3s;
 }
 
-.center[role='button'] {
-  cursor: pointer;
+.cell:last-child {
+  margin-bottom: 0;
 }
 
-.center[role='button']:hover {
-  border-color: var(--g200);
+.cell + .cell {
   box-shadow:
-    0 0 20px rgba(240, 216, 120, 0.25),
-    0 0 6px rgba(201, 162, 39, 0.3) inset,
-    0 0 32px rgba(240, 216, 120, 0.12);
+    inset 0 1px 0 rgba(201, 162, 39, 0.06),
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(201, 162, 39, 0.08);
 }
 
-/* ═══ Non-center — dimmed but visible ═══ */
+/* Non-center — dimmed but readable */
 .dim {
   opacity: 0.62;
-  filter: brightness(0.78);
+  filter: saturate(0.5) brightness(0.78);
+  border-color: rgba(212, 168, 75, 0.14);
 }
 
-/* ═══ Icon ═══ */
+/* Center — hero, fully lit */
+.center {
+  opacity: 1;
+  filter: none;
+  border-color: rgba(212, 168, 75, 0.6);
+  background: rgba(10, 9, 8, 0.35);
+  animation: centerBreath 3.5s ease-in-out infinite;
+}
+
+/* WoO 4-layer win highlight */
+@keyframes centerBreath {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 18px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(212, 168, 75, 0.35),
+      0 0 12px rgba(201, 162, 39, 0.08);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 8px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(230, 200, 114, 0.5),
+      0 0 22px rgba(201, 162, 39, 0.15),
+      0 0 44px rgba(201, 162, 39, 0.06);
+  }
+}
+
+/* Corner sparkles on center */
+.center::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  box-shadow:
+    0 0 4px 1px rgba(255, 255, 255, 0.9),
+    0 0 8px 2px rgba(240, 216, 120, 0.6);
+  animation: cornerSparkle 3.5s ease-in-out infinite;
+}
+
+@keyframes cornerSparkle {
+  0%, 85%, 100% { opacity: 0; transform: scale(0.3); }
+  42% { opacity: 0.85; transform: scale(1); }
+  55% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* Project color ambient layer */
+.colorBg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s;
+}
+
+.center .colorBg {
+  opacity: 0.18;
+}
+
+/* Win sweep */
+@keyframes winBeam {
+  0% { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateX(150%) skewX(-10deg); opacity: 0; }
+}
+
+.winSweep::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%, rgba(240, 216, 120, 0.14) 28%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(240, 216, 120, 0.14) 72%, transparent 100%
+  );
+  animation: winBeam 0.62s cubic-bezier(0.4, 0, 0.2, 1) 2;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GAME CELL (reel 0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.gameCell {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gameCell:active .icon {
+  transform: scale(1.2);
+}
+
 .icon {
-  font-size: clamp(20px, 3vw, 32px);
+  font-size: clamp(26px, 6.5vw, 46px);
   line-height: 1;
-}
-
-.dim .icon {
+  transition: transform 0.2s, filter 0.22s;
   filter: brightness(0.75) saturate(0.65);
+  animation: symbolBreathe 2.5s ease-in-out infinite;
 }
 
-/* ═══ Title ═══ */
-.title {
-  font-family: var(--font-display);
+.center .icon {
+  filter: brightness(1.1) saturate(1.15) drop-shadow(0 0 14px var(--amb-glow));
+  transform: scale(1.08);
+}
+
+@keyframes symbolBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.center .icon {
+  animation: symbolBreathe 2.5s ease-in-out infinite;
+}
+
+.gameName {
+  font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(10px, 1.4vw, 14px);
-  color: var(--text-primary);
+  font-size: clamp(10px, 2.1vw, 18px);
+  letter-spacing: 1.5px;
+  color: #6878a8;
   text-align: center;
-  line-height: 1.1;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  line-height: 1.15;
 }
 
-.dim .title {
-  color: var(--text-muted);
+.center .gameName {
+  color: #eeeeff !important;
+  -webkit-text-fill-color: #eeeeff !important;
+  text-shadow: 0 0 16px rgba(220, 224, 255, 0.14);
 }
 
-/* ═══ Role ═══ */
-.role {
-  font-family: var(--font-display);
+.gameStudio {
+  font-family: var(--f-ui);
   font-weight: 500;
-  font-size: clamp(8px, 1.1vw, 11px);
-  color: var(--text-secondary);
+  font-size: clamp(6.5px, 1.1vw, 10.5px);
+  color: #404060;
+  letter-spacing: 1px;
   text-align: center;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
-.dim .role {
-  color: var(--text-body);
+.center .gameStudio {
+  color: #505090 !important;
+  -webkit-text-fill-color: #505090 !important;
 }
 
-/* ═══ Tags ═══ */
-.tags {
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCOPE BADGES (reel 1)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.scopeBadges {
   display: flex;
-  gap: 3px;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: clamp(3px, 0.55vh, 6px);
+  align-items: center;
+  width: 100%;
+}
+
+.scopeBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(8px, 1.55vw, 13px);
+  letter-spacing: 0.8px;
+  padding: clamp(3px, 0.5vh, 5px) clamp(5px, 0.9vw, 9px);
+  border-radius: 3px;
+  width: 94%;
   justify-content: center;
 }
 
-.tag {
-  font-family: var(--font-mono);
-  font-size: clamp(6px, 0.8vw, 8px);
-  font-weight: 500;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(64, 200, 248, 0.12);
-  color: var(--ice);
-  white-space: nowrap;
-  letter-spacing: 0.3px;
+.scopeOn {
+  background: rgba(232, 192, 96, 0.08);
+  color: var(--amb) !important;
+  -webkit-text-fill-color: var(--amb) !important;
+  border: 1px solid rgba(232, 192, 96, 0.16);
+  text-shadow: 0 0 6px var(--amb-glow);
 }
 
-.dim .tag {
-  opacity: 0.45;
+.scopeOff {
+  background: rgba(255, 255, 255, 0.01);
+  color: #484862 !important;
+  -webkit-text-fill-color: #484862 !important;
+  border: 1px solid #2a2a42;
 }
 
-/* ═══ Demo indicator ═══ */
-.demo {
-  font-family: var(--font-display);
-  font-size: clamp(7px, 0.9vw, 9px);
-  font-weight: 600;
-  color: var(--win-green);
-  letter-spacing: 0.5px;
-}
-
-.dim .demo {
-  color: var(--text-dim);
-}
-
-/* ═══ Corner sparkles (center only) ═══ */
-.sparkle {
-  position: absolute;
+.scopeDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--g200);
-  opacity: 0;
-  animation: sparkle-pulse 3s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
-.tl { top: 4px; left: 4px; animation-delay: 0s; }
-.tr { top: 4px; right: 4px; animation-delay: 0.75s; }
-.bl { bottom: 4px; left: 4px; animation-delay: 1.5s; }
-.br { bottom: 4px; right: 4px; animation-delay: 2.25s; }
+.scopeOn .scopeDot {
+  background: var(--amb);
+  box-shadow: 0 0 5px var(--amb-glow);
+}
 
-@keyframes sparkle-pulse {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  50% { opacity: 0.6; transform: scale(1); }
+.scopeOff .scopeDot {
+  background: #303048;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WORK TEXT (reel 2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.workText {
+  font-family: var(--f-ui);
+  font-weight: 500;
+  font-size: clamp(8.5px, 1.55vw, 13.5px);
+  color: #50607a;
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 clamp(3px, 0.7vw, 9px);
+}
+
+.center .workText {
+  color: #98b0cc !important;
+  -webkit-text-fill-color: #98b0cc !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOOL BADGES (reel 3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.toolsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(3px, 0.5vw, 5px);
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.toolBadge {
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(7px, 1.15vw, 11px);
+  letter-spacing: 0.4px;
+  padding: clamp(2px, 0.35vh, 4px) clamp(4px, 0.7vw, 8px);
+  border-radius: 3px;
+  background: rgba(64, 200, 248, 0.03);
+  color: rgba(64, 200, 248, 0.45) !important;
+  -webkit-text-fill-color: rgba(64, 200, 248, 0.45) !important;
+  border: 1px solid rgba(64, 200, 248, 0.1);
+  white-space: nowrap;
+}
+
+.center .toolBadge {
+  color: var(--ice) !important;
+  -webkit-text-fill-color: var(--ice) !important;
+  background: rgba(64, 200, 248, 0.07);
+  border-color: rgba(64, 200, 248, 0.16);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DEMO CELL (reel 4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.demoCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2px, 0.4vh, 4px);
+}
+
+.demoBtn {
+  width: clamp(30px, 5.5vw, 46px);
+  height: clamp(30px, 5.5vw, 46px);
+  border-radius: 50%;
+  border: 2px solid rgba(60, 60, 100, 0.6);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: all 0.18s;
+}
+
+.center .demoBtn {
+  border-color: var(--amb-dim);
+  background: rgba(232, 192, 96, 0.04);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(232, 192, 96, 0.07);
+}
+
+.center .demoBtn:hover {
+  border-color: var(--amb);
+  background: rgba(232, 192, 96, 0.12);
+  box-shadow: 0 0 22px var(--amb-glow);
+  transform: scale(1.08);
+}
+
+.demoTri {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 11px;
+  border-color: transparent transparent transparent rgba(60, 60, 100, 0.6);
+  margin-left: 2px;
+}
+
+.center .demoTri {
+  border-left-color: var(--amb);
+}
+
+.demoLabel {
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(6px, 1.1vw, 10px);
+  letter-spacing: 1.5px;
+  color: #3a4060;
+  text-align: center;
+}
+
+.center .demoLabel {
+  color: var(--amb) !important;
+  -webkit-text-fill-color: var(--amb) !important;
+}
+
+.demoWave {
+  display: flex;
+  gap: 1px;
+  align-items: center;
+  height: 11px;
+}
+
+.demoBar {
+  width: 2px;
+  background: var(--amb);
+  border-radius: 1px;
+  opacity: 0.05;
+  animation: wbar 1.2s ease-in-out infinite;
+}
+
+.center .demoBar {
+  opacity: 0.5;
+}
+
+@keyframes wbar {
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
 }

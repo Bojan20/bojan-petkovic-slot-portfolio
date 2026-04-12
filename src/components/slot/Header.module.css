@@ -1,73 +1,101 @@
-/**
- * Header Styles — Gold on dark, LCD displays
- */
-
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(14, 14, 32, 0.96) 0%, rgba(8, 8, 20, 0.98) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0 clamp(10px, 2.2vw, 28px);
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.9), inset 0 -1px 0 rgba(188, 200, 224, 0.04);
+}
+
+/* Blue-steel chrome rail */
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
   background: linear-gradient(
-    180deg,
-    rgba(20, 18, 12, 0.9) 0%,
-    rgba(12, 10, 8, 0.95) 100%
+    90deg,
+    #0a0a20 0%, #282870 7%, #6060b8 18%,
+    var(--chr-hi) 50%,
+    #6060b8 82%, #282870 93%, #0a0a20 100%
   );
-  border-bottom: 2px solid var(--border-frame);
 }
 
-.display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 90px;
+/* Name display — amber glow box */
+.marqueeBox {
+  background: rgba(2, 2, 8, 0.92);
+  border: 1.5px solid var(--amb-dim);
+  border-radius: 6px;
+  margin: clamp(7px, 1.3vh, 13px) 0 clamp(4px, 0.7vh, 6px);
+  padding: clamp(6px, 1.1vh, 11px) clamp(10px, 2.2vw, 24px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 36px var(--amb-glow), inset 0 0 60px rgba(232, 192, 96, 0.015);
 }
 
-.label {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(8px, 1vw, 10px);
-  color: var(--text-dim);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-.value {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: clamp(14px, 2vw, 20px);
-  color: var(--g200);
-  text-shadow: 0 0 8px rgba(240, 216, 120, 0.3);
-  letter-spacing: 1px;
-}
-
-.jackpot {
-  color: var(--win-green);
-  text-shadow: 0 0 10px rgba(64, 255, 144, 0.3);
+/* Subtle grid texture */
+.marqueeBox::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0, transparent 32px,
+    rgba(232, 192, 96, 0.015) 32px,
+    rgba(232, 192, 96, 0.015) 34px
+  );
 }
 
 .title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.name {
-  font-family: var(--font-display);
+  font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(14px, 2.5vw, 22px);
-  color: var(--g200);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  text-shadow: 0 0 12px rgba(240, 216, 120, 0.2);
+  font-size: clamp(20px, 4.8vw, 44px);
+  letter-spacing: clamp(7px, 2vw, 20px);
+  text-align: center;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #fff8e0 0%, var(--amb-bright) 22%, var(--amb) 48%, #8a5808 72%, var(--amb) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px var(--amb-glow));
 }
 
 .subtitle {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(8px, 1.2vw, 11px);
+  font-family: var(--f-ui);
+  font-weight: 600;
+  text-align: center;
+  font-size: clamp(6px, 1vw, 9px);
+  letter-spacing: clamp(2px, 0.7vw, 5px);
   color: var(--ice);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  opacity: 0.4;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.ledStrip {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  padding: clamp(3px, 0.5vh, 6px) 0;
+  flex-wrap: wrap;
+}
+
+.led {
+  width: clamp(4px, 1vw, 7px);
+  height: clamp(4px, 1vw, 7px);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: lp 1.4s ease-in-out infinite;
+}
+
+@keyframes lp {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.07; transform: scale(0.4); }
 }

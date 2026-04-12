@@ -1,44 +1,36 @@
 /**
  * Slot Store — Zustand state for the slot machine
- *
- * Manages reel columns, spin state, active tab, credits/jackpot display.
  */
 
 import { create } from 'zustand'
-import type { PortfolioCategory, ReelCell, SpinPhase } from '../types'
+import type { SpinPhase } from '../types'
 
 interface SlotStore {
-  // — State —
-  activeTab: PortfolioCategory
+  currentSectionIdx: number   // 0-4
+  currentItemIdx: number      // which project/skill/etc is in center
   isSpinning: boolean
   spinPhase: SpinPhase
   credits: number
   jackpot: number
-  centerRow: ReelCell[]
-
-  // — Actions —
-  setActiveTab: (tab: PortfolioCategory) => void
-  setSpinning: (spinning: boolean) => void
-  setSpinPhase: (phase: SpinPhase) => void
-  setCenterRow: (cells: ReelCell[]) => void
-  incrementCredits: (amount?: number) => void
+  setSection: (idx: number) => void
+  setItemIdx: (idx: number) => void
+  setSpinning: (v: boolean) => void
+  setSpinPhase: (p: SpinPhase) => void
   tickJackpot: () => void
 }
 
 export const useSlotStore = create<SlotStore>((set) => ({
-  activeTab: 'all',
+  currentSectionIdx: 0,
+  currentItemIdx: 0,
   isSpinning: false,
   spinPhase: 'idle',
-  credits: 1000,
-  jackpot: 48750,
-  centerRow: [],
+  credits: 777,
+  jackpot: 1337,
 
-  setActiveTab: (tab) => set({ activeTab: tab }),
-  setSpinning: (spinning) => set({ isSpinning: spinning }),
-  setSpinPhase: (phase) => set({ spinPhase: phase }),
-  setCenterRow: (cells) => set({ centerRow: cells }),
-  incrementCredits: (amount = 1) =>
-    set((s) => ({ credits: s.credits + amount })),
+  setSection: (idx) => set({ currentSectionIdx: idx, currentItemIdx: 0 }),
+  setItemIdx: (idx) => set({ currentItemIdx: idx }),
+  setSpinning: (v) => set({ isSpinning: v }),
+  setSpinPhase: (p) => set({ spinPhase: p }),
   tickJackpot: () =>
     set((s) => ({ jackpot: s.jackpot + Math.floor(Math.random() * 5) + 1 })),
 }))

@@ -9,19 +9,10 @@ import {
   REEL_COLS,
   REEL_ROWS,
   CELLS_PER_REEL,
+  REEL_VISIBLE,
+  STRIP_BUFFER,
+  TOTAL_STRIP_CELLS,
 } from './reelEngine'
-import type { ReelCell } from '../../types'
-
-const mockCell = (title: string): ReelCell => ({
-  icon: '🎮',
-  title,
-  role: 'Test',
-  year: '2024',
-  tags: ['test'],
-  category: 'games',
-  hasDemo: false,
-  description: 'Test cell',
-})
 
 describe('shuffleCells', () => {
   it('returns array of same length', () => {
@@ -33,7 +24,7 @@ describe('shuffleCells', () => {
   it('contains all original elements', () => {
     const input = [1, 2, 3, 4, 5]
     const result = shuffleCells(input)
-    expect(result.sort()).toEqual(input.sort())
+    expect([...result].sort()).toEqual([...input].sort())
   })
 
   it('does not mutate original array', () => {
@@ -50,15 +41,15 @@ describe('buildReelStrip', () => {
   })
 
   it('returns CELLS_PER_REEL cells', () => {
-    const cells = [mockCell('A'), mockCell('B'), mockCell('C')]
+    const cells = ['A', 'B', 'C']
     const strip = buildReelStrip(cells)
     expect(strip).toHaveLength(CELLS_PER_REEL)
   })
 
   it('works with single cell', () => {
-    const strip = buildReelStrip([mockCell('Only')])
+    const strip = buildReelStrip(['Only'])
     expect(strip).toHaveLength(CELLS_PER_REEL)
-    expect(strip.every((c) => c.title === 'Only')).toBe(true)
+    expect(strip.every((c) => c === 'Only')).toBe(true)
   })
 })
 
@@ -73,5 +64,17 @@ describe('constants', () => {
 
   it('has 20 cells per reel', () => {
     expect(CELLS_PER_REEL).toBe(20)
+  })
+
+  it('has 3 visible rows', () => {
+    expect(REEL_VISIBLE).toBe(3)
+  })
+
+  it('has 2 strip buffer rows', () => {
+    expect(STRIP_BUFFER).toBe(2)
+  })
+
+  it('total strip cells = 7', () => {
+    expect(TOTAL_STRIP_CELLS).toBe(7)
   })
 })

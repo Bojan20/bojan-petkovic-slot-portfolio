@@ -1,65 +1,53 @@
-/**
- * Design Tokens — Wrath of Olympus Gold Palette
- *
- * Exact colors from WoO + a7 mockup. All components reference these vars.
- */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Google Fonts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
-  /* ═══════════════════════════════════════════════
-     GOLD PALETTE (WoO authentic)
-     ═══════════════════════════════════════════════ */
-  --g100: #f7e8a0;   /* Lightest gold — highlights, glints */
-  --g200: #f0d878;   /* Primary gold — text, borders */
-  --g300: #e0c050;   /* Warm gold — secondary elements */
-  --g400: #c9a227;   /* Deep gold — active states, accents */
-  --g500: #8b6914;   /* Dark gold — shadows, depth */
-  --g600: #5a4510;   /* Darkest gold — deep shadows */
+  /* ── Base — WoO deep blue-black ── */
+  --bg: #05070c;
+  --bg1: #0b0f16;
+  --screen: #030508;
+  --bg-deep: #080610;
+  --bg-body: #0c0a14;
+  --screen-bg: #030508;
 
-  /* ═══════════════════════════════════════════════
-     BACKGROUND LAYERS
-     ═══════════════════════════════════════════════ */
-  --bg-deep: #080610;     /* Deepest background */
-  --bg-body: #0c0a14;     /* Body background */
-  --bg-surface: #12101e;  /* Card/panel surface */
-  --bg-elevated: #1a1828; /* Elevated panels */
-  --bg-cell: rgba(10, 9, 8, 0.5);  /* Cell interior (WoO) */
+  /* ── Chrome — blue steel ── */
+  --chr-hi: #bcc8e0;
+  --chr-mid: #60709a;
+  --chr-lo: #161c36;
 
-  /* ═══════════════════════════════════════════════
-     TEXT
-     ═══════════════════════════════════════════════ */
-  --text-primary: #f0d878;    /* Gold text (titles) */
-  --text-secondary: #c9a227;  /* Dimmer gold text */
-  --text-muted: #6878a8;      /* Blue-gray for non-center */
-  --text-body: #50607a;       /* Body text in cells */
-  --text-dim: #484862;        /* Very dim labels */
+  /* ── PRIMARY GOLD — WoO antique gold palette ── */
+  --g100: #f0d878;   /* bright highlight */
+  --g200: #dbb840;   /* light gold */
+  --g300: #c9a227;   /* PRIMARY warm antique gold */
+  --g400: #b08a18;   /* medium */
+  --g500: #8b6914;   /* dark gold/bronze */
+  --g600: #6d520f;   /* deep shadow */
+  --g-text: #ffe6a8; /* gold text */
+  --g-shadow: rgba(139, 105, 20, 0.4);
 
-  /* ═══════════════════════════════════════════════
-     ACCENT COLORS
-     ═══════════════════════════════════════════════ */
-  --ice: #40c8f8;         /* Electric ice blue — tool badges */
-  --amber: #e8c060;       /* Warm amber — primary accent */
-  --win-green: #40ff90;   /* Win celebration */
-  --error-red: #ff4466;   /* Error states */
+  /* Legacy aliases */
+  --amb: var(--g300);
+  --amb-bright: var(--g100);
+  --amb-dim: var(--g600);
+  --amb-glow: rgba(201, 162, 39, 0.4);
 
-  /* ═══════════════════════════════════════════════
-     BORDERS & CHROME
-     ═══════════════════════════════════════════════ */
-  --border-cell: rgba(212, 168, 75, 0.35);  /* WoO cell border */
-  --border-frame: rgba(201, 162, 39, 0.55); /* Frame border */
-  --chrome-dark: #1a1610;    /* Dark chrome */
-  --chrome-mid: #2a2418;     /* Mid chrome */
-  --chrome-light: #3c3223;   /* Light chrome */
+  /* ── Secondary — divine blue (WoO electric) ── */
+  --ice: #38bdf8;
+  --ice-glow: rgba(56, 189, 248, 0.3);
 
-  /* ═══════════════════════════════════════════════
-     SPIN BUTTON (WoO circular)
-     ═══════════════════════════════════════════════ */
-  --btn-dark: #19140f;
-  --btn-mid: #231e14;
-  --btn-light: #3c3223;
+  /* Semantic */
+  --red: #cc1133;
+  --cyan: #00ffcc;
 
-  /* ═══════════════════════════════════════════════
-     SIZING (WoO proportions)
-     ═══════════════════════════════════════════════ */
+  /* ── Typography ── */
+  --f-ui: 'Rajdhani', 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Sizing (WoO proportions) ── */
   --slot-max-w: 1100px;
   --slot-max-h: 820px;
   --frame-inset: 18px;
@@ -68,19 +56,12 @@
   --cell-radius: 4px;
   --spin-btn-size: clamp(56px, 10vw, 80px);
 
-  /* ═══════════════════════════════════════════════
-     FONTS
-     ═══════════════════════════════════════════════ */
-  --font-display: 'Rajdhani', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ── Borders ── */
+  --border-cell: rgba(212, 168, 75, 0.35);
+  --border-frame: rgba(201, 162, 39, 0.55);
 
-  /* ═══════════════════════════════════════════════
-     ANIMATION TIMING
-     ═══════════════════════════════════════════════ */
+  /* ── Animation ── */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 300ms;
-  --duration-slow: 600ms;
 }

@@ -1,297 +1,251 @@
 /**
- * Portfolio Data — All reel cell content
- *
+ * Portfolio Data — All reel content
  * Source: vanvinkl-concept-a7.html mockup
- * 5 tabs: PROJECTS, SKILLS, ABOUT, CAREER, CONTACT
  */
 
-import type { ReelCell, TabDef } from '../types'
+import type { ProjectItem, SkillItem, SimpleItem, SectionDef } from '../types'
 
 // ============================================================
-// TABS
+// SECTIONS
 // ============================================================
 
-export const TABS: TabDef[] = [
-  { id: 'all', label: 'ALL', icon: '🎰' },
-  { id: 'games', label: 'PROJECTS', icon: '🎮' },
-  { id: 'audio', label: 'SKILLS', icon: '🎵' },
-  { id: 'frontend', label: 'ABOUT', icon: '👤' },
-  { id: 'tools', label: 'CAREER', icon: '💼' },
+export const SECTIONS: SectionDef[] = [
+  { id: 'projects', label: 'PROJECTS', headers: ['GAME', 'SCOPE', 'THE WORK', 'TOOLS', 'DEMO'], numCols: 5 },
+  { id: 'skills',   label: 'SKILLS',   headers: ['SKILL', 'DETAILS', 'TOOLS'],                  numCols: 3 },
+  { id: 'about',    label: 'ABOUT',    headers: ['', 'DETAILS'],                                 numCols: 2 },
+  { id: 'career',   label: 'CAREER',   headers: ['ROLE', 'DETAILS'],                             numCols: 2 },
+  { id: 'contact',  label: 'CONTACT',  headers: ['', 'DETAILS'],                                 numCols: 2 },
 ]
 
 // ============================================================
-// PROJECT CELLS (Tab: PROJECTS)
+// PROJECTS (8)
 // ============================================================
 
-export const PROJECT_CELLS: ReelCell[] = [
+export const PROJECTS: ProjectItem[] = [
   {
-    icon: '🐷',
-    title: 'PIGGY PLUNGER',
-    role: 'Playnetic · 2025',
-    year: '2025',
-    tags: ['FMOD', 'Wwise', 'PixiJS'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Bouncy ragtime, 200+ SFX, adaptive music layers',
+    ico: '🐷',
+    name: 'PIGGY PLUNGER',
+    studio: 'Playnetic · 2025',
+    color: '#ff69b4',
+    scope: { music: true, sfx: true, integration: true, qa: true },
+    work: 'Bouncy ragtime score, 4 adaptive layers. 200+ custom SFX — reel hits, coin cascades, plunger mechanics.',
+    tools: ['Logic Pro', 'iZotope RX', 'Howler.js', 'Phaser 3'],
+    demo: 'video',
   },
   {
-    icon: '🏭',
-    title: 'SMASH FACTORY',
-    role: 'Playnetic · 2025',
-    year: '2025',
-    tags: ['FMOD', 'PixiJS', 'Spine'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Industrial metal theme, percussive SFX design',
+    ico: '⚡',
+    name: 'SMASH FACTORY',
+    studio: 'Playnetic · 2025',
+    color: '#ff8c00',
+    scope: { music: true, sfx: true, integration: true, qa: false },
+    work: 'Industrial metal theme — tension/euphoria transitions. Hydraulic SFX palette: metal impacts, sparks, electricity.',
+    tools: ['Logic Pro', 'Reaper', 'Howler.js', 'Phaser 3'],
+    demo: 'video',
   },
   {
-    icon: '🌌',
-    title: 'STARLIGHT TRAVELERS',
-    role: 'Playnetic · 2025',
-    year: '2025',
-    tags: ['Wwise', 'WebAudio', 'PixiJS'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Cosmic soundscape, ethereal pads, adaptive layers',
+    ico: '✨',
+    name: 'STARLIGHT TRAVELERS',
+    studio: 'Playnetic · 2025',
+    color: '#6a5acd',
+    scope: { music: true, sfx: true, integration: true, qa: true },
+    work: 'Ethereal cosmic soundscape — shimmering synths, crystalline wins, nebula ambience, stardust audio.',
+    tools: ['Logic Pro', 'iZotope', 'Howler.js', 'Phaser 3'],
+    demo: 'video',
   },
   {
-    icon: '⚔️',
-    title: 'VALKYRIES',
-    role: 'Playnetic · 2025',
-    year: '2025',
-    tags: ['FMOD', 'Orchestra', 'PixiJS'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Nordic war theme, epic brass, battle percussion',
+    ico: '⚔️',
+    name: 'VALKYRIES',
+    studio: 'Playnetic · 2025',
+    color: '#dc143c',
+    scope: { music: true, sfx: true, integration: true, qa: false },
+    work: 'Nordic war theme — epic choir, war drums, dynamic free spin escalation. Shield clashes, battle ambience.',
+    tools: ['Logic Pro', 'FMOD', 'Reaper', 'Phaser 3'],
+    demo: 'audio',
   },
   {
-    icon: '🐉',
-    title: 'ZHULONGS',
-    role: 'IGT · 2023',
-    year: '2023',
-    tags: ['Unity', 'Wwise', 'C#'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Pentatonic orchestral, Chinese cultural motifs',
+    ico: '🐲',
+    name: 'ZHULONGS',
+    studio: 'IGT · 2023',
+    color: '#00c853',
+    scope: { music: true, sfx: true, integration: false, qa: true },
+    work: 'Pentatonic orchestral — Chinese classical meets casino energy. Dragon roars, gong hits, mystical effects.',
+    tools: ['Logic Pro', 'Pro Tools', 'iZotope', 'Unity'],
+    demo: 'audio',
   },
   {
-    icon: '🌙',
-    title: 'MIDNIGHT GOLD',
-    role: 'VanVinkl · 2024',
-    year: '2024',
-    tags: ['WebAudio', 'Tone.js', 'React'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Dark jazz lounge, smoky saxophone, vinyl crackle',
+    ico: '🌙',
+    name: 'MIDNIGHT GOLD',
+    studio: 'VanVinkl · 2024',
+    color: '#1e90ff',
+    scope: { music: true, sfx: true, integration: true, qa: true },
+    work: 'Dark jazz lounge with gold-rush anticipation builds. Velvet UI sounds, sax stingers, coin rain FX.',
+    tools: ['Logic Pro', 'Reaper', 'Howler.js', 'Phaser 3'],
+    demo: 'audio',
   },
   {
-    icon: '🔥',
-    title: "BLAZIN'S HOT",
-    role: 'IGT · 2022',
-    year: '2022',
-    tags: ['Unity', 'FMOD', 'C#'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Mediterranean melody, flamenco guitar, warm brass',
+    ico: '🔥',
+    name: "BLAZIN'S HOT",
+    studio: 'IGT · 2022',
+    color: '#ff4500',
+    scope: { music: true, sfx: true, integration: false, qa: true },
+    work: 'Upbeat Mediterranean melody — tension ramp for free spins. Fire crackles, sizzling wins, pepper explosions.',
+    tools: ['Pro Tools', 'Logic Pro', 'iZotope', 'Unity'],
+    demo: 'audio',
   },
   {
-    icon: '🏛️',
-    title: 'MUMMY RICHES',
-    role: 'Playnetic · 2024',
-    year: '2024',
-    tags: ['FMOD', 'PixiJS', 'Spine'],
-    category: 'games',
-    hasDemo: true,
-    description: 'Egyptian mystery, ancient percussion, mystical pads',
-  },
-]
-
-// ============================================================
-// SKILL CELLS (Tab: SKILLS)
-// ============================================================
-
-export const SKILL_CELLS: ReelCell[] = [
-  {
-    icon: '🎰',
-    title: 'SLOT AUDIO',
-    role: 'Full sonic identity for 50+ titles',
-    year: '',
-    tags: ['FMOD', 'Wwise', 'Pro Tools'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Complete audio production for slot games — music, SFX, integration',
-  },
-  {
-    icon: '🎼',
-    title: 'COMPOSITION',
-    role: 'Adaptive layered music systems',
-    year: '',
-    tags: ['Logic Pro', 'Cubase', 'Ableton'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Adaptive layered music, thematic scoring, genre versatility',
-  },
-  {
-    icon: '🔊',
-    title: 'SOUND DESIGN',
-    role: 'Custom SFX libraries & processing',
-    year: '',
-    tags: ['Synthesis', 'Foley', 'Processing'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Custom SFX libraries, procedural audio, Foley recording',
-  },
-  {
-    icon: '🔌',
-    title: 'INTEGRATION',
-    role: 'Phaser, Unity, PixiJS audio pipelines',
-    year: '',
-    tags: ['Phaser', 'Unity', 'PixiJS'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Game engine audio integration, middleware setup, optimization',
-  },
-  {
-    icon: '✅',
-    title: 'AUDIO QA',
-    role: 'Systematic trigger verification',
-    year: '',
-    tags: ['Testing', 'Automation', 'CI/CD'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Systematic audio QA, trigger verification, cross-platform testing',
-  },
-  {
-    icon: '🎯',
-    title: 'DIRECTION',
-    role: 'Creative lead & mentoring',
-    year: '',
-    tags: ['Leadership', 'Mentoring', 'Strategy'],
-    category: 'audio',
-    hasDemo: false,
-    description: 'Audio team leadership, creative direction, mentoring junior designers',
+    ico: '🏺',
+    name: 'MUMMY RICHES',
+    studio: 'Playnetic · 2024',
+    color: '#daa520',
+    scope: { music: true, sfx: true, integration: true, qa: false },
+    work: 'Egyptian mystery — haunting flutes, sandy winds, tomb ambience. Scarab beetles, sand cascades, ancient SFX.',
+    tools: ['Logic Pro', 'iZotope RX', 'Howler.js', 'Phaser 3'],
+    demo: 'audio',
   },
 ]
 
 // ============================================================
-// ABOUT CELLS (Tab: ABOUT)
+// SKILLS (6)
 // ============================================================
 
-export const ABOUT_CELLS: ReelCell[] = [
+export const SKILLS_DATA: SkillItem[] = [
   {
-    icon: '🏆',
-    title: '10+ YEARS',
-    role: 'Professional audio experience',
-    year: '',
-    tags: ['Senior', 'Lead', 'Director'],
-    category: 'frontend',
-    hasDemo: false,
-    description: 'Over a decade in professional game audio production',
+    ico: '🎰',
+    name: 'SLOT AUDIO',
+    desc: 'Full sonic identity — base ambience through free spins to jackpot celebration. 50+ titles shipped.',
+    tools: ['FMOD', 'Wwise', 'Howler.js'],
+    color: '#ffd700',
   },
   {
-    icon: '🎮',
-    title: '50+ TITLES',
-    role: 'Shipped across all platforms',
-    year: '',
-    tags: ['Mobile', 'Desktop', 'Console'],
-    category: 'frontend',
-    hasDemo: false,
-    description: '50+ slot titles shipped to production worldwide',
+    ico: '🎵',
+    name: 'COMPOSITION',
+    desc: 'Adaptive layered music that follows game state in real time — loops, stingers, dynamic transitions.',
+    tools: ['Logic Pro', 'Reaper', 'Kontakt'],
+    color: '#00e5ff',
   },
   {
-    icon: '💼',
-    title: 'SENIOR ROLES',
-    role: 'IGT & Playnetic leadership',
-    year: '',
-    tags: ['IGT', 'Playnetic', 'VanVinkl'],
-    category: 'frontend',
-    hasDemo: false,
-    description: 'Senior Sound Designer at IGT, Audio Producer at Playnetic',
+    ico: '🔊',
+    name: 'SOUND DESIGN',
+    desc: 'Custom SFX libraries — reel mechanics, wins, UI feedback, ambience, transition effects.',
+    tools: ['iZotope RX', 'Logic Pro', 'Reaper'],
+    color: '#ff00aa',
   },
   {
-    icon: '🌍',
-    title: 'GLOBAL MARKETS',
-    role: 'EU, UK, N.America, Australia',
-    year: '',
-    tags: ['Regulated', 'Multi-region', 'Compliance'],
-    category: 'frontend',
-    hasDemo: false,
-    description: 'Delivered audio for global regulated gaming markets',
+    ico: '⚙️',
+    name: 'INTEGRATION',
+    desc: 'Wiring audio into Phaser, Unity, PixiJS with event-driven playback logic.',
+    tools: ['Phaser 3', 'Unity', 'PixiJS'],
+    color: '#00ff88',
   },
   {
-    icon: '🎓',
-    title: 'SAE GRADUATE',
-    role: 'Audio Engineering + BA Music',
-    year: '',
-    tags: ['SAE', 'BA', 'Accordion & Piano'],
-    category: 'frontend',
-    hasDemo: false,
-    description: 'SAE Institute graduate, BA in Music (Accordion & Piano)',
+    ico: '🧪',
+    name: 'AUDIO QA',
+    desc: 'Systematic trigger verification across all game states before release.',
+    tools: ['JIRA', 'TestRail', 'Custom'],
+    color: '#9944ff',
+  },
+  {
+    ico: '🎛️',
+    name: 'DIRECTION',
+    desc: 'Creative lead — from brief to delivery. Team mentoring. Quality standards.',
+    tools: ['Confluence', 'Figma', 'Slack'],
+    color: '#ff6600',
   },
 ]
 
 // ============================================================
-// CAREER CELLS (Tab: CAREER)
+// ABOUT (5)
 // ============================================================
 
-export const CAREER_CELLS: ReelCell[] = [
+export const ABOUT_DATA: SimpleItem[] = [
   {
-    icon: '🏠',
-    title: 'VANVINKL',
-    role: '2024 → NOW',
-    year: '2024',
-    tags: ['Founder', 'Audio Director'],
-    category: 'tools',
-    hasDemo: false,
-    description: 'Founder & Audio Director — VanVinkl Studio',
+    ico: '🏆',
+    name: '10+ YEARS',
+    desc: 'Over a decade crafting audio for slot & mobile games.',
+    color: '#ffd700',
   },
   {
-    icon: '🎮',
-    title: 'PLAYNETIC',
-    role: '2024 → 2026',
-    year: '2024',
-    tags: ['Audio Producer', 'Lead Sound Designer'],
-    category: 'tools',
-    hasDemo: false,
-    description: 'Audio Producer, Lead Sound Designer — Playnetic',
+    ico: '🎰',
+    name: '50+ TITLES',
+    desc: 'Fifty released games carrying my audio DNA across global markets.',
+    color: '#00e5ff',
   },
   {
-    icon: '🏢',
-    title: 'IGT',
-    role: '2020 → 2024',
-    year: '2020',
-    tags: ['Senior Sound Designer', 'Audio Lead'],
-    category: 'tools',
-    hasDemo: false,
-    description: 'Senior Sound Designer, Audio Lead — IGT (4 years)',
+    ico: '🏛️',
+    name: 'IGT · PLAYNETIC',
+    desc: 'Senior roles at two industry-leading slot studios.',
+    color: '#ff00aa',
   },
   {
-    icon: '🎓',
-    title: 'EDUCATION',
-    role: 'SAE Institute + BA',
-    year: '',
-    tags: ['Audio Engineering', 'Music Performance'],
-    category: 'tools',
-    hasDemo: false,
-    description: 'SAE Institute — Audio Engineering, BA — Accordion & Piano',
+    ico: '🌍',
+    name: 'GLOBAL MARKETS',
+    desc: 'EU, UK, North America, AUS — regulated market experience.',
+    color: '#00ff88',
+  },
+  {
+    ico: '🎓',
+    name: 'SAE GRADUATE',
+    desc: 'Audio Engineering diploma. BA Music Performance.',
+    color: '#9944ff',
   },
 ]
 
 // ============================================================
-// ALL CELLS (combined)
+// CAREER (4)
 // ============================================================
 
-export const ALL_CELLS: ReelCell[] = [
-  ...PROJECT_CELLS,
-  ...SKILL_CELLS,
-  ...ABOUT_CELLS,
-  ...CAREER_CELLS,
+export const EXP_DATA: SimpleItem[] = [
+  {
+    ico: '🌐',
+    name: 'VANVINKL',
+    desc: 'Founder & Audio Director — Full-service iGaming audio production.',
+    color: '#00e5ff',
+    period: '2024→NOW',
+  },
+  {
+    ico: '🎮',
+    name: 'PLAYNETIC',
+    desc: 'Audio Producer, Lead Sound Designer — 10+ parallel slot titles.',
+    color: '#ffd700',
+    period: '2024→2026',
+  },
+  {
+    ico: '🏛️',
+    name: 'IGT',
+    desc: 'Senior Sound Designer, Audio Lead — team of 3, EU regulated.',
+    color: '#ff00aa',
+    period: '2020→2024',
+  },
+  {
+    ico: '🎓',
+    name: 'EDUCATION',
+    desc: 'Audio Production Diploma + BA Accordion & Piano Performance.',
+    color: '#9944ff',
+    period: 'SAE+BA',
+  },
 ]
 
-/**
- * Get cells filtered by category.
- */
-export function getCellsByCategory(category: string): ReelCell[] {
-  if (category === 'all') return ALL_CELLS
-  return ALL_CELLS.filter((c) => c.category === category)
-}
+// ============================================================
+// CONTACT (3)
+// ============================================================
+
+export const CONTACT_DATA: SimpleItem[] = [
+  {
+    ico: '📧',
+    name: 'EMAIL',
+    desc: 'bojan@vanvinkl.com',
+    color: '#ffd700',
+  },
+  {
+    ico: '💼',
+    name: 'LINKEDIN',
+    desc: 'linkedin.com/in/vanvinkl',
+    color: '#0077b5',
+  },
+  {
+    ico: '✅',
+    name: 'AVAILABLE',
+    desc: 'Freelance, contract, full-time — remote worldwide.',
+    color: '#00ff88',
+  },
+]

@@ -1,42 +1,36 @@
-/**
- * Frame — WoO-style slot machine frame
- *
- * Fluted gold pillars (left/right), corner medallions, chrome rail.
- * Children = the reel grid area.
- */
-
-import { memo, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import styles from './Frame.module.css'
 
 interface FrameProps {
   children: ReactNode
+  isSpinning: boolean
 }
 
-const Frame = memo(function Frame({ children }: FrameProps) {
+export function Frame({ children, isSpinning }: FrameProps) {
   return (
     <div className={styles.frame}>
       {/* Left pillar */}
-      <div className={`${styles.pillar} ${styles.left}`}>
-        <span className={styles.gleam} />
-        <span className={`${styles.gleam} ${styles.gleam2}`} />
-      </div>
-
-      {/* Reel area */}
-      <div className={styles.reelArea}>{children}</div>
+      <div className={`${styles.pillar} ${styles.left}`} />
 
       {/* Right pillar */}
-      <div className={`${styles.pillar} ${styles.right}`}>
-        <span className={styles.gleam} />
-        <span className={`${styles.gleam} ${styles.gleam2}`} />
-      </div>
+      <div className={`${styles.pillar} ${styles.right}`} />
 
       {/* Corner medallions */}
-      <span className={`${styles.medallion} ${styles.mtl}`} />
-      <span className={`${styles.medallion} ${styles.mtr}`} />
-      <span className={`${styles.medallion} ${styles.mbl}`} />
-      <span className={`${styles.medallion} ${styles.mbr}`} />
+      <div className={`${styles.medallion} ${styles.tl}`} />
+      <div className={`${styles.medallion} ${styles.tr}`} />
+      <div className={`${styles.medallion} ${styles.bl}`} />
+      <div className={`${styles.medallion} ${styles.br}`} />
+
+      {/* Top cold-light reflection strip */}
+      <div className={styles.topStrip} />
+
+      {/* Inner glow — activates during spin */}
+      <div className={`${styles.innerGlow} ${isSpinning ? styles.innerGlowActive : ''}`} />
+
+      {/* Content */}
+      <div className={styles.content}>{children}</div>
     </div>
   )
-})
+}
 
 export default Frame
