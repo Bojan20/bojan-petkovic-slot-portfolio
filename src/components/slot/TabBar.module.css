@@ -37,12 +37,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: clamp(7px, 1.2vh, 12px) clamp(4px, 0.8vw, 10px);
+  gap: 1px;
+  padding: clamp(4px, 0.7vh, 7px) clamp(4px, 0.8vw, 10px);
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(10px, 1.6vw, 14px);
-  letter-spacing: clamp(2px, 0.6vw, 4px);
+  font-size: clamp(9px, 1.3vw, 12px);
+  letter-spacing: clamp(1.5px, 0.5vw, 3px);
   color: rgba(118, 128, 178, 0.78);
   text-align: center;
   text-transform: uppercase;
