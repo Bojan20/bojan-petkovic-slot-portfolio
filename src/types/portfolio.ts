@@ -37,7 +37,8 @@ export interface SimpleItem {
   name: string
   desc: string
   color: string
-  period?: string  // for career
+  period?: string      // for career — company period
+  highlights?: string[] // for about — stat badges (col 2)
 }
 
 // A single visible reel cell (one row in one column)

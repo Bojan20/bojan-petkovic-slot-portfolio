@@ -12,7 +12,7 @@ import type { ProjectItem, SkillItem, SimpleItem, SectionDef } from '../types'
 export const SECTIONS: SectionDef[] = [
   { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'SCOPE', 'THE WORK', 'TOOLS', 'DEMO'],   headerIcons: ['⬡', '◎', '◆', '⚙', '▶'], numCols: 5 },
   { id: 'skills',   label: 'SKILLS',   icon: '◉', headers: ['SKILL', 'DETAILS', 'TOOLS'],                    headerIcons: ['◈', '◎', '⚙'],           numCols: 3 },
-  { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'DETAILS'],                           headerIcons: ['◈', '◎'],                 numCols: 2 },
+  { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'STORY', 'HIGHLIGHTS'],               headerIcons: ['◈', '◎', '◆'],            numCols: 3 },
   { id: 'career',   label: 'CAREER',   icon: '◆', headers: ['ROLE', 'DETAILS'],                              headerIcons: ['◆', '◎'],                 numCols: 2 },
   { id: 'contact',  label: 'CONTACT',  icon: '▶', headers: ['CHANNEL', 'DETAILS'],                           headerIcons: ['▶', '◎'],                 numCols: 2 },
 ]
@@ -154,39 +154,68 @@ export const SKILLS_DATA: SkillItem[] = [
 ]
 
 // ============================================================
-// ABOUT (5)
+// ABOUT (7 aspects — one per reel row)
+// Col 0: PROFILE (simple — icon + role + subtitle)
+// Col 1: STORY   (detail — bio paragraph)
+// Col 2: STATS   (tools — stat/highlight badges)
 // ============================================================
 
 export const ABOUT_DATA: SimpleItem[] = [
   {
-    ico: '🏆',
-    name: '10+ YEARS',
-    desc: 'Over a decade crafting audio for slot & mobile games.',
+    ico: '🎵',
+    name: 'AUDIO PRODUCER',
+    period: 'Senior · Full Pipeline',
+    desc: '8+ years in slot and interactive game audio. Full pipeline ownership — concept, composition, implementation logic, QA, and final release preparation.',
+    highlights: ['8+ YEARS', '50+ TITLES', 'FULL PIPELINE', 'REAL MONEY'],
     color: '#ffd700',
   },
   {
-    ico: '🎰',
-    name: '50+ TITLES',
-    desc: 'Fifty released games carrying my audio DNA across global markets.',
+    ico: '🔊',
+    name: 'SOUND DESIGNER',
+    period: 'Custom Libraries · FX',
+    desc: '200+ custom SFX assets per title — reel mechanics, coin physics, win escalation, ambience layers. Every asset purpose-built from scratch for the game.',
+    highlights: ['200+ SFX/TITLE', 'CUSTOM LIBRARIES', 'TRIGGER LOGIC', 'QA VALIDATED'],
     color: '#00e5ff',
   },
   {
-    ico: '🏛️',
-    name: 'IGT · PLAYNETIC',
-    desc: 'Senior roles at two industry-leading slot studios.',
+    ico: '🎼',
+    name: 'COMPOSER',
+    period: 'Adaptive Music · State Sync',
+    desc: 'Adaptive layered music systems — base game, free spins, feature escalation. Seamless state transitions timed to volatility flow and player engagement.',
+    highlights: ['ADAPTIVE LAYERS', 'STATE SYNC', 'LONG-SESSION', 'FEATURE RAMP'],
+    color: '#9944ff',
+  },
+  {
+    ico: '🎛️',
+    name: 'AUDIO DIRECTOR',
+    period: 'Creative Lead · Standards',
+    desc: 'Creative direction across full titles — defined audio identity, set quality standards, supervised mix, validated all game states before final sign-off.',
+    highlights: ['CREATIVE DIR.', 'MIX SUPERVISION', 'FINAL DELIVERY', 'BRAND AUDIO'],
     color: '#ff00aa',
   },
   {
-    ico: '🌍',
-    name: 'GLOBAL MARKETS',
-    desc: 'EU, UK, North America, AUS — regulated market experience.',
-    color: '#00ff88',
+    ico: '👥',
+    name: 'TEAM LEAD',
+    period: 'IGT · 3-person team',
+    desc: 'Led team of 3 sound designers at IGT. Task planning, performance mentoring, EU regulated market compliance, and creative direction across multiple simultaneous titles.',
+    highlights: ['IGT 2020–2024', '3-PERSON TEAM', 'EU REGULATED', 'MENTORING'],
+    color: '#ff6600',
   },
   {
     ico: '🎓',
-    name: 'SAE GRADUATE',
-    desc: 'Audio Engineering diploma. BA Music Performance.',
-    color: '#9944ff',
+    name: 'EDUCATION',
+    period: 'SAE · Faculty of Music',
+    desc: 'SAE Institute Belgrade — Audio Production Diploma (Studio Recording, Mixing, Post, Interactive Media). Faculty of Music Belgrade — BA Accordion & Piano Performance.',
+    highlights: ['SAE BELGRADE', 'FACULTY OF MUSIC', 'BA MUSIC PERF.', 'AUDIO DIPLOMA'],
+    color: '#00ff88',
+  },
+  {
+    ico: '⚡',
+    name: 'INNOVATION',
+    period: 'AI Workflow · Remote WW',
+    desc: 'AI-assisted production tools for faster iteration. Logic Pro + Reaper + iZotope RX + Howler.js pipeline. Remote worldwide delivery — EU, UK, North America, AUS.',
+    highlights: ['AI WORKFLOW', 'REMOTE WW', 'LOGIC + REAPER', 'IZOTOPE RX'],
+    color: '#00ffcc',
   },
 ]
 
