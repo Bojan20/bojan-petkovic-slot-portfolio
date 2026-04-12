@@ -33,70 +33,81 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
   const arr = getDataForSection(sectionIdx)
   const secId = SECTIONS[sectionIdx]!.id
 
+  // ── PROJECTS: 5 cols — GAME | SCOPE | WORK | TOOLS | DEMO
   if (secId === 'projects') {
-    const cols: CellData[][] = [[], [], []]
+    const cols: CellData[][] = [[], [], [], [], []]
     for (let k = 0; k < n; k++) {
       const p = wrap(arr as typeof PROJECTS, centerIdx - half + k) as typeof PROJECTS[0]
       const isC = k === half
       const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'game', ico: p.ico, name: p.name, studio: p.studio, color: p.color, center: isC, itemIndex })
-      // Merged scope+work into single detail column
-      const scopeTags = [p.scope.music && 'MUSIC', p.scope.sfx && 'SFX', p.scope.integration && 'INTEGRATION', p.scope.qa && 'QA'].filter(Boolean).join(' · ')
-      cols[1]!.push({ type: 'detail', text: `${scopeTags}\n${p.work}`, color: p.color, center: isC })
-      cols[2]!.push({ type: 'demo', demo: p.demo, color: p.color, center: isC })
+      cols[0]!.push({ type: 'game',  ico: p.ico, name: p.name, studio: p.studio, color: p.color, center: isC, itemIndex })
+      cols[1]!.push({ type: 'scope', scope: p.scope, color: p.color, center: isC })
+      cols[2]!.push({ type: 'detail', text: p.work, color: p.color, center: isC })
+      cols[3]!.push({ type: 'tools', tools: p.tools, color: p.color, center: isC })
+      cols[4]!.push({ type: 'demo',  demo: p.demo, color: p.color, center: isC })
     }
     return cols
   }
 
+  // ── SKILLS: 5 cols — SKILL | LEVEL | DETAILS | TOOLS | DOMAIN
   if (secId === 'skills') {
-    const cols: CellData[][] = [[], [], []]
+    const cols: CellData[][] = [[], [], [], [], []]
     for (let k = 0; k < n; k++) {
       const s = wrap(arr as typeof SKILLS_DATA, centerIdx - half + k) as typeof SKILLS_DATA[0]
       const isC = k === half
       const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
       cols[0]!.push({ type: 'simple', ico: s.ico, name: s.name, studio: '', color: s.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'detail', text: s.desc, color: s.color, center: isC })
-      cols[2]!.push({ type: 'tools', tools: s.tools, color: s.color, center: isC })
+      cols[1]!.push({ type: 'tools',  tools: [s.level], color: s.color, center: isC })
+      cols[2]!.push({ type: 'detail', text: s.desc, color: s.color, center: isC })
+      cols[3]!.push({ type: 'tools',  tools: s.tools, color: s.color, center: isC })
+      cols[4]!.push({ type: 'tools',  tools: [s.domain], color: s.color, center: isC })
     }
     return cols
   }
 
-  // about — 3 columns (PROFILE + STORY + HIGHLIGHTS)
+  // ── ABOUT: 5 cols — PROFILE | CONTEXT | STORY | FACTS | FOCUS
   if (secId === 'about') {
-    const cols: CellData[][] = [[], [], []]
+    const cols: CellData[][] = [[], [], [], [], []]
     for (let k = 0; k < n; k++) {
       const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
       const isC = k === half
       const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: d.period || '', color: d.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'detail', text: d.desc, color: d.color, center: isC })
-      cols[2]!.push({ type: 'tools', tools: d.highlights || [], color: d.color, center: isC })
+      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',           color: d.color, center: isC, itemIndex })
+      cols[1]!.push({ type: 'detail', text: d.period || '',                            color: d.color, center: isC })
+      cols[2]!.push({ type: 'detail', text: d.desc,                                   color: d.color, center: isC })
+      cols[3]!.push({ type: 'tools',  tools: (d.highlights || []).slice(0, 3),        color: d.color, center: isC })
+      cols[4]!.push({ type: 'tools',  tools: (d.highlights || []).slice(3),           color: d.color, center: isC })
     }
     return cols
   }
 
-  // career — 3 columns (COMPANY + ROLE & SCOPE + KEY MILESTONES)
+  // ── CAREER: 5 cols — COMPANY | PERIOD | ROLE | SCOPE | IMPACT
   if (secId === 'career') {
-    const cols: CellData[][] = [[], [], []]
+    const cols: CellData[][] = [[], [], [], [], []]
     for (let k = 0; k < n; k++) {
-      const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
+      const d = wrap(arr as typeof EXP_DATA, centerIdx - half + k) as typeof EXP_DATA[0]
       const isC = k === half
       const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: d.period || '', color: d.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'detail', text: d.desc, color: d.color, center: isC })
-      cols[2]!.push({ type: 'tools', tools: d.highlights || [], color: d.color, center: isC })
+      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',           color: d.color, center: isC, itemIndex })
+      cols[1]!.push({ type: 'detail', text: d.period || '',                            color: d.color, center: isC })
+      cols[2]!.push({ type: 'detail', text: d.desc,                                   color: d.color, center: isC })
+      cols[3]!.push({ type: 'tools',  tools: (d.highlights || []).slice(0, 2),        color: d.color, center: isC })
+      cols[4]!.push({ type: 'tools',  tools: (d.highlights || []).slice(2),           color: d.color, center: isC })
     }
     return cols
   }
 
-  // contact — 2 columns
-  const cols: CellData[][] = [[], []]
+  // ── CONTACT: 5 cols — CHANNEL | TYPE | VALUE | STATUS | NOTE
+  const cols: CellData[][] = [[], [], [], [], []]
   for (let k = 0; k < n; k++) {
-    const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
+    const d = wrap(arr as typeof CONTACT_DATA, centerIdx - half + k) as typeof CONTACT_DATA[0]
     const isC = k === half
     const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-    cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: d.period || '', color: d.color, center: isC, itemIndex })
-    cols[1]!.push({ type: 'detail', text: d.desc, color: d.color, center: isC })
+    cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',             color: d.color, center: isC, itemIndex })
+    cols[1]!.push({ type: 'detail', text: d.period || '',                              color: d.color, center: isC })
+    cols[2]!.push({ type: 'detail', text: d.desc,                                     color: d.color, center: isC })
+    cols[3]!.push({ type: 'tools',  tools: d.highlights || [],                        color: d.color, center: isC })
+    cols[4]!.push({ type: 'detail', text: d.note || '',                               color: d.color, center: isC })
   }
   return cols
 }

@@ -10,11 +10,11 @@ import type { ProjectItem, SkillItem, SimpleItem, SectionDef } from '../types'
 // ============================================================
 
 export const SECTIONS: SectionDef[] = [
-  { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'DETAILS', 'DEMO'],   headerIcons: ['⬡', '◎', '▶'], numCols: 3 },
-  { id: 'skills',   label: 'SKILLS',   icon: '◉', headers: ['SKILL', 'DETAILS', 'TOOLS'],                    headerIcons: ['◈', '◎', '⚙'],           numCols: 3 },
-  { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'STORY', 'HIGHLIGHTS'],               headerIcons: ['◈', '◎', '◆'],            numCols: 3 },
-  { id: 'career',   label: 'CAREER',   icon: '◆', headers: ['COMPANY', 'ROLE & SCOPE', 'KEY MILESTONES'],    headerIcons: ['◆', '◎', '★'],             numCols: 3 },
-  { id: 'contact',  label: 'CONTACT',  icon: '▶', headers: ['CHANNEL', 'DETAILS'],                           headerIcons: ['▶', '◎'],                 numCols: 2 },
+  { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'SCOPE', 'WORK', 'TOOLS', 'DEMO'],          headerIcons: ['⬡', '◎', '✦', '⚙', '▶'], numCols: 5 },
+  { id: 'skills',   label: 'SKILLS',   icon: '◉', headers: ['SKILL', 'LEVEL', 'DETAILS', 'TOOLS', 'DOMAIN'],    headerIcons: ['◈', '★', '◎', '⚙', '◆'], numCols: 5 },
+  { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'CONTEXT', 'STORY', 'FACTS', 'FOCUS'],   headerIcons: ['◈', '◎', '✦', '◆', '●'], numCols: 5 },
+  { id: 'career',   label: 'CAREER',   icon: '◆', headers: ['COMPANY', 'PERIOD', 'ROLE', 'SCOPE', 'IMPACT'],    headerIcons: ['◆', '◎', '✦', '◎', '★'], numCols: 5 },
+  { id: 'contact',  label: 'CONTACT',  icon: '▶', headers: ['CHANNEL', 'TYPE', 'VALUE', 'STATUS', 'NOTE'],      headerIcons: ['▶', '◎', '◆', '✓', '◎'], numCols: 5 },
 ]
 
 // ============================================================
@@ -115,6 +115,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: 'Adaptive layered compositions — base game loops, free spin escalation, jackpot fanfares. Seamless state transitions timed to volatility and player engagement.',
     tools: ['Logic Pro', 'Reaper', 'Kontakt', 'Spitfire'],
     color: '#ffd700',
+    level: 'EXPERT',
+    domain: 'COMPOSITION',
   },
   {
     ico: '🔊',
@@ -122,6 +124,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: '200+ custom SFX per title — reel mechanics, coin physics, win escalation, UI feedback, ambience layers. Every asset purpose-built from scratch.',
     tools: ['iZotope RX', 'Logic Pro', 'Reaper', 'Krotos'],
     color: '#00e5ff',
+    level: 'EXPERT',
+    domain: 'SOUND ART',
   },
   {
     ico: '⚙️',
@@ -129,6 +133,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: 'Event-driven playback systems wired directly into game engines. Trigger maps, state machines, volume ducking, spatial positioning.',
     tools: ['Howler.js', 'Phaser 3', 'Unity', 'PixiJS'],
     color: '#00ff88',
+    level: 'ADVANCED',
+    domain: 'ENGINEERING',
   },
   {
     ico: '🎛️',
@@ -136,6 +142,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: 'Creative leadership across full titles — defining sonic identity, setting quality standards, supervising mix, final sign-off on every game state.',
     tools: ['Confluence', 'Figma', 'JIRA', 'Slack'],
     color: '#ff00aa',
+    level: 'ADVANCED',
+    domain: 'LEADERSHIP',
   },
   {
     ico: '🧪',
@@ -143,6 +151,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: 'Systematic trigger verification across every game state — base, free spins, bonus, jackpot. Zero audio defects at launch across 50+ certified titles.',
     tools: ['TestRail', 'JIRA', 'Custom Scripts'],
     color: '#9944ff',
+    level: 'EXPERT',
+    domain: 'QA SYSTEMS',
   },
   {
     ico: '🎰',
@@ -150,6 +160,8 @@ export const SKILLS_DATA: SkillItem[] = [
     desc: 'Deep domain expertise in real-money slot audio. Regulatory compliance (EU, UK, AUS), player psychology, session fatigue management, volatility-aware audio design.',
     tools: ['FMOD', 'Wwise', 'Howler.js', 'Tone.js'],
     color: '#ff6600',
+    level: 'EXPERT',
+    domain: 'iGAMING',
   },
 ]
 
@@ -250,19 +262,28 @@ export const CONTACT_DATA: SimpleItem[] = [
   {
     ico: '📧',
     name: 'EMAIL',
+    period: 'PROFESSIONAL',
     desc: 'bojan@vanvinkl.com',
+    highlights: ['DIRECT', 'PREFERRED'],
+    note: 'FASTEST RESPONSE',
     color: '#ffd700',
   },
   {
     ico: '💼',
     name: 'LINKEDIN',
+    period: 'PROFESSIONAL',
     desc: 'linkedin.com/in/vanvinkl',
+    highlights: ['ACTIVE', 'VERIFIED'],
+    note: 'PORTFOLIO LINK',
     color: '#0077b5',
   },
   {
     ico: '✅',
     name: 'AVAILABLE',
+    period: 'STATUS',
     desc: 'Freelance, contract, full-time — remote worldwide.',
+    highlights: ['OPEN TO WORK', 'REMOTE WW'],
+    note: 'IMMEDIATE START',
     color: '#00ff88',
   },
 ]

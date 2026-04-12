@@ -30,6 +30,8 @@ export interface SkillItem {
   desc: string
   tools: string[]
   color: string
+  level: string   // 'EXPERT' | 'ADVANCED' | 'PROFICIENT'
+  domain: string  // skill domain badge
 }
 
 export interface SimpleItem {
@@ -37,8 +39,9 @@ export interface SimpleItem {
   name: string
   desc: string
   color: string
-  period?: string      // for career — company period
-  highlights?: string[] // for about — stat badges (col 2)
+  period?: string      // for career — company period / contact type
+  highlights?: string[] // for about/career — stat badges
+  note?: string        // for contact — extra note col
 }
 
 // A single visible reel cell (one row in one column)

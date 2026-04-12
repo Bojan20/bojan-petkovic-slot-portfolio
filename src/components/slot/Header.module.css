@@ -32,8 +32,8 @@
   background: rgba(2, 2, 8, 0.92);
   border: 1.5px solid var(--amb-dim);
   border-radius: 6px;
-  margin: clamp(1px, 0.2vh, 2px) 0 clamp(1px, 0.15vh, 2px);
-  padding: clamp(2px, 0.35vh, 4px) clamp(10px, 2.2vw, 24px);
+  margin: clamp(2px, 0.3vh, 4px) 0 clamp(2px, 0.25vh, 4px);
+  padding: clamp(4px, 0.6vh, 8px) clamp(12px, 2.5vw, 28px);
   position: relative;
   overflow: hidden;
   box-shadow: 0 0 36px var(--amb-glow), inset 0 0 60px rgba(232, 192, 96, 0.015);
@@ -55,8 +55,8 @@
 .title {
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(12px, 2.5vw, 22px);
-  letter-spacing: clamp(5px, 1.6vw, 16px);
+  font-size: clamp(18px, 3.6vw, 34px);
+  letter-spacing: clamp(6px, 2vw, 20px);
   text-align: center;
   line-height: 1;
   position: relative;
@@ -65,18 +65,18 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 18px var(--amb-glow));
+  filter: drop-shadow(0 0 22px var(--amb-glow));
 }
 
 .subtitle {
   font-family: var(--f-ui);
   font-weight: 600;
   text-align: center;
-  font-size: clamp(6px, 0.9vw, 9px);
-  letter-spacing: clamp(2px, 0.65vw, 5px);
+  font-size: clamp(7px, 1.05vw, 11px);
+  letter-spacing: clamp(2.5px, 0.75vw, 6px);
   color: var(--ice);
   opacity: 0.82;
-  margin-top: 1px;
+  margin-top: 2px;
   position: relative;
   z-index: 1;
 }
