@@ -151,20 +151,20 @@
 .controls {
   background: linear-gradient(180deg, #06060f 0%, #030308 100%);
   border-top: 1px solid rgba(201, 162, 39, 0.1);
-  padding: clamp(3px, 0.45vh, 5px) clamp(12px, 2.5vw, 28px);
+  padding: clamp(2px, 0.3vh, 4px) clamp(12px, 2.5vw, 28px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: clamp(8px, 1.6vw, 16px);
   flex-shrink: 0;
-  min-height: clamp(48px, 7vh, 70px);
+  min-height: clamp(36px, 5vh, 52px);
   box-shadow: inset 0 1px 0 rgba(201, 162, 39, 0.06), 0 -4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .bottomStrip {
   background: linear-gradient(180deg, #04040e, #020208);
   border-top: 1px solid rgba(255, 255, 255, 0.022);
-  padding: clamp(1px, 0.2vh, 3px) clamp(10px, 2.2vw, 24px);
+  padding: 1px clamp(10px, 2.2vw, 24px);
   display: flex;
   align-items: center;
   justify-content: space-between;
