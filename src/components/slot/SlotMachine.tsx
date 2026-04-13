@@ -111,7 +111,12 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
   return cols
 }
 
-export function SlotMachine() {
+interface SlotMachineProps {
+  /** Block all interaction during intro transition */
+  locked?: boolean
+}
+
+export function SlotMachine({ locked = false }: SlotMachineProps) {
   const {
     currentSectionIdx,
     currentItemIdx,
@@ -206,7 +211,7 @@ export function SlotMachine() {
   // ── SPIN ANIMATION ──
   const spinToIdx = useCallback(
     (newIdx: number) => {
-      if (isSpinning) return
+      if (locked || isSpinning) return
       // Block spin while payline takeover cards are visible — user must dismiss first
       if (takeoverTlRef.current || takeoverCleanupRef.current) return
       setSpinning(true)
@@ -318,7 +323,7 @@ export function SlotMachine() {
         }, d)
       })
     },
-    [isSpinning, currentSectionIdx, cellHeight, setSpinning, setSpinPhase, setItemIdx, tickJackpot]
+    [locked, isSpinning, currentSectionIdx, cellHeight, setSpinning, setSpinPhase, setItemIdx, tickJackpot]
   )
 
   // ── AAA CENTER ROW WIN ──
@@ -855,25 +860,25 @@ export function SlotMachine() {
   }
 
   // Spin button → advance to next item
-  // Blocked while spinning OR while payline takeover cards are on screen
+  // Blocked while locked (intro), spinning, or payline takeover cards are on screen
   const handleSpin = useCallback(() => {
-    if (isSpinning || takeoverTlRef.current || takeoverCleanupRef.current) return
+    if (locked || isSpinning || takeoverTlRef.current || takeoverCleanupRef.current) return
     const arr = getDataForSection(currentSectionIdx)
     const newIdx = (currentItemIdx + 1) % arr.length
     spinToIdx(newIdx)
-  }, [isSpinning, currentSectionIdx, currentItemIdx, spinToIdx])
+  }, [locked, isSpinning, currentSectionIdx, currentItemIdx, spinToIdx])
 
-  // Game cell click — blocked during takeover
+  // Game cell click — blocked during intro/takeover
   const handleGameCellClick = useCallback((itemIndex: number) => {
-    if (isSpinning || takeoverTlRef.current || takeoverCleanupRef.current || itemIndex === currentItemIdx) return
+    if (locked || isSpinning || takeoverTlRef.current || takeoverCleanupRef.current || itemIndex === currentItemIdx) return
     spinToIdx(itemIndex)
-  }, [isSpinning, currentItemIdx, spinToIdx])
+  }, [locked, isSpinning, currentItemIdx, spinToIdx])
 
   // Section change
   const handleSectionChange = useCallback((idx: number) => {
-    if (isSpinning || idx === currentSectionIdx) return
+    if (locked || isSpinning || idx === currentSectionIdx) return
     setSection(idx)
-  }, [isSpinning, currentSectionIdx, setSection])
+  }, [locked, isSpinning, currentSectionIdx, setSection])
 
   // ── TOUCH HANDLING ──
   const touchStateRef = useRef({ startX: 0, startY: 0, swiping: false, scrolling: false })
@@ -885,7 +890,7 @@ export function SlotMachine() {
   }, [])
 
   const handleZoneTouchMove = useCallback((e: React.TouchEvent) => {
-    if (isSpinning) return
+    if (locked || isSpinning) return
     const t = e.touches[0]!
     const dx = t.clientX - touchStateRef.current.startX
     const dy = t.clientY - touchStateRef.current.startY
@@ -894,12 +899,12 @@ export function SlotMachine() {
       setShowSecL(dx > 0)
       setShowSecR(dx < 0)
     }
-  }, [isSpinning])
+  }, [locked, isSpinning])
 
   const handleZoneTouchEnd = useCallback((e: React.TouchEvent) => {
     setShowSecL(false)
     setShowSecR(false)
-    if (isSpinning) return
+    if (locked || isSpinning) return
     const t = e.changedTouches[0]!
     const dx = t.clientX - touchStateRef.current.startX
     const dy = t.clientY - touchStateRef.current.startY
@@ -916,7 +921,7 @@ export function SlotMachine() {
       const newIdx = ((currentItemIdx + dir * steps) % arr.length + arr.length) % arr.length
       spinToIdx(newIdx)
     }
-  }, [isSpinning, currentSectionIdx, currentItemIdx, handleSectionChange, spinToIdx])
+  }, [locked, isSpinning, currentSectionIdx, currentItemIdx, handleSectionChange, spinToIdx])
 
   // Keyboard
   useEffect(() => {

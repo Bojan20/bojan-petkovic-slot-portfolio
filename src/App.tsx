@@ -4,6 +4,9 @@
  * Splash intro → casino shower → Slot machine portfolio
  * Both components coexist in DOM during transition.
  * Canvas particle rain (coins, chips, dice) bridges the gap.
+ *
+ * Slot is interaction-locked until shower completes.
+ * No scale animation on slot wrapper — prevents frame size jumps.
  */
 
 import { useCallback, useRef, useState } from 'react'
@@ -16,6 +19,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true)
   const [splashExiting, setSplashExiting] = useState(false)
   const [showerActive, setShowerActive] = useState(false)
+  const [introLocked, setIntroLocked] = useState(true)
   const slotWrapRef = useRef<HTMLDivElement>(null)
   const splashRef = useRef<HTMLDivElement>(null)
 
@@ -37,22 +41,22 @@ export default function App() {
       ease: 'power3.in',
     }, 0)
 
-    // Slot entrance: starts after shower gets going
+    // Slot entrance: opacity + blur only — NO scale (prevents frame size jumping)
     tl.fromTo(slotWrapRef.current,
-      { opacity: 0, scale: 0.92, filter: 'blur(8px)' },
+      { opacity: 0, filter: 'blur(8px)' },
       {
         opacity: 1,
-        scale: 1,
         filter: 'blur(0px)',
         duration: 1.4,
         ease: 'power2.out',
       },
-      0.4  // starts 0.4s in — shower is already raining
+      0.4
     )
   }, [splashExiting])
 
   const handleShowerDone = useCallback(() => {
     setShowerActive(false)
+    setIntroLocked(false)
   }, [])
 
   return (
@@ -62,10 +66,10 @@ export default function App() {
         ref={slotWrapRef}
         style={{
           opacity: showSplash && !splashExiting ? 0 : undefined,
-          willChange: splashExiting ? 'transform, opacity, filter' : undefined,
+          willChange: splashExiting ? 'opacity, filter' : undefined,
         }}
       >
-        <SlotMachine />
+        <SlotMachine locked={introLocked} />
       </div>
 
       {/* Casino particle shower — coins, chips, dice rain */}
