@@ -41,16 +41,17 @@ export default function App() {
       ease: 'power3.in',
     }, 0)
 
-    // Slot entrance: opacity + blur only — NO scale (prevents frame size jumping)
+    // Slot entrance: slow fade-in over full shower duration (4.2s)
+    // opacity + blur ease in together — slot and background reveal gradually
     tl.fromTo(slotWrapRef.current,
-      { opacity: 0, filter: 'blur(8px)' },
+      { opacity: 0, filter: 'blur(12px)' },
       {
         opacity: 1,
         filter: 'blur(0px)',
-        duration: 1.4,
-        ease: 'power2.out',
+        duration: 3.8,
+        ease: 'power1.inOut',
       },
-      0.4
+      0.3
     )
   }, [splashExiting])
 
