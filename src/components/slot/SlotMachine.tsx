@@ -207,9 +207,8 @@ export function SlotMachine() {
   const spinToIdx = useCallback(
     (newIdx: number) => {
       if (isSpinning) return
-      // Kill any running payline takeover — force cleanup
-      if (takeoverTlRef.current) { takeoverTlRef.current.kill(); takeoverTlRef.current = null }
-      if (takeoverCleanupRef.current) { takeoverCleanupRef.current(); takeoverCleanupRef.current = null }
+      // Block spin while payline takeover cards are visible — user must dismiss first
+      if (takeoverTlRef.current || takeoverCleanupRef.current) return
       setSpinning(true)
       setSpinPhase('windup')
 
@@ -856,16 +855,17 @@ export function SlotMachine() {
   }
 
   // Spin button → advance to next item
+  // Blocked while spinning OR while payline takeover cards are on screen
   const handleSpin = useCallback(() => {
-    if (isSpinning) return
+    if (isSpinning || takeoverTlRef.current || takeoverCleanupRef.current) return
     const arr = getDataForSection(currentSectionIdx)
     const newIdx = (currentItemIdx + 1) % arr.length
     spinToIdx(newIdx)
   }, [isSpinning, currentSectionIdx, currentItemIdx, spinToIdx])
 
-  // Game cell click
+  // Game cell click — blocked during takeover
   const handleGameCellClick = useCallback((itemIndex: number) => {
-    if (isSpinning || itemIndex === currentItemIdx) return
+    if (isSpinning || takeoverTlRef.current || takeoverCleanupRef.current || itemIndex === currentItemIdx) return
     spinToIdx(itemIndex)
   }, [isSpinning, currentItemIdx, spinToIdx])
 

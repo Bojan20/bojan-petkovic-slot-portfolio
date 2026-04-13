@@ -180,7 +180,7 @@ function drawChip(
 ) {
   const { x, y } = body.position
   const r         = meta.size / 2
-  const palette   = CHIP_PALETTES.find(p => p.main === meta.chipColor) ?? CHIP_PALETTES[0]
+  const palette   = CHIP_PALETTES.find(p => p.main === meta.chipColor) ?? CHIP_PALETTES[0]!
 
   ctx.save()
   ctx.globalAlpha = alpha
@@ -300,8 +300,8 @@ function drawDice(
 
   // Pips
   const pipR = s * 0.10
-  const pips = PIPS[meta.face] ?? PIPS[1]
-  for (const [px, py] of pips) {
+  const pips = PIPS[meta.face] ?? PIPS[1]!
+  for (const [px, py] of pips!) {
     const cx = px * s * 0.42
     const cy = py * s * 0.42
 
@@ -358,7 +358,7 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
     })
     Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.35)
 
-    const palette = CHIP_PALETTES[Math.floor(Math.random() * CHIP_PALETTES.length)]
+    const palette = CHIP_PALETTES[Math.floor(Math.random() * CHIP_PALETTES.length)]!
     const meta: ParticleMeta = {
       type,
       trail:     [],
@@ -459,8 +459,8 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
         for (let t = 0; t < meta.trail.length - 1; t++) {
           const ta = ((t + 1) / meta.trail.length) * 0.22
           ctx.beginPath()
-          ctx.moveTo(meta.trail[t].x, meta.trail[t].y)
-          ctx.lineTo(meta.trail[t + 1].x, meta.trail[t + 1].y)
+          ctx.moveTo(meta.trail[t]!.x, meta.trail[t]!.y)
+          ctx.lineTo(meta.trail[t + 1]!.x, meta.trail[t + 1]!.y)
           ctx.strokeStyle = `rgba(255,215,0,${ta})`
           ctx.lineWidth   = meta.size * 0.28
           ctx.lineCap     = 'round'
