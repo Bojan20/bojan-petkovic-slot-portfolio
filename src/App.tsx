@@ -9,7 +9,7 @@
  * No scale animation on slot wrapper — prevents frame size jumps.
  */
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
@@ -22,11 +22,27 @@ export default function App() {
   const [introLocked, setIntroLocked] = useState(true)
   const slotWrapRef = useRef<HTMLDivElement>(null)
   const splashRef = useRef<HTMLDivElement>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Pre-create audio element (doesn't play until user gesture)
+  useEffect(() => {
+    const a = new Audio('/ambient/lounge.mp3')
+    a.loop = true
+    a.volume = 0.35
+    audioRef.current = a
+    return () => { a.pause(); a.src = '' }
+  }, [])
 
   const handleEnter = useCallback(() => {
     if (splashExiting) return
     setSplashExiting(true)
     setShowerActive(true)
+
+    // Start ambient music on user gesture (autoplay blocked by browsers)
+    const audio = audioRef.current
+    if (audio) {
+      audio.play().catch(() => {})
+    }
 
     const tl = gsap.timeline({
       onComplete: () => setShowSplash(false),
