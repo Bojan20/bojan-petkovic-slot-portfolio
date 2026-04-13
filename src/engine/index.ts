@@ -25,6 +25,13 @@ export {
 
 export { portfolioConfig } from './config/portfolioConfig'
 
+export {
+  initAudioBridge,
+  disposeAudioBridge,
+  isAudioBridgeConnected,
+  getAssignedHooks,
+} from './AudioBridge'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

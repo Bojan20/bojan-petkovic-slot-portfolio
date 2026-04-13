@@ -24,7 +24,7 @@ import { BootScreen } from './components/BootScreen'
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
-import { bus } from './engine'
+import { bus, initAudioBridge, disposeAudioBridge } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -44,6 +44,12 @@ export default function App() {
     a.volume = 0.35
     audioRef.current = a
     return () => { a.pause(); a.src = '' }
+  }, [])
+
+  // Connect to CORTEX Audio Manager (WebSocket bridge)
+  useEffect(() => {
+    initAudioBridge()
+    return () => disposeAudioBridge()
   }, [])
 
   // Boot complete → transition to splash
