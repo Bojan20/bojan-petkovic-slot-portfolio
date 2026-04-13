@@ -9,8 +9,7 @@ interface SplashScreenProps {
 export function SplashScreen({ onEnter }: SplashScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLDivElement>(null)
-  const studioRef = useRef<HTMLDivElement>(null)
-  const labelRef = useRef<HTMLDivElement>(null)
+const labelRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const cornersRef = useRef<HTMLDivElement>(null)
   const lineRef = useRef<HTMLDivElement>(null)
@@ -57,13 +56,6 @@ export function SplashScreen({ onEnter }: SplashScreenProps) {
       { scaleX: 0 },
       { scaleX: 1, duration: 0.6, ease: 'power2.inOut' },
       '-=0.4'
-    )
-
-    // Studio name
-    tl.fromTo(studioRef.current,
-      { opacity: 0, y: 10 },
-      { opacity: 0.7, y: 0, duration: 0.5, ease: 'power2.out' },
-      '-=0.2'
     )
 
     // Button pulse in
@@ -153,10 +145,6 @@ export function SplashScreen({ onEnter }: SplashScreenProps) {
         </div>
 
         <div ref={lineRef} className={styles.line} />
-
-        <div ref={studioRef} className={styles.studio}>
-          VANVINKL STUDIO
-        </div>
 
         <button ref={btnRef} className={styles.enterBtn} type="button">
           PRESS SPACE
