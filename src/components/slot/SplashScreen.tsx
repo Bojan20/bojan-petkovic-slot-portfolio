@@ -129,7 +129,7 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
           <div ref={lineRef} className={styles.line} />
 
           <button ref={btnRef} className={styles.enterBtn} type="button">
-            PRESS SPACE
+            PRESS TO ENTER
           </button>
         </div>
       </div>
