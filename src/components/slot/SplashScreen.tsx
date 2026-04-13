@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import styles from './SplashScreen.module.css'
-import { cornerShimmer, labelWhoosh, nameReveal, lineSweep, buttonReady, unlockAudioCtx } from './splashSfx'
+import { cornerShimmer, labelWhoosh, nameReveal, lineSweep, buttonReady } from './splashSfx'
 
 interface SplashScreenProps {
   onEnter: () => void
@@ -25,74 +25,53 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
       else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
     }, [ref])
 
-    // Entrance animation — waits for first user interaction so AudioContext can unlock
+    // Entrance animation
     useEffect(() => {
-      let tl: gsap.core.Timeline | null = null
-      let fired = false
+      const tl = gsap.timeline({ delay: 0.2 })
 
-      const startEntrance = () => {
-        if (fired) return
-        fired = true
+      tl.fromTo(cornersRef.current, { opacity: 0 }, {
+        opacity: 1, duration: 0.8, ease: 'power2.out',
+        onStart: () => cornerShimmer(),
+      })
 
-        // Unlock AudioContext inside this gesture handler, then animate
-        unlockAudioCtx().catch(() => {}).finally(() => {
-          tl = gsap.timeline({ delay: 0.15 })
+      tl.fromTo(labelRef.current,
+        { opacity: 0, y: -20, letterSpacing: '0.3em' },
+        {
+          opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.7, ease: 'power3.out',
+          onStart: () => labelWhoosh(),
+        },
+        '-=0.4'
+      )
 
-          tl.fromTo(cornersRef.current, { opacity: 0 }, {
-            opacity: 1, duration: 0.8, ease: 'power2.out',
-            onStart: () => cornerShimmer(),
-          })
+      tl.fromTo(nameRef.current,
+        { opacity: 0, scale: 0.92, y: 30 },
+        {
+          opacity: 1, scale: 1, y: 0, duration: 1.0, ease: 'expo.out',
+          onStart: () => nameReveal(),
+        },
+        '-=0.3'
+      )
 
-          tl.fromTo(labelRef.current,
-            { opacity: 0, y: -20, letterSpacing: '0.3em' },
-            {
-              opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.7, ease: 'power3.out',
-              onStart: () => labelWhoosh(),
-            },
-            '-=0.4'
-          )
+      tl.fromTo(lineRef.current,
+        { scaleX: 0 },
+        {
+          scaleX: 1, duration: 0.6, ease: 'power2.inOut',
+          onStart: () => lineSweep(),
+        },
+        '-=0.4'
+      )
 
-          tl.fromTo(nameRef.current,
-            { opacity: 0, scale: 0.92, y: 30 },
-            {
-              opacity: 1, scale: 1, y: 0, duration: 1.0, ease: 'expo.out',
-              onStart: () => nameReveal(),
-            },
-            '-=0.3'
-          )
+      tl.fromTo(btnRef.current,
+        { opacity: 0, y: 15 },
+        {
+          opacity: 1, y: 0, duration: 0.5, ease: 'power2.out',
+          onStart: () => buttonReady(),
+          onComplete: () => setReady(true),
+        },
+        '-=0.1'
+      )
 
-          tl.fromTo(lineRef.current,
-            { scaleX: 0 },
-            {
-              scaleX: 1, duration: 0.6, ease: 'power2.inOut',
-              onStart: () => lineSweep(),
-            },
-            '-=0.4'
-          )
-
-          tl.fromTo(btnRef.current,
-            { opacity: 0, y: 15 },
-            {
-              opacity: 1, y: 0, duration: 0.5, ease: 'power2.out',
-              onStart: () => buttonReady(),
-              onComplete: () => setReady(true),
-            },
-            '-=0.1'
-          )
-        })
-      }
-
-      // First move/touch/key unlocks AudioContext and starts the animation
-      document.addEventListener('pointermove', startEntrance, { once: true, passive: true })
-      document.addEventListener('touchstart', startEntrance, { once: true, passive: true })
-      document.addEventListener('keydown', startEntrance, { once: true, passive: true })
-
-      return () => {
-        document.removeEventListener('pointermove', startEntrance)
-        document.removeEventListener('touchstart', startEntrance)
-        document.removeEventListener('keydown', startEntrance)
-        tl?.kill()
-      }
+      return () => { tl.kill() }
     }, [])
 
     // Button pulse animation

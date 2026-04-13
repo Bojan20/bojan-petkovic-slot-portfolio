@@ -17,15 +17,6 @@ function getCtx(): AudioContext {
   return ctx
 }
 
-/**
- * Call this inside a user-gesture handler to unlock AudioContext.
- * Resolves when ctx.state === 'running'.
- */
-export function unlockAudioCtx(): Promise<void> {
-  if (!ctx) ctx = new AudioContext()
-  return ctx.resume()
-}
-
 /** Utility: create gain node with envelope */
 function env(
   ac: AudioContext,
