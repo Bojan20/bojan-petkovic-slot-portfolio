@@ -33,31 +33,60 @@ const _audioCache = new Map<string, HTMLAudioElement>()
 
 /** Hook ID → EventBus event name mapping */
 const HOOK_TO_EVENT: Record<string, string> = {
-  // Splash
-  'introWhoosh':  'splash:title:corners',
-  'whoosh':       'splash:title:label',
-  'reveal':       'splash:title:name',
-  'swoosh':       'splash:title:line',
-  'click':        'splash:title:button',
+  // ── Boot Lifecycle ──
+  'bootStart':        'boot:start',
+  'bootProgress':     'boot:progress',
+  'bootTap':          'boot:tap',
+  'bootAudioUnlock':  'boot:audio_unlocked',
+  'bootComplete':     'boot:complete',
+  'bootFadeOut':      'boot:fade_out',
 
-  // Slot
-  'reelSpin':     'slot:spin:start',
-  'reelStop':     'slot:reel:stop',
-  'win':          'slot:win',
-  'jackpot':      'slot:win',
-  'spinMech':     'slot:spin:start',
-  'leverPull':    'slot:spin:start',
-  'leverRelease': 'slot:spin:stop',
+  // ── Splash Animations ──
+  'splashStart':      'splash:start',
+  'introWhoosh':      'splash:title:corners',
+  'whoosh':           'splash:title:label',
+  'reveal':           'splash:title:name',
+  'swoosh':           'splash:title:line',
+  'click':            'splash:title:button',
+  'attractLoop':      'splash:attract_loop',
+  'splashEnter':      'splash:enter',
 
-  // UI
-  'tick':         'audio:play',
-  'select':       'audio:play',
-  'back':         'audio:play',
-  'uiOpen':       'audio:play',
-  'uiClose':      'audio:play',
+  // ── Transition ──
+  'transitionStart':  'transition:splash_to_slot',
+  'transitionEnd':    'transition:complete',
 
-  // Boot
-  'transition':   'boot:complete',
+  // ── Slot Machine ──
+  'reelSpin':         'slot:spin:start',
+  'spinMech':         'slot:spin:start',
+  'leverPull':        'slot:spin:start',
+  'leverRelease':     'slot:spin:stop',
+  'reelStop':         'slot:reel:stop',
+  'reelLand':         'slot:reel:land',
+  'sectionChange':    'slot:section:change',
+  'win':              'slot:win',
+  'jackpot':          'slot:win',
+  'itemSelect':       'slot:item:select',
+
+  // ── Audio Control ──
+  'audioUnlock':      'audio:unlock',
+  'audioPlay':        'audio:play',
+  'audioStop':        'audio:stop',
+  'ambientStart':     'audio:ambient:start',
+  'ambientStop':      'audio:ambient:stop',
+  'mute':             'audio:mute',
+  'unmute':           'audio:unmute',
+
+  // ── UI Sounds ──
+  'tick':             'audio:play',
+  'select':           'audio:play',
+  'back':             'audio:play',
+  'uiOpen':           'audio:play',
+  'uiClose':          'audio:play',
+
+  // ── System ──
+  'debugToggle':      'debug:toggle',
+  'fpsDrop':          'fps:drop',
+  'fpsRecover':       'fps:recover',
 }
 
 // Reverse: EventBus event → hook IDs

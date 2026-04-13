@@ -13,7 +13,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { playSynthById, setVolume, isAudioUnlocked, unlockAudioContext } from '../engine'
+import { playSynthById, setVolume, isAudioUnlocked, unlockAudioContext, bus } from '../engine'
+import { isAudioBridgeConnected, getAssignedHooks } from '../engine/AudioBridge'
 import { portfolioConfig } from '../engine/config/portfolioConfig'
 import styles from './SlotAudioManager.module.css'
 
@@ -37,6 +38,59 @@ const SOUNDS: SoundDef[] = [
   // Boot SFX
   { id: 'sfx_boot_hum', name: 'Boot Hum', description: 'Low power-on hum + digital chirp', category: 'boot' },
   { id: 'sfx_boot_ready', name: 'Boot Ready', description: 'Ascending chime C5→E5→G5→C6', category: 'boot' },
+]
+
+// ─── All hookable events — complete map for Audio Manager ───────────────────
+
+interface HookDef {
+  hookId: string
+  event: string
+  description: string
+  category: 'boot' | 'splash' | 'transition' | 'slot' | 'audio' | 'system'
+}
+
+const ALL_HOOKS: HookDef[] = [
+  // Boot
+  { hookId: 'bootStart',       event: 'boot:start',           description: 'Boot sequence begins',         category: 'boot' },
+  { hookId: 'bootProgress',    event: 'boot:progress',        description: 'Loading progress update',      category: 'boot' },
+  { hookId: 'bootTap',         event: 'boot:tap',             description: 'User taps to begin',           category: 'boot' },
+  { hookId: 'bootAudioUnlock', event: 'boot:audio_unlocked',  description: 'AudioContext unlocked',        category: 'boot' },
+  { hookId: 'bootComplete',    event: 'boot:complete',        description: 'Boot finished, splash starts', category: 'boot' },
+  { hookId: 'bootFadeOut',     event: 'boot:fade_out',        description: 'Boot screen fading out',       category: 'boot' },
+
+  // Splash
+  { hookId: 'splashStart',     event: 'splash:start',         description: 'Splash screen mounted',        category: 'splash' },
+  { hookId: 'introWhoosh',     event: 'splash:title:corners', description: 'Corner brackets fade in',      category: 'splash' },
+  { hookId: 'whoosh',          event: 'splash:title:label',   description: 'Label text slides in',         category: 'splash' },
+  { hookId: 'reveal',          event: 'splash:title:name',    description: 'Name reveal animation',        category: 'splash' },
+  { hookId: 'swoosh',          event: 'splash:title:line',    description: 'Decorative line draws',        category: 'splash' },
+  { hookId: 'click',           event: 'splash:title:button',  description: 'CTA button appears',           category: 'splash' },
+  { hookId: 'attractLoop',     event: 'splash:attract_loop',  description: 'Attract loop starts',          category: 'splash' },
+  { hookId: 'splashEnter',     event: 'splash:enter',         description: 'User presses ENTER',           category: 'splash' },
+
+  // Transition
+  { hookId: 'transitionStart', event: 'transition:splash_to_slot', description: 'Splash→Slot transition begins', category: 'transition' },
+  { hookId: 'transitionEnd',   event: 'transition:complete',       description: 'Transition complete, slot active', category: 'transition' },
+
+  // Slot
+  { hookId: 'reelSpin',        event: 'slot:spin:start',       description: 'Reels start spinning',           category: 'slot' },
+  { hookId: 'leverRelease',    event: 'slot:spin:stop',        description: 'Spin stopping',                  category: 'slot' },
+  { hookId: 'reelStop',        event: 'slot:reel:stop',        description: 'Individual reel stops',          category: 'slot' },
+  { hookId: 'reelLand',        event: 'slot:reel:land',        description: 'Reel lands with bounce',         category: 'slot' },
+  { hookId: 'sectionChange',   event: 'slot:section:change',   description: 'Portfolio section changes',      category: 'slot' },
+  { hookId: 'win',             event: 'slot:win',              description: 'Win result (small/med/big/jp)',   category: 'slot' },
+  { hookId: 'itemSelect',      event: 'slot:item:select',      description: 'Grid cell selected',             category: 'slot' },
+
+  // Audio
+  { hookId: 'ambientStart',    event: 'audio:ambient:start',   description: 'Ambient music begins',           category: 'audio' },
+  { hookId: 'ambientStop',     event: 'audio:ambient:stop',    description: 'Ambient music stops',            category: 'audio' },
+  { hookId: 'mute',            event: 'audio:mute',            description: 'All audio muted',                category: 'audio' },
+  { hookId: 'unmute',          event: 'audio:unmute',          description: 'Audio unmuted',                  category: 'audio' },
+
+  // System
+  { hookId: 'debugToggle',     event: 'debug:toggle',          description: 'Debug panel toggled',            category: 'system' },
+  { hookId: 'fpsDrop',         event: 'fps:drop',              description: 'FPS dropped below threshold',    category: 'system' },
+  { hookId: 'fpsRecover',      event: 'fps:recover',           description: 'FPS recovered to normal',        category: 'system' },
 ]
 
 // Build reverse mapping: sound ID → events that trigger it
@@ -66,6 +120,17 @@ export function SlotAudioManager() {
   })
   const [playingId, setPlayingId] = useState<string | null>(null)
   const playTimeoutRef = useRef<number | null>(null)
+  const [bridgeConnected, setBridgeConnected] = useState(false)
+  const [assignedHooks, setAssignedHooks] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    const interval = window.setInterval(() => {
+      setBridgeConnected(isAudioBridgeConnected())
+      setAssignedHooks(getAssignedHooks())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [open])
 
   // Toggle with Shift+A
   useEffect(() => {
@@ -119,12 +184,20 @@ export function SlotAudioManager() {
 
   if (!open) return null
 
-  // Group sounds by category
   const categories = [
     { key: 'splash', label: 'Splash SFX' },
     { key: 'boot', label: 'Boot SFX' },
     { key: 'slot', label: 'Slot SFX' },
     { key: 'ui', label: 'UI SFX' },
+  ] as const
+
+  const hookCategories = [
+    { key: 'boot', label: 'Boot' },
+    { key: 'splash', label: 'Splash' },
+    { key: 'transition', label: 'Transition' },
+    { key: 'slot', label: 'Slot' },
+    { key: 'audio', label: 'Audio' },
+    { key: 'system', label: 'System' },
   ] as const
 
   return (
@@ -204,6 +277,46 @@ export function SlotAudioManager() {
                           className={styles.soundVolumeSlider}
                           title={`Volume: ${Math.round((soundVolumes[sound.id] ?? 1) * 100)}%`}
                         />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Hook Map */}
+        <div className={styles.soundList}>
+          <div className={styles.sectionHeader}>
+            Audio Hooks ({ALL_HOOKS.length}) — Bridge: {bridgeConnected ? '● Connected' : '○ Disconnected'}
+          </div>
+          {hookCategories.map(({ key, label }) => {
+            const hooks = ALL_HOOKS.filter((h) => h.category === key)
+            if (hooks.length === 0) return null
+            return (
+              <div key={key}>
+                <div className={styles.sectionHeader}>{label}</div>
+                {hooks.map((hook) => {
+                  const assigned = assignedHooks.includes(hook.hookId)
+                  return (
+                    <div key={hook.hookId} className={styles.soundRow}>
+                      <button
+                        className={`${styles.playBtn} ${assigned ? styles.playing : ''}`}
+                        onClick={() => bus.emit(hook.event as 'boot:start')}
+                        type="button"
+                        title={`Fire ${hook.event}`}
+                      >
+                        ⚡
+                      </button>
+                      <div className={styles.soundInfo}>
+                        <div className={styles.soundName}>
+                          {hook.hookId}
+                          {assigned && <span className={styles.eventBadge}>assigned</span>}
+                        </div>
+                        <div className={styles.soundMeta}>
+                          {hook.description} → <span className={styles.eventBadge}>{hook.event}</span>
+                        </div>
                       </div>
                     </div>
                   )
