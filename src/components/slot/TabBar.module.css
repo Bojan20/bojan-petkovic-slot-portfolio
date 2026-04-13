@@ -2,8 +2,10 @@
   position: relative;
   display: flex;
   flex-shrink: 0;
-  background: linear-gradient(180deg, #0d0d20 0%, #07071a 100%);
-  border-bottom: 1px solid rgba(201, 162, 39, 0.32);
+  background: rgba(6, 6, 18, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.45);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -32,18 +34,18 @@
 .tab {
   flex: 1;
   position: relative;
-  min-width: clamp(52px, 17vw, 80px);
+  min-width: clamp(60px, 17vw, 90px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0px;
-  padding: clamp(2px, 0.35vh, 4px) clamp(4px, 0.8vw, 10px);
+  padding: clamp(10px, 1.8vh, 18px) clamp(6px, 1vw, 14px);
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(9px, 1.3vw, 12px);
-  letter-spacing: clamp(1.5px, 0.5vw, 3px);
-  color: rgba(118, 128, 178, 0.78);
+  font-size: clamp(11px, 1.5vw, 15px);
+  letter-spacing: clamp(2px, 0.55vw, 4px);
+  color: rgba(185, 190, 230, 0.88);
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -51,7 +53,7 @@
   user-select: none;
   background: none;
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   transition: color 0.15s ease, background 0.15s ease;
   overflow: hidden;
 }
@@ -82,8 +84,8 @@
 }
 
 .tab:hover {
-  color: rgba(165, 175, 215, 0.95);
-  background: rgba(255, 255, 255, 0.022);
+  color: rgba(220, 225, 255, 1);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .active {
