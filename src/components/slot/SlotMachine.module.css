@@ -8,7 +8,8 @@
   display: flex;
   flex-direction: column;
   border-radius: clamp(0px, 0.5vw, 8px);
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 12px;
   box-shadow:
     0 0 80px rgba(0, 0, 0, 0.9),
     0 0 160px rgba(0, 0, 0, 0.5);
@@ -23,7 +24,7 @@
 .frameWrapper {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }

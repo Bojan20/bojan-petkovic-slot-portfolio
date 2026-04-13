@@ -127,12 +127,15 @@ export function SlotMachine() {
 
   // Measured cell height + zone height (needed for correct stripTop)
   const [cellHeight, setCellHeight] = useState(0)
-  const [zoneHeight, setZoneHeight] = useState(0)
+  const [_zoneHeight, setZoneHeight] = useState(0)
   const reelsInnerRef = useRef<HTMLDivElement>(null)
   const flashRef = useRef<HTMLDivElement>(null)
   const reelsZoneRef = useRef<HTMLDivElement>(null)
   const stripRefs = useRef<(HTMLDivElement | null)[]>([])
   const colRefs = useRef<(HTMLDivElement | null)[]>([])
+  const machineRef = useRef<HTMLDivElement>(null)
+  const takeoverTlRef = useRef<gsap.core.Timeline | null>(null)
+  const takeoverCleanupRef = useRef<(() => void) | null>(null)
 
   // Current column data
   const [colData, setColData] = useState<CellData[][]>(() =>
@@ -204,6 +207,9 @@ export function SlotMachine() {
   const spinToIdx = useCallback(
     (newIdx: number) => {
       if (isSpinning) return
+      // Kill any running payline takeover — force cleanup
+      if (takeoverTlRef.current) { takeoverTlRef.current.kill(); takeoverTlRef.current = null }
+      if (takeoverCleanupRef.current) { takeoverCleanupRef.current(); takeoverCleanupRef.current = null }
       setSpinning(true)
       setSpinPhase('windup')
 
@@ -417,6 +423,420 @@ export function SlotMachine() {
         }
       )
     }
+
+    // ── PAYLINE TAKEOVER — expanded showcase after burst ──
+    setTimeout(() => paylineTakeover(), 1100)
+  }
+
+  // ── PAYLINE TAKEOVER ──
+  // Two-level fullscreen showcase on document.body:
+  //   Level "all"    → 5 cards at ~92% viewport width, clickable
+  //   Level <number> → single card fills ~60% viewport, deep-dive
+  // Navigation: ESC / overlay click / button = step back one level.
+  // Button: "✦ COLLECT ✦" (all) → "◄ BACK" (single).
+  function paylineTakeover() {
+    const inner = reelsInnerRef.current
+    if (!inner) return
+
+    const cells = Array.from(
+      inner.querySelectorAll('[data-center-cell]')
+    ) as HTMLElement[]
+    if (!cells.length) return
+
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const cRects = cells.map(c => c.getBoundingClientRect())
+    const cW = cRects[0]!.width
+    const cH = cRects[0]!.height
+    const n = cells.length
+
+    // ── Orientation ──
+    const isPortrait = vh > vw
+
+    // ── ALL-CARDS layout ──
+    let allScale: number
+    let allTargets: { cx: number; cy: number }[]  // center of each card
+
+    if (isPortrait) {
+      // VERTICAL column — fit ALL cards on screen + room for button
+      const btnAreaH = Math.max(vh * 0.10, 52)
+      const availH = vh - btnAreaH
+      const allGapV = Math.min(8, Math.max(4, vh * 0.008))
+      // Scale limited by BOTH width AND height so all cards fit
+      const scaleByW = (vw * 0.88) / cW
+      const maxCardH = (availH * 0.94 - (n - 1) * allGapV) / n
+      const scaleByH = maxCardH / cH
+      allScale = Math.min(scaleByW, scaleByH)
+      const allCardHP = cH * allScale
+      const allTotalH = n * allCardHP + (n - 1) * allGapV
+      // Vertically center in available area, slight top bias
+      const startCY = (availH - allTotalH) / 2 + allCardHP / 2 + vh * 0.03
+      const centerX = vw / 2
+      allTargets = Array.from({ length: n }, (_, i) => ({
+        cx: centerX,
+        cy: startCY + i * (allCardHP + allGapV),
+      }))
+    } else {
+      // HORIZONTAL row — cards spread left-to-right, 92% viewport width total
+      const allGapH = Math.min(16, Math.max(5, vw * 0.008))
+      const allAvailW = vw * 0.92
+      const allCardWL = (allAvailW - (n - 1) * allGapH) / n
+      allScale = allCardWL / cW
+      const allTotalW = n * allCardWL + (n - 1) * allGapH
+      const startCX = (vw - allTotalW) / 2 + allCardWL / 2
+      const centerY = vh * 0.40
+      allTargets = Array.from({ length: n }, (_, i) => ({
+        cx: startCX + i * (allCardWL + allGapH),
+        cy: centerY,
+      }))
+    }
+
+    // ── SINGLE-CARD layout ──
+    const singleScale = isPortrait
+      ? Math.min((vw * 0.92) / cW, (vh * 0.65) / cH)
+      : Math.min((vw * 0.55) / cW, (vh * 0.65) / cH)
+    const singleCY = isPortrait ? vh * 0.42 : vh * 0.40
+
+    // ── State ──
+    let level: 'all' | number = 'all'
+    let pulseTween: gsap.core.Tween | null = null
+
+    // ── DOM on document.body ──
+    const overlay = document.createElement('div')
+    overlay.style.cssText = [
+      'position:fixed;inset:0;z-index:10000;background:rgba(2,2,8,0);cursor:pointer;',
+      'backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);',
+      'will-change:background,backdrop-filter;',
+    ].join('')
+    document.body.appendChild(overlay)
+
+    const stage = document.createElement('div')
+    stage.style.cssText = [
+      'position:fixed;inset:0;z-index:10001;pointer-events:none;overflow:visible;',
+      'touch-action:pan-y;',
+    ].join('')
+    document.body.appendChild(stage)
+
+    // ── Clone center cells ──
+    const cards = cells.map((cell, i) => {
+      const r = cRects[i]!
+      const card = document.createElement('div')
+      card.className = cell.className
+      card.innerHTML = cell.innerHTML
+
+      Object.assign(card.style, {
+        position: 'fixed',
+        left: `${r.left}px`,
+        top: `${r.top}px`,
+        width: `${r.width}px`,
+        height: `${r.height}px`,
+        margin: '0',
+        opacity: '0',
+        transformOrigin: 'center center',
+        zIndex: '10002',
+        pointerEvents: 'none',
+        boxSizing: 'border-box',
+        cursor: 'pointer',
+      })
+      stage.appendChild(card)
+
+      const origCX = r.left + r.width / 2
+      const origCY = r.top + r.height / 2
+      const target = allTargets[i]!
+
+      return {
+        el: card,
+        allDx: target.cx - origCX,
+        allDy: target.cy - origCY,
+        singleDx: vw / 2 - origCX,
+        singleDy: singleCY - origCY,
+      }
+    })
+
+    // ── Card click → deep dive ──
+    cards.forEach(({ el }, i) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (level === 'all') focusCard(i)
+      })
+      el.addEventListener('mouseenter', () => {
+        if (level === 'all') {
+          gsap.to(el, {
+            scale: allScale * 1.06,
+            boxShadow: '0 0 60px 20px rgba(240,216,120,0.55), 0 0 110px 35px rgba(201,162,39,0.3), 0 20px 55px rgba(0,0,0,0.6)',
+            duration: 0.2,
+            ease: 'power2.out',
+          })
+        }
+      })
+      el.addEventListener('mouseleave', () => {
+        if (level === 'all') {
+          gsap.to(el, {
+            scale: allScale,
+            boxShadow: '0 0 40px 12px rgba(240,216,120,0.35), 0 0 80px 20px rgba(201,162,39,0.15), 0 15px 45px rgba(0,0,0,0.7)',
+            duration: 0.2,
+            ease: 'power2.out',
+          })
+        }
+      })
+    })
+
+    // ── Button ──
+    const btn = document.createElement('button')
+    btn.textContent = '✦ COLLECT ✦'
+    btn.style.cssText = `
+      position:fixed;z-index:10004;pointer-events:auto;
+      left:50%;bottom:${Math.max(vh * 0.05, 24)}px;
+      transform:translateX(-50%);
+      font-family:var(--f-ui);font-weight:800;
+      font-size:clamp(13px, 1.8vw, 20px);
+      letter-spacing:clamp(3px, 0.8vw, 8px);
+      padding:clamp(10px, 1.8vh, 20px) clamp(28px, 5vw, 64px);
+      color:#1a1408;
+      background:linear-gradient(180deg,#ffe566 0%,#ffd700 30%,#daa520 70%,#b8860b 100%);
+      border:2px solid rgba(255,240,180,0.8);
+      border-radius:clamp(4px, 0.8vw, 8px);
+      cursor:pointer;
+      box-shadow:0 0 30px rgba(240,216,120,0.4),0 0 60px rgba(201,162,39,0.2),0 8px 25px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.4);
+      text-shadow:0 1px 0 rgba(255,240,200,0.5);
+      opacity:0;
+      transition:transform 0.15s,box-shadow 0.15s;
+    `
+    stage.appendChild(btn)
+
+    btn.addEventListener('mouseenter', () => {
+      gsap.to(btn, { scale: 1.06, duration: 0.18, ease: 'power2.out', overwrite: true })
+      btn.style.boxShadow = '0 0 50px rgba(240,216,120,0.65),0 0 90px rgba(201,162,39,0.35),0 12px 35px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.5)'
+    })
+    btn.addEventListener('mouseleave', () => {
+      gsap.to(btn, { scale: 1, duration: 0.22, ease: 'power2.out', overwrite: true })
+      btn.style.boxShadow = '0 0 30px rgba(240,216,120,0.4),0 0 60px rgba(201,162,39,0.2),0 8px 25px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.4)'
+    })
+
+    // ── Step-back navigation ──
+    function stepBack() {
+      if (typeof level === 'number') {
+        unfocusCard()
+      } else {
+        settleBack()
+      }
+    }
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' || e.code === 'Escape') { e.preventDefault(); stepBack() }
+    }
+
+    btn.addEventListener('click', (e) => { e.stopPropagation(); stepBack() })
+    overlay.addEventListener('click', stepBack)
+    window.addEventListener('keydown', onKey)
+
+    // ── Focus single card ──
+    function focusCard(idx: number) {
+      level = idx
+      if (pulseTween) { pulseTween.kill(); pulseTween = null }
+
+      // Fade out other cards — staggered by distance from selected
+      cards.forEach(({ el }, i) => {
+        if (i !== idx) {
+          el.style.pointerEvents = 'none'
+          gsap.to(el, {
+            opacity: 0,
+            scale: allScale * 0.72,
+            filter: 'blur(2px)',
+            duration: 0.28,
+            ease: 'expo.in',
+            delay: 0.02 * Math.abs(i - idx),
+          })
+        }
+      })
+
+      // Expand selected card to single-card view
+      const card = cards[idx]!
+      gsap.to(card.el, {
+        x: card.singleDx,
+        y: card.singleDy,
+        scale: singleScale,
+        boxShadow: '0 0 70px 24px rgba(240,216,120,0.5), 0 0 140px 50px rgba(201,162,39,0.22), 0 30px 70px rgba(0,0,0,0.75)',
+        duration: 0.55,
+        ease: 'expo.out',
+      })
+
+      // Change button
+      btn.textContent = '◄ BACK'
+      gsap.fromTo(btn,
+        { opacity: 0, y: 10, scale: 0.8 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(1.5)' }
+      )
+    }
+
+    // ── Unfocus → back to all cards ──
+    function unfocusCard() {
+      if (typeof level !== 'number') return
+      const prevIdx = level
+      level = 'all'
+
+      // Restore all cards to "all" positions — bloom back in
+      cards.forEach(({ el, allDx, allDy }, i) => {
+        el.style.pointerEvents = 'auto'
+        gsap.to(el, {
+          x: allDx,
+          y: allDy,
+          scale: allScale,
+          opacity: 1,
+          filter: 'blur(0px)',
+          boxShadow: '0 0 40px 12px rgba(240,216,120,0.35), 0 0 80px 20px rgba(201,162,39,0.15), 0 15px 45px rgba(0,0,0,0.7)',
+          duration: 0.5,
+          ease: 'expo.out',
+          delay: i === prevIdx ? 0 : 0.025 * Math.abs(i - prevIdx),
+        })
+      })
+
+      // Restart pulse
+      setTimeout(() => {
+        if (level !== 'all') return
+        pulseTween = gsap.to(cards.map(c => c.el), {
+          boxShadow: '0 0 55px 18px rgba(240,216,120,0.5), 0 0 100px 30px rgba(201,162,39,0.25), 0 20px 55px rgba(0,0,0,0.6)',
+          borderColor: 'rgba(255, 240, 180, 1)',
+          duration: 1.2,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+        })
+      }, 500)
+
+      // Restore button
+      btn.textContent = '✦ COLLECT ✦'
+      gsap.fromTo(btn,
+        { opacity: 0.3, y: 8, scale: 0.82 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.32, ease: 'back.out(1.5)' }
+      )
+    }
+
+    // ── Cleanup ──
+    function cleanup() {
+      if (pulseTween) { pulseTween.kill(); pulseTween = null }
+      overlay.remove()
+      stage.remove()
+      cells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })
+      window.removeEventListener('keydown', onKey)
+      takeoverTlRef.current = null
+      takeoverCleanupRef.current = null
+    }
+
+    // Register cleanup for spinToIdx force-kill
+    takeoverCleanupRef.current = cleanup
+
+    // ── ENTER TIMELINE ──
+    const enterTl = gsap.timeline()
+    takeoverTlRef.current = enterTl
+
+    // Initial state: cards start slightly offset in direction of travel
+    cards.forEach(({ el, allDx, allDy }, i) => {
+      const initOffY = isPortrait ? 28 : 0
+      const initOffX = isPortrait ? 0 : (i < n / 2 ? -18 : 18)
+      gsap.set(el, {
+        opacity: 0,
+        scale: allScale * 0.80,
+        x: allDx + initOffX,
+        y: allDy + initOffY,
+      })
+    })
+
+    // Phase 1: Dim + backdrop blur
+    enterTl.to(overlay, {
+      background: 'rgba(2, 2, 8, 0.93)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      duration: 0.5,
+      ease: 'expo.out',
+    })
+    enterTl.to(cells, {
+      opacity: 0.03,
+      filter: 'blur(5px) brightness(0.15)',
+      duration: 0.4,
+      stagger: 0.025,
+      ease: 'power2.out',
+    }, '<')
+
+    // Phase 2: Cards fly in — expo.out for that premium deceleration
+    cards.forEach(({ el, allDx, allDy }, i) => {
+      enterTl.to(el, {
+        opacity: 1,
+        scale: allScale,
+        x: allDx,
+        y: allDy,
+        boxShadow:
+          '0 0 40px 12px rgba(240,216,120,0.35), 0 0 80px 20px rgba(201,162,39,0.15), 0 15px 45px rgba(0,0,0,0.7)',
+        duration: isPortrait ? 0.55 : 0.65,
+        ease: 'expo.out',
+        onComplete: () => { el.style.pointerEvents = 'auto' },
+      }, i === 0 ? '-=0.1' : `<${isPortrait ? 0.055 : 0.065}`)
+    })
+
+    // Phase 3: Button rises from bottom
+    enterTl.fromTo(btn,
+      { opacity: 0, y: 18, scale: 0.75 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: 'back.out(1.7)' },
+      '-=0.25'
+    )
+
+    // Phase 4: Start pulse (separate tween, not on timeline)
+    enterTl.call(() => {
+      pulseTween = gsap.to(cards.map(c => c.el), {
+        boxShadow: '0 0 55px 18px rgba(240,216,120,0.5), 0 0 100px 30px rgba(201,162,39,0.25), 0 20px 55px rgba(0,0,0,0.6)',
+        borderColor: 'rgba(255, 240, 180, 1)',
+        duration: 1.2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+      })
+    })
+
+    // ── SETTLE BACK → full exit ──
+    function settleBack() {
+      if (pulseTween) { pulseTween.kill(); pulseTween = null }
+      enterTl.kill()
+
+      const exitTl = gsap.timeline({ onComplete: cleanup })
+      takeoverTlRef.current = exitTl
+
+      // Button sinks away
+      exitTl.to(btn, {
+        opacity: 0, y: 12, scale: 0.8,
+        duration: 0.22, ease: 'expo.in',
+      })
+
+      // Cards fly back — reverse stagger (last card first)
+      const reversed = [...cards].reverse()
+      reversed.forEach(({ el }, i) => {
+        exitTl.to(el, {
+          x: 0, y: 0,
+          scale: isPortrait ? allScale * 0.65 : 0.75,
+          opacity: 0,
+          boxShadow: '0 0 0 0 transparent',
+          duration: 0.42,
+          ease: 'expo.in',
+        }, i === 0 ? '-=0.12' : '<0.04')
+      })
+
+      // Overlay + blur fade simultaneously with last card
+      exitTl.to(overlay, {
+        background: 'rgba(2, 2, 8, 0)',
+        backdropFilter: 'blur(0px)',
+        WebkitBackdropFilter: 'blur(0px)',
+        duration: 0.45,
+        ease: 'power2.out',
+      }, '-=0.3')
+
+      // Original cells restore with smooth fade
+      exitTl.to(cells, {
+        opacity: 1,
+        filter: 'none',
+        duration: 0.35,
+        stagger: 0.025,
+        ease: 'power2.out',
+      }, '-=0.35')
+    }
   }
 
   function flashWin() {
@@ -527,7 +947,7 @@ export function SlotMachine() {
   const stripTop = cellHeight > 0 ? -2 * (cellHeight + 6) : 0
 
   return (
-    <div className={styles.machine}>
+    <div ref={machineRef} className={styles.machine}>
       {/* Tab Bar */}
       <TabBar
         sections={SECTIONS}
