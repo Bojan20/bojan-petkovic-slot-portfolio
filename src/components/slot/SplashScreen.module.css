@@ -5,7 +5,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at 50% 40%, #0c0a18 0%, #050710 50%, #020308 100%);
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(12, 10, 24, 0.72) 0%, rgba(5, 7, 16, 0.85) 50%, rgba(2, 3, 8, 0.92) 100%),
+    url('/pozadina_splash.jpeg') center center / cover no-repeat;
   cursor: pointer;
   overflow: hidden;
 }
