@@ -24,21 +24,6 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
       else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
     }, [ref])
 
-    // Measure name width → CSS custom property for SlotMachine
-    useEffect(() => {
-      function measureName() {
-        const el = nameRef.current
-        if (!el) return
-        const w = el.getBoundingClientRect().width
-        if (w > 0) {
-          document.documentElement.style.setProperty('--name-width', `${Math.round(w)}px`)
-        }
-      }
-      measureName()
-      window.addEventListener('resize', measureName)
-      return () => window.removeEventListener('resize', measureName)
-    }, [])
-
     // Entrance animation
     useEffect(() => {
       const tl = gsap.timeline({ delay: 0.2 })
