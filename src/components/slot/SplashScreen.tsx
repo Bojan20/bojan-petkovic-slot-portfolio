@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import styles from './SplashScreen.module.css'
+import { cornerShimmer, labelWhoosh, nameReveal, lineSweep, buttonReady } from './splashSfx'
 
 interface SplashScreenProps {
   onEnter: () => void
@@ -28,29 +29,45 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     useEffect(() => {
       const tl = gsap.timeline({ delay: 0.2 })
 
-      tl.fromTo(cornersRef.current, { opacity: 0 }, { opacity: 1, duration: 0.8, ease: 'power2.out' })
+      tl.fromTo(cornersRef.current, { opacity: 0 }, {
+        opacity: 1, duration: 0.8, ease: 'power2.out',
+        onStart: () => cornerShimmer(),
+      })
 
       tl.fromTo(labelRef.current,
         { opacity: 0, y: -20, letterSpacing: '0.3em' },
-        { opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.7, ease: 'power3.out' },
+        {
+          opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.7, ease: 'power3.out',
+          onStart: () => labelWhoosh(),
+        },
         '-=0.4'
       )
 
       tl.fromTo(nameRef.current,
         { opacity: 0, scale: 0.92, y: 30 },
-        { opacity: 1, scale: 1, y: 0, duration: 1.0, ease: 'expo.out' },
+        {
+          opacity: 1, scale: 1, y: 0, duration: 1.0, ease: 'expo.out',
+          onStart: () => nameReveal(),
+        },
         '-=0.3'
       )
 
       tl.fromTo(lineRef.current,
         { scaleX: 0 },
-        { scaleX: 1, duration: 0.6, ease: 'power2.inOut' },
+        {
+          scaleX: 1, duration: 0.6, ease: 'power2.inOut',
+          onStart: () => lineSweep(),
+        },
         '-=0.4'
       )
 
       tl.fromTo(btnRef.current,
         { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', onComplete: () => setReady(true) },
+        {
+          opacity: 1, y: 0, duration: 0.5, ease: 'power2.out',
+          onStart: () => buttonReady(),
+          onComplete: () => setReady(true),
+        },
         '-=0.1'
       )
 
