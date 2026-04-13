@@ -4,11 +4,15 @@ import styles from './Frame.module.css'
 interface FrameProps {
   children: ReactNode
   isSpinning: boolean
+  cellHeight?: number
 }
 
-export function Frame({ children, isSpinning }: FrameProps) {
+export function Frame({ children, isSpinning, cellHeight = 0 }: FrameProps) {
   return (
-    <div className={styles.frame}>
+    <div
+      className={styles.frame}
+      style={cellHeight > 0 ? { '--cell-h': `${cellHeight}px` } as React.CSSProperties : undefined}
+    >
       {/* Left pillar */}
       <div className={`${styles.pillar} ${styles.left}`} />
 

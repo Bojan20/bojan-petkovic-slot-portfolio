@@ -1,0 +1,177 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 40%, #0c0a18 0%, #050710 50%, #020308 100%);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* ── Corner frame lines — casino elegance ── */
+.corners {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+}
+
+.corner::before,
+.corner::after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(90deg, var(--g300), var(--g100));
+  opacity: 0.4;
+}
+
+.tl { top: 24px; left: 24px; }
+.tl::before { top: 0; left: 0; width: 100%; height: 1px; }
+.tl::after  { top: 0; left: 0; width: 1px; height: 100%; }
+
+.tr { top: 24px; right: 24px; }
+.tr::before { top: 0; right: 0; width: 100%; height: 1px; }
+.tr::after  { top: 0; right: 0; width: 1px; height: 100%; }
+
+.bl { bottom: 24px; left: 24px; }
+.bl::before { bottom: 0; left: 0; width: 100%; height: 1px; }
+.bl::after  { bottom: 0; left: 0; width: 1px; height: 100%; }
+
+.br { bottom: 24px; right: 24px; }
+.br::before { bottom: 0; right: 0; width: 100%; height: 1px; }
+.br::after  { bottom: 0; right: 0; width: 1px; height: 100%; }
+
+/* ── Particles ── */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--g300);
+  opacity: 0;
+  animation: particleDrift linear infinite;
+}
+
+@keyframes particleDrift {
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  20% { opacity: 0.35; }
+  80% { opacity: 0.15; }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+}
+
+/* ── Content ── */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Top label */
+.label {
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(9px, 1.2vw, 13px);
+  letter-spacing: 0.5em;
+  color: var(--ice);
+  opacity: 0.6;
+  margin-bottom: clamp(12px, 2vh, 24px);
+  text-transform: uppercase;
+}
+
+/* Hero name — premium holographic shimmer */
+.name {
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: clamp(36px, 8vw, 96px);
+  letter-spacing: clamp(8px, 2.5vw, 28px);
+  text-align: center;
+  line-height: 1;
+  padding: 0 clamp(8px, 2vw, 20px);
+
+  /* Holographic gold gradient */
+  background: linear-gradient(
+    135deg,
+    #fff8e0 0%,
+    var(--g100) 15%,
+    var(--g300) 30%,
+    #fff8e0 45%,
+    var(--g200) 55%,
+    var(--g300) 70%,
+    var(--g100) 85%,
+    #fff8e0 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+
+  filter: drop-shadow(0 0 40px rgba(201, 162, 39, 0.35))
+          drop-shadow(0 4px 20px rgba(0, 0, 0, 0.6));
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  50% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Horizontal line separator */
+.line {
+  width: clamp(100px, 30vw, 320px);
+  height: 1px;
+  margin: clamp(14px, 2.5vh, 28px) 0;
+  background: linear-gradient(90deg, transparent, var(--g300), transparent);
+  transform-origin: center;
+  opacity: 0.5;
+}
+
+/* Studio name */
+.studio {
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(11px, 1.5vw, 16px);
+  letter-spacing: clamp(6px, 2vw, 18px);
+  color: var(--chr-hi);
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+/* Enter button */
+.enterBtn {
+  margin-top: clamp(32px, 6vh, 60px);
+  padding: clamp(10px, 1.5vh, 16px) clamp(28px, 4vw, 48px);
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 2px;
+  color: var(--g-text);
+  font-family: var(--f-mono);
+  font-size: clamp(11px, 1.2vw, 14px);
+  letter-spacing: 0.35em;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.1);
+}
+
+.enterBtn:hover {
+  border-color: var(--g300);
+  color: var(--g100);
+}
+
+.enterBtn:focus-visible {
+  outline: 1px solid var(--g300);
+  outline-offset: 4px;
+}

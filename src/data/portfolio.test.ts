@@ -62,14 +62,14 @@ describe('portfolio data', () => {
     }
   })
 
-  it('projects section has 3 columns', () => {
+  it('projects section has 5 columns', () => {
     const proj = SECTIONS.find((s) => s.id === 'projects')!
-    expect(proj.numCols).toBe(3)
-    expect(proj.headers).toEqual(['GAME', 'DETAILS', 'DEMO'])
+    expect(proj.numCols).toBe(5)
+    expect(proj.headers).toEqual(['GAME', 'SCOPE', 'WORK', 'TOOLS', 'DEMO'])
   })
 
-  it('skills section has 3 columns', () => {
+  it('skills section has 5 columns', () => {
     const skills = SECTIONS.find((s) => s.id === 'skills')!
-    expect(skills.numCols).toBe(3)
+    expect(skills.numCols).toBe(5)
   })
 })

@@ -1,7 +1,7 @@
 .machine {
   position: relative;
   z-index: 1;
-  width: min(100vw, 860px);
+  width: min(100vw, var(--name-width, 860px));
   height: 100vh;
   max-width: 100vw;
   max-height: 100vh;
@@ -239,54 +239,21 @@
   left: clamp(16px, 2.5vw, 28px);
   right: clamp(16px, 2.5vw, 28px);
   display: flex;
+  align-items: center;
   gap: 6px;
   overflow: hidden;
   background: var(--screen);
   z-index: 2;
 }
 
-.reelsInner::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  /* Dynamic: covers everything above cell[2] (top visible row).
-     = zone_center - 1.5 * cellH - 2*gap ≈ 50% - cellH - 6px
-     Soft fade still bleeds slightly into cell[2] for slot machine atmosphere. */
-  height: calc(50% - var(--cell-h, 80px));
-  z-index: 50;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(3, 5, 8, 0.97) 0%,
-    rgba(3, 5, 8, 0.7) 30%,
-    rgba(3, 5, 8, 0.14) 70%,
-    transparent 100%
-  );
-}
-
-.reelsInner::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(50% - var(--cell-h, 80px));
-  z-index: 50;
-  pointer-events: none;
-  background: linear-gradient(
-    0deg,
-    rgba(3, 5, 8, 0.97) 0%,
-    rgba(3, 5, 8, 0.7) 30%,
-    rgba(3, 5, 8, 0.14) 70%,
-    transparent 100%
-  );
-}
+/* No gradient overlays — all 3 rows fully visible */
 
 .reelSep {
   flex-shrink: 0;
   width: 5px;
+  height: calc(3 * var(--cell-h, 80px) + 12px);
+  max-height: 100%;
+  align-self: center;
   background: linear-gradient(
     180deg,
     var(--g600) 0%, var(--g500) 8%, var(--g300) 18%,

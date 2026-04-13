@@ -3,7 +3,6 @@ import gsap from 'gsap'
 import { useSlotStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
-import { Header } from './Header'
 import { TabBar } from './TabBar'
 import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
@@ -418,18 +417,13 @@ export function SlotMachine() {
 
   const section = SECTIONS[currentSectionIdx]!
 
-  // stripTop: positions cell[3] (center) at exact vertical center of the zone
-  // Formula: strip_top + 3*(cellHeight+6) = zoneH/2 - cellHeight/2
-  //        → strip_top = zoneH/2 - 3.5*cellHeight - 18
-  const stripTop = zoneHeight > 0 && cellHeight > 0
-    ? Math.round(zoneHeight / 2 - 3.5 * cellHeight - 18)
-    : -(cellHeight * 2 + 12)  // fallback until zone measured
+  // stripTop: positions cell[3] at center of the 3-row window
+  // Column height = 3*cellH + 12. Center = 1.5*cellH + 6.
+  // cell[3] center = stripTop + 3*(cellH+6) + cellH/2 = center → stripTop = -2*(cellH+6)
+  const stripTop = cellHeight > 0 ? -2 * (cellHeight + 6) : 0
 
   return (
     <div className={styles.machine}>
-      {/* Header */}
-      <Header />
-
       {/* Tab Bar */}
       <TabBar
         sections={SECTIONS}
@@ -456,11 +450,11 @@ export function SlotMachine() {
 
       {/* Frame + Reels zone */}
       <div className={styles.frameWrapper}>
-        <Frame isSpinning={isSpinning}>
+        <Frame isSpinning={isSpinning} cellHeight={cellHeight}>
           <div
             ref={reelsZoneRef}
             className={`${styles.reelsZone} ${isSpinning ? styles.reelsZoneSpinning : ''}`}
-            style={{ '--cell-h': `${cellHeight}px` } as React.CSSProperties}
+            style={cellHeight > 0 ? { '--cell-h': `${cellHeight}px` } as React.CSSProperties : undefined}
             onTouchStart={handleZoneTouchStart}
             onTouchMove={handleZoneTouchMove}
             onTouchEnd={handleZoneTouchEnd}
