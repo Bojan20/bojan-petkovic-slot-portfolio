@@ -40,10 +40,10 @@
   align-items: center;
   justify-content: center;
   gap: 0px;
-  padding: clamp(10px, 1.8vh, 18px) clamp(6px, 1vw, 14px);
+  padding: clamp(12px, 2.2vh, 22px) clamp(6px, 1vw, 14px);
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(11px, 1.5vw, 15px);
+  font-size: clamp(11px, 1.55vw, 16px);
   letter-spacing: clamp(2px, 0.55vw, 4px);
   color: rgba(185, 190, 230, 0.88);
   text-align: center;
