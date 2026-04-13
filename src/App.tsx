@@ -66,14 +66,8 @@ export default function App() {
       <div
         ref={slotWrapRef}
         style={{
-          position: 'fixed',
-          inset: 0,
-          background: "url('/pozadina_slot.jpeg') center center / cover no-repeat",
           opacity: showSplash && !splashExiting ? 0 : undefined,
           willChange: splashExiting ? 'opacity, filter' : undefined,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
         <SlotMachine locked={introLocked} />
