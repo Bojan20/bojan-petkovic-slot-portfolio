@@ -1,0 +1,229 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BootScreen — Slot Machine Boot Sequence
+
+   Modeled after real IGT cabinet power-on.
+   Dark screen, manufacturer bar, gold progress,
+   "TAP TO BEGIN" — unlocks AudioContext.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #020308;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+/* ── CRT Scanline overlay ── */
+.boot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── Vignette overlay ── */
+.boot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── Manufacturer bar (top) ── */
+.mfgBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--g300), var(--g100), var(--g300), transparent);
+  opacity: 0.6;
+}
+
+/* ── Center content ── */
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 4vh, 40px);
+  z-index: 5;
+}
+
+/* ── Logo / Brand ── */
+.logo {
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 48px);
+  letter-spacing: clamp(6px, 2vw, 16px);
+  color: var(--g300);
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  animation: logoFadeIn 1.2s ease-out 0.3s forwards;
+  filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.3));
+}
+
+@keyframes logoFadeIn {
+  0% { opacity: 0; transform: scale(0.95); filter: blur(4px) drop-shadow(0 0 20px rgba(201, 162, 39, 0.3)); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0px) drop-shadow(0 0 20px rgba(201, 162, 39, 0.3)); }
+}
+
+.logoSub {
+  font-family: var(--f-mono);
+  font-size: clamp(9px, 1.2vw, 12px);
+  letter-spacing: 0.4em;
+  color: var(--chr-mid);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ── Progress bar container ── */
+.progressWrap {
+  width: clamp(200px, 40vw, 400px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out 0.8s forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+.progressTrack {
+  width: 100%;
+  height: 3px;
+  background: rgba(201, 162, 39, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--g500), var(--g300), var(--g100));
+  border-radius: 2px;
+  transition: width 100ms linear;
+  box-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
+  position: relative;
+}
+
+/* Glow on progress tip */
+.progressFill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 12px;
+  height: 11px;
+  background: radial-gradient(circle, rgba(240, 216, 120, 0.6), transparent);
+  border-radius: 50%;
+}
+
+.progressLabel {
+  font-family: var(--f-mono);
+  font-size: clamp(9px, 1vw, 11px);
+  letter-spacing: 0.15em;
+  color: var(--chr-mid);
+  min-height: 1.4em;
+  text-align: center;
+}
+
+.progressPercent {
+  font-family: var(--f-mono);
+  font-size: clamp(10px, 1.1vw, 12px);
+  letter-spacing: 0.1em;
+  color: var(--g400);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── TAP TO BEGIN button ── */
+.tapBtn {
+  margin-top: clamp(16px, 3vh, 32px);
+  padding: clamp(12px, 2vh, 20px) clamp(32px, 5vw, 56px);
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 2px;
+  color: var(--g-text);
+  font-family: var(--f-mono);
+  font-size: clamp(11px, 1.3vw, 14px);
+  letter-spacing: 0.4em;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  z-index: 5;
+}
+
+.tapBtn:hover {
+  border-color: var(--g300);
+  color: var(--g100);
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.15);
+}
+
+.tapBtn:focus-visible {
+  outline: 1px solid var(--g300);
+  outline-offset: 4px;
+}
+
+.tapBtnVisible {
+  animation: tapBtnEnter 0.6s ease-out forwards, tapBtnPulse 2s ease-in-out 0.6s infinite;
+}
+
+@keyframes tapBtnEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tapBtnPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(201, 162, 39, 0.08);
+    border-color: rgba(201, 162, 39, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(201, 162, 39, 0.2);
+    border-color: rgba(201, 162, 39, 0.5);
+  }
+}
+
+/* ── Version info (bottom) ── */
+.versionBar {
+  position: absolute;
+  bottom: clamp(16px, 3vh, 32px);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(96, 112, 154, 0.4);
+  z-index: 5;
+}
+
+/* ── Exit animation ── */
+.bootExit {
+  animation: bootFadeOut 0.8s ease-in forwards;
+}
+
+@keyframes bootFadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.02); filter: blur(6px); }
+}

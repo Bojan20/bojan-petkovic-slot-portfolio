@@ -1,30 +1,42 @@
 /**
- * App — Root component
+ * App — Root component (CORTEX Engine powered)
  *
- * Splash intro → casino shower → Slot machine portfolio
- * Both components coexist in DOM during transition.
- * Canvas particle rain (coins, chips, dice) bridges the gap.
+ * Three-phase flow modeled after real slot cabinets:
  *
- * Slot is interaction-locked until shower completes.
- * No scale animation on slot wrapper — prevents frame size jumps.
+ * Phase 1: BOOT (BootScreen)
+ *   - Loading progress, CRT scanlines, "TAP TO BEGIN"
+ *   - Tap = user gesture → AudioContext unlocked forever
+ *
+ * Phase 2: SPLASH (Attract Mode)
+ *   - Titles animate in one by one WITH SFX (audio already unlocked!)
+ *   - Lounge ambient music starts automatically
+ *   - "PRESS TO ENTER" button waits for user
+ *
+ * Phase 3: SLOT (Main App)
+ *   - Casino shower transition → slot machine portfolio
+ *
+ * All audio, animations, and timing driven by engine config.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import { BootScreen } from './components/BootScreen'
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
+import { bus } from './engine'
+
+type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true)
-  const [splashExiting, setSplashExiting] = useState(false)
+  const [phase, setPhase] = useState<AppPhase>('boot')
   const [showerActive, setShowerActive] = useState(false)
   const [introLocked, setIntroLocked] = useState(true)
   const slotWrapRef = useRef<HTMLDivElement>(null)
   const splashRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Pre-create audio element (doesn't play until user gesture)
+  // Pre-create ambient audio element (doesn't play until splash)
   useEffect(() => {
     const a = new Audio('/ambient/lounge.mp3')
     a.loop = true
@@ -33,22 +45,32 @@ export default function App() {
     return () => { a.pause(); a.src = '' }
   }, [])
 
-  const handleEnter = useCallback(() => {
-    if (splashExiting) return
-    setSplashExiting(true)
-    setShowerActive(true)
+  // Boot complete → transition to splash
+  const handleBootComplete = useCallback(() => {
+    setPhase('splash')
 
-    // Start ambient music on user gesture (autoplay blocked by browsers)
+    // Start ambient music immediately (audio is unlocked from boot tap)
     const audio = audioRef.current
     if (audio) {
       audio.play().catch(() => {})
     }
 
+    bus.emit('splash:start')
+  }, [])
+
+  // Splash enter → transition to slot
+  const handleEnter = useCallback(() => {
+    if (phase !== 'splash') return
+    setPhase('entering')
+    setShowerActive(true)
+
+    bus.emit('splash:enter')
+
     const tl = gsap.timeline({
-      onComplete: () => setShowSplash(false),
+      onComplete: () => setPhase('slot'),
     })
 
-    // Splash exit: fade + blur + slight scale up
+    // Splash exit: fade + blur + slight scale
     tl.to(splashRef.current, {
       opacity: 0,
       scale: 1.06,
@@ -57,8 +79,7 @@ export default function App() {
       ease: 'power3.in',
     }, 0)
 
-    // Slot entrance: slow fade-in over full shower duration (4.2s)
-    // opacity + blur ease in together — slot and background reveal gradually
+    // Slot entrance: slow fade-in over shower duration
     tl.fromTo(slotWrapRef.current,
       { opacity: 0, filter: 'blur(12px)' },
       {
@@ -69,11 +90,12 @@ export default function App() {
       },
       0.3
     )
-  }, [splashExiting])
+  }, [phase])
 
   const handleShowerDone = useCallback(() => {
     setShowerActive(false)
     setIntroLocked(false)
+    bus.emit('transition:complete')
   }, [])
 
   return (
@@ -82,8 +104,8 @@ export default function App() {
       <div
         ref={slotWrapRef}
         style={{
-          opacity: showSplash && !splashExiting ? 0 : undefined,
-          willChange: splashExiting ? 'opacity, filter' : undefined,
+          opacity: phase === 'boot' || phase === 'splash' ? 0 : undefined,
+          willChange: phase === 'entering' ? 'opacity, filter' : undefined,
         }}
       >
         <SlotMachine locked={introLocked} />
@@ -92,9 +114,14 @@ export default function App() {
       {/* Casino particle shower — coins, chips, dice rain */}
       <CasinoShower active={showerActive} onComplete={handleShowerDone} />
 
-      {/* Splash — on top, removed after transition */}
-      {showSplash && (
+      {/* Splash — attract mode with auto SFX */}
+      {(phase === 'splash' || phase === 'entering') && (
         <SplashScreen ref={splashRef} onEnter={handleEnter} />
+      )}
+
+      {/* Boot screen — on top of everything, removed after tap */}
+      {phase === 'boot' && (
+        <BootScreen onComplete={handleBootComplete} />
       )}
     </>
   )
