@@ -91,3 +91,145 @@
 .win {
   animation: reelWin 0.6s ease-out 3;
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CENTER REEL AAA WIN — the hero moment
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Dramatic snap — heavier, more aggressive bounce than normal reels */
+@keyframes centerReelSnap {
+  0%   { transform: translateY(-22px) scaleY(1); }
+  10%  { transform: translateY(16px) scaleY(0.88) scaleX(1.06); }
+  20%  { transform: translateY(-12px) scaleY(1.07) scaleX(0.95); }
+  30%  { transform: translateY(9px) scaleY(0.93) scaleX(1.04); }
+  42%  { transform: translateY(-6px) scaleY(1.04) scaleX(0.97); }
+  54%  { transform: translateY(4px) scaleY(0.97) scaleX(1.02); }
+  66%  { transform: translateY(-2px) scaleY(1.01); }
+  78%  { transform: translateY(1px) scaleY(0.99); }
+  88%  { transform: translateY(-0.5px); }
+  100% { transform: translateY(0) scaleY(1) scaleX(1); }
+}
+
+/* Golden explosion glow that radiates outward */
+@keyframes centerGlowBurst {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(240, 216, 120, 0.9),
+      0 0 0 0 rgba(201, 162, 39, 0.6),
+      inset 0 0 30px rgba(240, 216, 120, 0.4);
+  }
+  15% {
+    box-shadow:
+      0 0 40px 8px rgba(240, 216, 120, 0.7),
+      0 0 80px 20px rgba(201, 162, 39, 0.35),
+      inset 0 0 50px rgba(240, 216, 120, 0.3);
+  }
+  35% {
+    box-shadow:
+      0 0 60px 15px rgba(240, 216, 120, 0.5),
+      0 0 120px 40px rgba(201, 162, 39, 0.2),
+      inset 0 0 35px rgba(240, 216, 120, 0.15);
+  }
+  60% {
+    box-shadow:
+      0 0 30px 5px rgba(240, 216, 120, 0.3),
+      0 0 60px 15px rgba(201, 162, 39, 0.1),
+      inset 0 0 20px rgba(240, 216, 120, 0.08);
+  }
+  100% {
+    box-shadow:
+      0 0 18px 2px rgba(212, 168, 75, 0.2),
+      0 0 40px 8px rgba(201, 162, 39, 0.06),
+      inset 0 0 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Horizontal light beam sweep */
+@keyframes centerLightBeam {
+  0% { transform: translateX(-200%) skewX(-15deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+}
+
+/* Border color blaze */
+@keyframes centerBorderBlaze {
+  0% { border-color: rgba(255, 240, 180, 1); }
+  25% { border-color: rgba(255, 215, 0, 0.9); }
+  50% { border-color: rgba(240, 200, 80, 0.7); }
+  75% { border-color: rgba(212, 168, 75, 0.5); }
+  100% { border-color: rgba(212, 168, 75, 0.35); }
+}
+
+/* The center reel win class */
+.centerWin {
+  z-index: 100;
+  animation:
+    centerGlowBurst 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    centerBorderBlaze 1.8s ease-out forwards;
+  border: 3px solid rgba(255, 240, 180, 1);
+  border-radius: 6px;
+}
+
+/* Strip snap override for center reel */
+.centerWin .strip {
+  animation: centerReelSnap 0.72s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  filter: none !important;
+}
+
+/* Light beam sweep pseudo-element */
+.centerWin::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 15%,
+    rgba(255, 240, 180, 0.25) 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 240, 180, 0.25) 60%,
+    rgba(255, 255, 255, 0.08) 85%,
+    transparent 100%
+  );
+  animation: centerLightBeam 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s 2;
+}
+
+/* Vertical gold scanline */
+.centerWin::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  z-index: 61;
+  pointer-events: none;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(240, 216, 120, 0.6) 15%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(240, 216, 120, 0.6) 85%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 12px 3px rgba(240, 216, 120, 0.5),
+    0 0 30px 8px rgba(201, 162, 39, 0.25);
+  opacity: 0;
+  animation: paylineFire 1.4s ease-out 0.1s forwards;
+}
+
+@keyframes paylineFire {
+  0% { opacity: 0; transform: translateY(-50%) scaleX(0); }
+  15% { opacity: 1; transform: translateY(-50%) scaleX(1.1); }
+  30% { transform: translateY(-50%) scaleX(1); }
+  70% { opacity: 0.8; }
+  100% { opacity: 0; }
+}

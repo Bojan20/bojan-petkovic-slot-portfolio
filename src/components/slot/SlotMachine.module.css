@@ -147,7 +147,7 @@
 .controls {
   background: linear-gradient(180deg, #06060f 0%, #030308 100%);
   border-top: 1px solid rgba(201, 162, 39, 0.1);
-  padding: 1px clamp(8px, 1.5vw, 16px);
+  padding: clamp(8px, 1.5vh, 16px) clamp(8px, 1.5vw, 16px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -284,12 +284,12 @@
   z-index: 200;
   font-family: var(--f-ui);
   font-weight: 600;
-  font-size: clamp(6px, 0.9vw, 9px);
+  font-size: clamp(9px, 1.1vw, 11px);
   letter-spacing: 2.5px;
-  color: #303050;
+  color: rgba(175, 170, 210, 0.55);
   white-space: nowrap;
   pointer-events: none;
-  animation: hintFade 4s ease-in-out 3s forwards;
+  animation: hintFade 4s ease-in-out 6s forwards;
 }
 
 @keyframes hintFade { to { opacity: 0; } }

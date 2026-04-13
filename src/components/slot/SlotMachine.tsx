@@ -297,16 +297,17 @@ export function SlotMachine() {
             )
           }, 0)
 
-          // If last column — finalize
+          // If last column — finalize + AAA center row animation
           if (i === numCols - 1) {
             setTimeout(() => {
               if (styles.reelsZoneSpinning) reelsZoneRef.current?.classList.remove(styles.reelsZoneSpinning)
-              // Data already set at spin start — no swap needed
               flashWin()
               waveLanding(numCols)
               setSpinPhase('landed')
               setSpinning(false)
               tickJackpot()
+              // ── AAA CENTER ROW WIN ANIMATION ──
+              animateCenterRow()
             }, 280)
           }
         }, d)
@@ -314,6 +315,109 @@ export function SlotMachine() {
     },
     [isSpinning, currentSectionIdx, cellHeight, setSpinning, setSpinPhase, setItemIdx, tickJackpot]
   )
+
+  // ── AAA CENTER ROW WIN ──
+  // Animates ALL center cells (middle row) with staggered golden explosion
+  function animateCenterRow() {
+    const inner = reelsInnerRef.current
+    if (!inner) return
+
+    // Find all center cells across all columns (data-center-cell attribute)
+    const centerCells = inner.querySelectorAll('[data-center-cell]') as NodeListOf<HTMLElement>
+    if (centerCells.length === 0) return
+
+    // Staggered golden glow burst on each center cell (left → right)
+    centerCells.forEach((cell, i) => {
+      // Phase 1: Scale punch + golden glow (staggered 80ms per cell)
+      gsap.fromTo(cell, {
+        scale: 1,
+        boxShadow: 'inset 0 0 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,168,75,0.35), 0 0 12px rgba(201,162,39,0.08)',
+      }, {
+        scale: 1.08,
+        boxShadow: '0 0 40px 10px rgba(240,216,120,0.6), 0 0 80px 25px rgba(201,162,39,0.3), inset 0 0 30px rgba(240,216,120,0.25)',
+        duration: 0.18,
+        delay: i * 0.08,
+        ease: 'power3.out',
+        onComplete: () => {
+          // Phase 2: Settle back with elastic ease
+          gsap.to(cell, {
+            scale: 1,
+            boxShadow: 'inset 0 0 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(230,200,114,0.5), 0 0 22px rgba(201,162,39,0.15), 0 0 44px rgba(201,162,39,0.06)',
+            duration: 0.6,
+            ease: 'elastic.out(1, 0.5)',
+          })
+        },
+      })
+
+      // Phase 3: Border blaze
+      gsap.fromTo(cell, {
+        borderColor: 'rgba(255, 240, 180, 1)',
+      }, {
+        borderColor: 'rgba(212, 168, 75, 0.6)',
+        duration: 1.2,
+        delay: i * 0.08,
+        ease: 'power2.out',
+      })
+
+      // Phase 4: Win sweep light beam on each cell
+      cell.setAttribute('data-win', 'true')
+      setTimeout(() => cell.removeAttribute('data-win'), 1800)
+    })
+
+    // Payline beam across entire reel zone
+    const zone = reelsZoneRef.current
+    if (zone) {
+      // Create temporary payline element
+      const beam = document.createElement('div')
+      beam.style.cssText = `
+        position: absolute;
+        left: 0; right: 0;
+        top: 50%;
+        height: 4px;
+        transform: translateY(-50%);
+        z-index: 200;
+        pointer-events: none;
+        background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(240,216,120,0.7) 10%,
+          rgba(255,255,255,0.95) 50%,
+          rgba(240,216,120,0.7) 90%,
+          transparent 100%
+        );
+        box-shadow:
+          0 0 15px 5px rgba(240,216,120,0.5),
+          0 0 40px 10px rgba(201,162,39,0.3),
+          0 0 80px 20px rgba(201,162,39,0.15);
+        border-radius: 2px;
+        opacity: 0;
+      `
+      zone.appendChild(beam)
+
+      // Animate: flash in → hold → fade out
+      gsap.fromTo(beam,
+        { opacity: 0, scaleX: 0 },
+        {
+          opacity: 1, scaleX: 1,
+          duration: 0.15,
+          ease: 'power3.out',
+          onComplete: () => {
+            // Pulse twice
+            gsap.to(beam, {
+              keyframes: [
+                { opacity: 0.5, duration: 0.12 },
+                { opacity: 1, duration: 0.12 },
+                { opacity: 0.4, duration: 0.15 },
+                { opacity: 0.9, duration: 0.15 },
+                { opacity: 0, duration: 0.5 },
+              ],
+              ease: 'none',
+              onComplete: () => beam.remove(),
+            })
+          },
+        }
+      )
+    }
+  }
 
   function flashWin() {
     const f = flashRef.current

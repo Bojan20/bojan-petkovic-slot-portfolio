@@ -10,16 +10,18 @@ interface ReelColumnProps {
   stripTop: number   // passed from SlotMachine — positions cell[3] at zone center
   isGameReel?: boolean
   spinClass?: string
+  centerWin?: boolean
   onGameCellClick?: (itemIndex: number) => void
 }
 
 // Ref points to the outer column div
 export const ReelColumn = forwardRef<HTMLDivElement, ReelColumnProps>(
-  function ReelColumn({ cells, colIndex, cellHeight, stripTop, isGameReel, spinClass, onGameCellClick }, ref) {
+  function ReelColumn({ cells, colIndex, cellHeight, stripTop, isGameReel, spinClass, centerWin, onGameCellClick }, ref) {
     const columnCls = [
       styles.column,
       isGameReel ? styles.gameReel : '',
       spinClass || '',
+      centerWin ? styles.centerWin : '',
     ].filter(Boolean).join(' ')
 
     return (

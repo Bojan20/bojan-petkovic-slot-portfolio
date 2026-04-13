@@ -106,6 +106,7 @@
   100% { transform: translateX(150%) skewX(-10deg); opacity: 0; }
 }
 
+.cell[data-win="true"]::before,
 .winSweep::before {
   content: '';
   position: absolute;

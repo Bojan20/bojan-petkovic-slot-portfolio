@@ -28,6 +28,7 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
       className={cls}
       style={{ height: `${height}px`, boxSizing: 'border-box' }}
       onClick={handleClick}
+      {...(isCenter ? { 'data-center-cell': '' } : {})}
     >
       {/* Ambient color layer */}
       <div className={styles.colorBg} style={bgStyle} />
