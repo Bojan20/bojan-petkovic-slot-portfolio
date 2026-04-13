@@ -14,6 +14,7 @@ export default defineConfig({
   },
   server: {
     port: 5180,
+    host: true, // Listen on 0.0.0.0 — accessible from LAN (phone)
     open: true,
   },
 })
