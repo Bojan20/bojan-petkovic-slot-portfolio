@@ -32,7 +32,7 @@
 .reelHeaders {
   flex-shrink: 0;
   position: relative;
-  background: rgb(10, 9, 8);
+  background: transparent;
   border-bottom: 1px solid rgba(201, 162, 39, 0.30);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
   overflow: hidden;
@@ -146,7 +146,7 @@
 }
 
 .controls {
-  background: rgb(10, 9, 8);
+  background: transparent;
   border-top: 1px solid rgba(201, 162, 39, 0.1);
   padding: clamp(8px, 1.5vh, 16px) clamp(8px, 1.5vw, 16px);
   display: flex;
@@ -202,7 +202,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: rgb(10, 9, 8);
+  background: transparent;
 }
 
 .reelsZone::after {
@@ -243,7 +243,7 @@
   align-items: center;
   gap: 6px;
   overflow: hidden;
-  background: rgb(10, 9, 8);
+  background: transparent;
   z-index: 2;
 }
 
