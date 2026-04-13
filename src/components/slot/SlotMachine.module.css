@@ -235,12 +235,12 @@
 
 .reelsInner {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
+  top: 0;
+  bottom: 0;
   left: clamp(16px, 2.5vw, 28px);
   right: clamp(16px, 2.5vw, 28px);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 6px;
   overflow: hidden;
   background: transparent;

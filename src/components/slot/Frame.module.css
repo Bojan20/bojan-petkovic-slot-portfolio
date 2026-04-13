@@ -10,10 +10,9 @@
 /* WoO Fluted gold pillars */
 .pillar {
   position: absolute;
-  /* Match reel height: 3 cells + 2 gaps (6px each) + 6px padding, centered */
-  height: calc(3 * var(--cell-h, 80px) + 18px);
-  top: 50%;
-  transform: translateY(-50%);
+  /* Full height of reel zone */
+  top: 0;
+  bottom: 0;
   width: clamp(22px, 3.5vw, 38px);
   z-index: 110;
   pointer-events: none;

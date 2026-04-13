@@ -170,9 +170,10 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
       // 9 flex children (5 cols + 4 seps) = 8 gaps total
       const totalGaps = (numCols + numSeps - 1) * gapX
       const colW = Math.floor((zoneW - numSeps * sepW - totalGaps) / numCols)
+      // Fill full zone height: 3 cells + 2 gaps fit the entire height
       const maxByHeight = Math.floor((zoneH - 2 * gapY) / 3)
-      // Square: use colWidth, but cap to fit 3 rows in available height
-      const h = colW > 0 ? Math.min(colW, maxByHeight) : maxByHeight
+      // Use height-driven sizing — cells fill the zone vertically
+      const h = maxByHeight > 0 ? maxByHeight : colW
       if (h > 0) {
         setCellHeight(h)
         setZoneHeight(zoneH)
