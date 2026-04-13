@@ -25,6 +25,7 @@ import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
 import { bus } from './engine'
+import { SlotAudioManager } from './components/SlotAudioManager'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
@@ -123,6 +124,9 @@ export default function App() {
       {phase === 'boot' && (
         <BootScreen onComplete={handleBootComplete} />
       )}
+
+      {/* Slot Audio Manager — Shift+A to toggle */}
+      <SlotAudioManager />
     </>
   )
 }
