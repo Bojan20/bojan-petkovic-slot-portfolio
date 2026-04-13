@@ -314,7 +314,8 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
               flashWin()
               waveLanding(numCols)
               setSpinPhase('landed')
-              setSpinning(false)
+              // NOTE: setSpinning(false) is NOT called here — spin stays locked
+              // until payline takeover is dismissed (cleanup calls setSpinning(false))
               tickJackpot()
               // ── AAA CENTER ROW WIN ANIMATION ──
               animateCenterRow()
@@ -725,6 +726,8 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
       window.removeEventListener('keydown', onKey)
       takeoverTlRef.current = null
       takeoverCleanupRef.current = null
+      // Unlock spin — full cycle (spin + takeover) is now complete
+      setSpinning(false)
     }
 
     // Register cleanup for spinToIdx force-kill
