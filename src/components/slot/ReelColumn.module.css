@@ -5,7 +5,7 @@
   max-height: 100%;
   position: relative;
   overflow: hidden;
-  background: transparent;
+  background: rgb(10, 9, 8);
 }
 
 .column.gameReel {

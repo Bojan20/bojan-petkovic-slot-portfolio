@@ -8,7 +8,7 @@
   padding: clamp(5px, 1vw, 12px);
   position: relative;
   overflow: hidden;
-  background: rgba(10, 9, 8, 0.5);
+  background: rgb(10, 9, 8);
   border: 2.5px solid rgba(212, 168, 75, 0.35);
   border-radius: 4px;
   margin-bottom: 6px;
@@ -41,7 +41,7 @@
   opacity: 1;
   filter: none;
   border-color: rgba(212, 168, 75, 0.6);
-  background: rgba(10, 9, 8, 0.35);
+  background: rgb(14, 13, 12);
   animation: centerBreath 3.5s ease-in-out infinite;
 }
 

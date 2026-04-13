@@ -1,7 +1,7 @@
 .frame {
   position: relative;
   flex: 1;
-  background: transparent;
+  background: rgb(10, 9, 8);
   overflow: visible;
   display: flex;
   flex-direction: column;
