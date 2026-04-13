@@ -85,8 +85,8 @@
 .label {
   font-family: var(--f-ui);
   font-weight: 600;
-  font-size: clamp(9px, 1.2vw, 13px);
-  letter-spacing: 0.5em;
+  font-size: clamp(14px, 2.5vw, 24px);
+  letter-spacing: 0.35em;
   color: var(--ice);
   opacity: 0.6;
   margin-bottom: clamp(12px, 2vh, 24px);
@@ -97,7 +97,7 @@
 .name {
   font-family: var(--f-ui);
   font-weight: 700;
-  font-size: clamp(36px, 8vw, 96px);
+  font-size: clamp(42px, 10vw, 120px);
   letter-spacing: clamp(8px, 2.5vw, 28px);
   text-align: center;
   line-height: 1;
@@ -155,13 +155,13 @@
 /* Enter button */
 .enterBtn {
   margin-top: clamp(32px, 6vh, 60px);
-  padding: clamp(10px, 1.5vh, 16px) clamp(28px, 4vw, 48px);
+  padding: clamp(14px, 2vh, 22px) clamp(36px, 5vw, 60px);
   background: transparent;
   border: 1px solid rgba(201, 162, 39, 0.3);
   border-radius: 2px;
   color: var(--g-text);
   font-family: var(--f-mono);
-  font-size: clamp(11px, 1.2vw, 14px);
+  font-size: clamp(13px, 1.6vw, 18px);
   letter-spacing: 0.35em;
   cursor: pointer;
   transition: border-color 0.3s, color 0.3s;

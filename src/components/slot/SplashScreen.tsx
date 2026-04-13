@@ -137,7 +137,7 @@ const labelRef = useRef<HTMLDivElement>(null)
       {/* Content */}
       <div className={styles.content}>
         <div ref={labelRef} className={styles.label}>
-          AUDIO GAME DESIGNER · PORTFOLIO
+          AUDIO SLOT GAME DESIGNER — PORTFOLIO
         </div>
 
         <div ref={nameRef} className={styles.name}>
