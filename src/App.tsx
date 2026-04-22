@@ -26,16 +26,10 @@ import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
 import { bus, initAudioBridge, disposeAudioBridge } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
-import { MockupV2 } from './mockup/MockupV2'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
 export default function App() {
-  // Mockup V2 route — ?mockup=v2 renders the polish-pass design directly, no boot/splash.
-  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockup') === 'v2') {
-    return <MockupV2 />
-  }
-
   const [phase, setPhase] = useState<AppPhase>('boot')
   const [showerActive, setShowerActive] = useState(false)
   const [introLocked, setIntroLocked] = useState(true)
