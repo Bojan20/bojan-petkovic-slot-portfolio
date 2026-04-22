@@ -1,15 +1,15 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    BootScreen — Slot Machine Boot Sequence
 
-   Modeled after real IGT cabinet power-on.
-   Dark screen, manufacturer bar, gold progress,
-   "TAP TO BEGIN" — unlocks AudioContext.
+   Fullscreen Lucky 7 image that focuses in from
+   heavy blur as loading progresses. CONTINUE
+   button appears below once ready.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .boot {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 2002;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,110 +55,53 @@
   height: 3px;
   background: linear-gradient(90deg, transparent, var(--g300), var(--g100), var(--g300), transparent);
   opacity: 0.6;
+  z-index: 6;
 }
 
-/* ── Center content ── */
-.center {
+/* ── Fullscreen Lucky 7 — blur focus loader ── */
+.sevenStage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* scale grows 0.65 → 1.0 as loading completes (alongside blur focus) */
+  transform: translate(-50%, -56%) scale(calc(0.65 + var(--seven-progress, 0) * 0.35));
+  width: min(95vw, 95vh);
+  height: min(95vw, 95vh);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: clamp(20px, 4vh, 40px);
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+  transform-origin: center;
+  /* --seven-progress is 0..1 set inline by React */
+  --blur-max: 48px;
+  filter: blur(calc((1 - var(--seven-progress, 0)) * var(--blur-max)))
+          drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.15 + var(--seven-progress, 0) * 0.4)));
+  opacity: calc(0.35 + var(--seven-progress, 0) * 0.65);
+  transition: filter 120ms linear, opacity 120ms linear, transform 120ms linear;
+}
+
+.sevenFull {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── CONTINUE wrapper — sits below the 7 ── */
+.continueWrap {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(56px, 10vh, 100px);
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
   z-index: 5;
 }
 
-/* ── Logo / Brand ── */
-.logo {
-  font-family: var(--f-ui);
-  font-weight: 700;
-  font-size: clamp(28px, 5vw, 48px);
-  letter-spacing: clamp(6px, 2vw, 16px);
-  color: var(--g300);
-  text-transform: uppercase;
-  text-align: center;
-  opacity: 0;
-  animation: logoFadeIn 1.2s ease-out 0.3s forwards;
-  filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.3));
-}
-
-@keyframes logoFadeIn {
-  0% { opacity: 0; transform: scale(0.95); filter: blur(4px) drop-shadow(0 0 20px rgba(201, 162, 39, 0.3)); }
-  100% { opacity: 1; transform: scale(1); filter: blur(0px) drop-shadow(0 0 20px rgba(201, 162, 39, 0.3)); }
-}
-
-.logoSub {
-  font-family: var(--f-mono);
-  font-size: clamp(9px, 1.2vw, 12px);
-  letter-spacing: 0.4em;
-  color: var(--chr-mid);
-  margin-top: 8px;
-  text-align: center;
-}
-
-/* ── Progress bar container ── */
-.progressWrap {
-  width: clamp(200px, 40vw, 400px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  animation: fadeIn 0.6s ease-out 0.8s forwards;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-.progressTrack {
-  width: 100%;
-  height: 3px;
-  background: rgba(201, 162, 39, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--g500), var(--g300), var(--g100));
-  border-radius: 2px;
-  transition: width 100ms linear;
-  box-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
-  position: relative;
-}
-
-/* Glow on progress tip */
-.progressFill::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: -4px;
-  width: 12px;
-  height: 11px;
-  background: radial-gradient(circle, rgba(240, 216, 120, 0.6), transparent);
-  border-radius: 50%;
-}
-
-.progressLabel {
-  font-family: var(--f-mono);
-  font-size: clamp(9px, 1vw, 11px);
-  letter-spacing: 0.15em;
-  color: var(--chr-mid);
-  min-height: 1.4em;
-  text-align: center;
-}
-
-.progressPercent {
-  font-family: var(--f-mono);
-  font-size: clamp(10px, 1.1vw, 12px);
-  letter-spacing: 0.1em;
-  color: var(--g400);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── TAP TO BEGIN button ── */
+/* ── CONTINUE button ── */
 .tapBtn {
-  margin-top: clamp(16px, 3vh, 32px);
   padding: clamp(12px, 2vh, 20px) clamp(32px, 5vw, 56px);
   background: transparent;
   border: 1px solid rgba(201, 162, 39, 0.25);
@@ -171,7 +114,6 @@
   opacity: 0;
   transform: translateY(8px);
   transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
-  z-index: 5;
 }
 
 .tapBtn:hover {

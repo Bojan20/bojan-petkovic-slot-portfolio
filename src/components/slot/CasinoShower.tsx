@@ -500,7 +500,7 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
       style={{
         position:      'fixed',
         inset:         0,
-        zIndex:        500,
+        zIndex:        2100,
         pointerEvents: 'none',
       }}
     />

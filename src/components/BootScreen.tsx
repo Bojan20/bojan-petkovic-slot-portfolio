@@ -20,7 +20,6 @@ interface BootScreenProps {
 
 export function BootScreen({ onComplete }: BootScreenProps) {
   const [progress, setProgress] = useState(0)
-  const [stepLabel, setStepLabel] = useState('')
   const [loadingDone, setLoadingDone] = useState(false)
   const [exiting, setExiting] = useState(false)
   const tappedRef = useRef(false)
@@ -28,21 +27,16 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
   const { boot, audio } = portfolioConfig
 
-  // Simulated loading progress
+  // Simulated loading progress — drives the seven blur focus
   useEffect(() => {
     startTimeRef.current = performance.now()
     const duration = boot.progressDuration
-    const steps = boot.loadingSteps
     let raf: number
 
     const tick = () => {
       const elapsed = performance.now() - startTimeRef.current
       const pct = Math.min(elapsed / duration, 1)
       setProgress(pct)
-
-      // Update step label
-      const stepIdx = Math.min(Math.floor(pct * steps.length), steps.length - 1)
-      setStepLabel(steps[stepIdx] ?? '')
 
       if (pct < 1) {
         raf = requestAnimationFrame(tick)
@@ -104,36 +98,29 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       {/* Manufacturer gold bar */}
       <div className={styles.mfgBar} />
 
-      {/* Center content */}
-      <div className={styles.center}>
-        {/* Logo */}
-        <div className={styles.logo}>
-          BOJAN PETKOVIĆ
-          <div className={styles.logoSub}>AUDIO GAME DESIGN</div>
-        </div>
+      {/* Fullscreen Lucky 7 — blurs from 40px to 0 as loading completes */}
+      <div
+        className={styles.sevenStage}
+        style={{ '--seven-progress': progress } as React.CSSProperties}
+        aria-hidden="true"
+      >
+        <img
+          src="/seven-cyber.png"
+          alt=""
+          className={styles.sevenFull}
+          draggable={false}
+        />
+      </div>
 
-        {/* Progress bar */}
-        <div className={styles.progressWrap}>
-          <div className={styles.progressTrack}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-          <div className={styles.progressLabel}>{stepLabel}</div>
-          <div className={styles.progressPercent}>
-            {Math.round(progress * 100)}%
-          </div>
-        </div>
-
-        {/* TAP TO BEGIN — only visible after loading */}
+      {/* CONTINUE — appears under the 7 once loading completes */}
+      <div className={styles.continueWrap}>
         <button
           className={`${styles.tapBtn} ${loadingDone ? styles.tapBtnVisible : ''}`}
           type="button"
           disabled={!loadingDone}
           aria-hidden={!loadingDone}
         >
-          TAP TO BEGIN
+          CONTINUE
         </button>
       </div>
 

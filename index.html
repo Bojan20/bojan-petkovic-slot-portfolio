@@ -10,8 +10,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <meta name="description" content="Slot machine portfolio — Bojan Petkovic, Audio Director & Sound Designer" />
     <meta name="theme-color" content="#080610" />
+    <style>
+      /* Pre-shield — covers body background (slot/splash bg) on hard refresh
+         until React mounts the BootScreen. BootScreen then sits on top
+         (z-index 2000) and stays visible; pre-shield gets removed by App
+         only after the slot phase fully takes over. */
+      #pre-shield {
+        position: fixed;
+        inset: 0;
+        background: #020308;
+        z-index: 1999;
+      }
+    </style>
   </head>
   <body>
+    <div id="pre-shield"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

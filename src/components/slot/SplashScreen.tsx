@@ -51,7 +51,6 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     const containerRef = useRef<HTMLDivElement>(null)
     const nameRef = useRef<HTMLDivElement>(null)
     const labelRef = useRef<HTMLDivElement>(null)
-    const btnRef = useRef<HTMLButtonElement>(null)
     const cornersRef = useRef<HTMLDivElement>(null)
     const lineRef = useRef<HTMLDivElement>(null)
     const [ready, setReady] = useState(false)
@@ -100,35 +99,25 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
         {
           scaleX: 1, duration: 0.6, ease: 'power2.inOut',
           onStart: () => bus.emit('splash:title:line'),
-        },
-        '-=0.4'
-      )
-
-      // Step 5: Button
-      tl.fromTo(btnRef.current,
-        { opacity: 0, y: 15 },
-        {
-          opacity: 1, y: 0, duration: 0.5, ease: 'power2.out',
-          onStart: () => bus.emit('splash:title:button'),
           onComplete: () => setReady(true),
         },
-        '-=0.1'
+        '-=0.4'
       )
 
       return () => { tl.kill() }
     }, [])
 
-    // Button pulse animation
+    // Auto-enter to slot 3 s after splash finishes its entrance
     useEffect(() => {
-      if (!ready || !btnRef.current) return
-      const pulse = gsap.to(btnRef.current, {
-        boxShadow: '0 0 30px rgba(201,162,39,0.3), inset 0 0 20px rgba(201,162,39,0.05)',
-        duration: 1.4,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-      })
-      return () => { pulse.kill() }
+      if (!ready) return
+      const t = setTimeout(() => {
+        if (!enteredRef.current) {
+          enteredRef.current = true
+          onEnter()
+        }
+      }, 3000)
+      return () => clearTimeout(t)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ready])
 
     // Handler — just calls parent, no local exit animation (App controls it)
@@ -173,10 +162,6 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
           </div>
 
           <div ref={lineRef} className={styles.line} />
-
-          <button ref={btnRef} className={styles.enterBtn} type="button">
-            PRESS TO ENTER
-          </button>
         </div>
       </div>
     )

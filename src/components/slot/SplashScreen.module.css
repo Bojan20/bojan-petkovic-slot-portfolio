@@ -1,15 +1,23 @@
 .splash {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 2001;
   display: flex;
   align-items: center;
   justify-content: center;
   background:
     radial-gradient(ellipse at 50% 40%, rgba(12, 10, 24, 0.72) 0%, rgba(5, 7, 16, 0.85) 50%, rgba(2, 3, 8, 0.92) 100%),
-    url('/pozadina_splash.jpeg') center center / cover no-repeat;
+    url('/splash-bg.png') center center / cover no-repeat;
   cursor: pointer;
   overflow: hidden;
+  /* Slow fade-in over the boot shield for a soft handoff */
+  opacity: 0;
+  animation: splashFadeIn 1.6s ease-out 0.05s forwards;
+}
+
+@keyframes splashFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Corner frame lines — casino elegance ── */
