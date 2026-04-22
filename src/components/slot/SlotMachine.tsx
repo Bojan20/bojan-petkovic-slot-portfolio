@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import { bus } from '../../engine'
 import { useSlotStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
@@ -312,6 +313,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
           if (i === numCols - 1) {
             setTimeout(() => {
               if (styles.reelsZoneSpinning) reelsZoneRef.current?.classList.remove(styles.reelsZoneSpinning)
+              bus.emit('slot:reel:stop', { col: numCols - 1 })
               flashWin()
               waveLanding(numCols)
               setSpinPhase('landed')
@@ -867,6 +869,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
   // Blocked while locked (intro), spinning, or payline takeover cards are on screen
   const handleSpin = useCallback(() => {
     if (locked || isSpinning || takeoverTlRef.current || takeoverCleanupRef.current) return
+    bus.emit('slot:spin:start')
     const arr = getDataForSection(currentSectionIdx)
     const newIdx = (currentItemIdx + 1) % arr.length
     spinToIdx(newIdx)
