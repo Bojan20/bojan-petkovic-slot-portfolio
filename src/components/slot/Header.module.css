@@ -66,6 +66,14 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter: drop-shadow(0 0 22px var(--amb-glow));
+  animation: headerLcdFlicker 5.7s steps(1) infinite;
+}
+
+@keyframes headerLcdFlicker {
+  0%, 97.5%, 100% { opacity: 1; }
+  97.7%           { opacity: 0.95; }
+  98.2%           { opacity: 0.99; }
+  98.7%           { opacity: 0.96; }
 }
 
 .subtitle {

@@ -62,7 +62,7 @@
   border-right: none;
 }
 
-/* Bottom indicator */
+/* Bottom indicator — neon underline with soft blur trail */
 .tab::after {
   content: '';
   position: absolute;
@@ -72,35 +72,73 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(201, 162, 39, 0.85),
-    rgba(255, 220, 100, 1),
-    rgba(201, 162, 39, 0.85),
+    rgba(34, 232, 255, 0.6),
+    rgba(177, 76, 255, 1),
+    rgba(34, 232, 255, 0.6),
     transparent
   );
   border-radius: 1px;
   opacity: 0;
-  transition: opacity 0.15s ease;
-  box-shadow: 0 0 6px rgba(201, 162, 39, 0.7);
+  transition: opacity 0.18s ease;
+  box-shadow:
+    0 0 4px rgba(34, 232, 255, 0.8),
+    0 0 14px rgba(177, 76, 255, 0.55),
+    0 0 28px rgba(177, 76, 255, 0.35);
+}
+
+/* Trailing soft halo (second layer, deeper blur) */
+.tab::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 25%; right: 25%;
+  height: 8px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(177, 76, 255, 0.55) 0%,
+    rgba(34, 232, 255, 0.25) 45%,
+    transparent 75%
+  );
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
 }
 
 .tab:hover {
   color: rgba(220, 225, 255, 1);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(34, 232, 255, 0.04);
 }
 
 .active {
-  color: rgba(225, 185, 65, 1);
+  color: rgba(230, 225, 255, 1);
   background: linear-gradient(180deg,
-    rgba(201, 162, 39, 0.1) 0%,
-    rgba(201, 162, 39, 0.03) 100%
+    rgba(177, 76, 255, 0.08) 0%,
+    rgba(34, 232, 255, 0.03) 100%
   );
   text-shadow:
-    0 0 10px rgba(201, 162, 39, 0.65),
-    0 0 22px rgba(201, 162, 39, 0.3);
+    0 0 10px rgba(34, 232, 255, 0.55),
+    0 0 22px rgba(177, 76, 255, 0.4);
 }
 
 .active::after {
   opacity: 1;
+  animation: tabUnderlineShift 4s ease-in-out infinite;
+}
+
+.active::before {
+  opacity: 1;
+  animation: tabHaloPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes tabUnderlineShift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50%      { filter: hue-rotate(40deg); }
+}
+
+@keyframes tabHaloPulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
 }
 
 /* Active top glow */

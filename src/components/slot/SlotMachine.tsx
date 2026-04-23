@@ -122,6 +122,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
     currentSectionIdx,
     currentItemIdx,
     isSpinning,
+    spinPhase,
     credits,
     jackpot,
     setSection,
@@ -958,8 +959,22 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
   // cell[3] center = stripTop + 3*(cellH+6) + cellH/2 = center → stripTop = -2*(cellH+6)
   const stripTop = cellHeight > 0 ? -2 * (cellHeight + 6) : 0
 
+  // Map spinPhase → CSS module class for per-column state overlay (motion trail / halo / chromatic snap)
+  const phaseSpinClass =
+    spinPhase === 'windup' ? (styles.windup || 'windup')
+    : spinPhase === 'spinning' ? (styles.spinning || 'spinning')
+    : spinPhase === 'snapping' ? (styles.snapping || 'snapping')
+    : spinPhase === 'landing' ? (styles.landing || 'landing')
+    : ''
+
+  // Ambient phase attribute drives the machine-wide ambient glow backdrop
+  const ambientPhase: 'idle' | 'spinning' | 'landing' =
+    spinPhase === 'spinning' || spinPhase === 'windup' ? 'spinning'
+    : spinPhase === 'landing' || spinPhase === 'snapping' || spinPhase === 'landed' ? 'landing'
+    : 'idle'
+
   return (
-    <div ref={machineRef} className={styles.machine}>
+    <div ref={machineRef} className={styles.machine} data-ambient-phase={ambientPhase}>
       {/* Tab Bar */}
       <TabBar
         sections={SECTIONS}
@@ -1019,6 +1034,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
                     cellHeight={cellHeight}
                     stripTop={stripTop}
                     isGameReel={ci === 0}
+                    spinClass={phaseSpinClass}
                     onGameCellClick={handleGameCellClick}
                   />
                 </div>

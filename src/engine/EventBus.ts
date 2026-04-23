@@ -19,6 +19,7 @@ export interface CortexEventMap {
   'boot:progress': { percent: number; label: string }
   'boot:tap': void
   'boot:audio_unlocked': void
+  'boot:unlock:burst': void
   'boot:complete': void
   'boot:fade_out': void
 

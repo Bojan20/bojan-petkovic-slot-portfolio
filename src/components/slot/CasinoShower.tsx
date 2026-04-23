@@ -17,7 +17,7 @@ import Matter from 'matter-js'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PType = 'coin' | 'chip' | 'die'
+type PType = 'coin' | 'chip' | 'die' | 'holochip'
 
 interface Trail { x: number; y: number }
 
@@ -27,6 +27,22 @@ interface ParticleMeta {
   face:      number       // dice face value 1–6
   chipColor: string       // main chip color
   size:      number
+  /** Holochip symbol (only used when type === 'holochip') */
+  holoSymbol?: string
+  /** Neon hue for holochip 0-360 */
+  holoHue?:   number
+}
+
+/* Ambient neon floater — low-frequency background puffs, no physics */
+interface AmbientFloater {
+  x:       number
+  y:       number
+  vx:      number
+  vy:      number
+  size:    number
+  hue:     number
+  life:    number   // elapsed ms
+  maxLife: number
 }
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -49,6 +65,9 @@ const PARTICLE_COUNT = 90
 const SPAWN_DURATION = 2800   // ms
 const TOTAL_DURATION = 4200   // ms
 const FADE_START     = 3400   // ms
+
+/* Holochip symbols — rotated through for the ~15% holochip variant */
+const HOLO_SYMBOLS = ['7', '★', '♠', '♦', '♥', '♣', '◆', '◈']
 
 // ─── Dice pip layout (normalised –0.4..0.4 on each face) ─────────────────────
 
@@ -251,6 +270,98 @@ function drawChip(
   ctx.restore()
 }
 
+// ─── Draw: Holochip (futuristic translucent disc with rotating neon symbol) ─
+
+function drawHolochip(
+  ctx: CanvasRenderingContext2D,
+  body: Matter.Body,
+  meta: ParticleMeta,
+  alpha: number
+) {
+  const { x, y } = body.position
+  const r = meta.size / 2
+  const hue = meta.holoHue ?? 200
+  const sym = meta.holoSymbol ?? '7'
+
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.translate(x, y)
+  ctx.rotate(body.angle)
+
+  // Soft drop shadow
+  ctx.shadowColor   = `hsla(${hue}, 90%, 55%, 0.55)`
+  ctx.shadowBlur    = 18
+  ctx.shadowOffsetY = 4
+
+  // Translucent holo body — radial gradient
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r)
+  grad.addColorStop(0,    `hsla(${hue}, 90%, 70%, 0.80)`)
+  grad.addColorStop(0.55, `hsla(${(hue + 40) % 360}, 95%, 60%, 0.55)`)
+  grad.addColorStop(1,    `hsla(${(hue + 80) % 360}, 90%, 45%, 0.10)`)
+  ctx.beginPath()
+  ctx.arc(0, 0, r, 0, Math.PI * 2)
+  ctx.fillStyle = grad
+  ctx.fill()
+  ctx.shadowBlur = 0
+
+  // Neon outer ring
+  ctx.beginPath()
+  ctx.arc(0, 0, r - 1.5, 0, Math.PI * 2)
+  ctx.strokeStyle = `hsla(${hue}, 100%, 78%, 0.9)`
+  ctx.lineWidth   = 1.8
+  ctx.stroke()
+
+  // Double-ring — magenta contrast
+  ctx.beginPath()
+  ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2)
+  ctx.strokeStyle = `hsla(${(hue + 120) % 360}, 100%, 72%, 0.7)`
+  ctx.lineWidth   = 1
+  ctx.stroke()
+
+  // Center symbol
+  ctx.font         = `bold ${Math.round(r * 0.95)}px var(--f-ui), 'Rajdhani', sans-serif`
+  ctx.textAlign    = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle    = `hsla(${hue}, 100%, 92%, 1)`
+  ctx.shadowColor  = `hsla(${hue}, 100%, 75%, 0.8)`
+  ctx.shadowBlur   = 8
+  ctx.fillText(sym, 0, 1)
+  ctx.shadowBlur = 0
+
+  // Specular highlight sweep
+  const spec = ctx.createLinearGradient(-r * 0.6, -r * 0.7, r * 0.2, r * 0.1)
+  spec.addColorStop(0, 'rgba(255,255,255,0.45)')
+  spec.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.beginPath()
+  ctx.arc(0, 0, r, 0, Math.PI * 2)
+  ctx.fillStyle = spec
+  ctx.fill()
+
+  ctx.restore()
+}
+
+// ─── Draw: Ambient floater (low-freq background neon puff) ───────────────────
+
+function drawAmbient(ctx: CanvasRenderingContext2D, f: AmbientFloater, alpha: number) {
+  const t = f.life / f.maxLife               // 0..1
+  const fade = Math.sin(t * Math.PI)         // 0..1..0
+  const a = fade * 0.3 * alpha
+  if (a < 0.01) return
+
+  const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size)
+  grad.addColorStop(0,   `hsla(${f.hue}, 100%, 70%, ${a})`)
+  grad.addColorStop(0.5, `hsla(${(f.hue + 40) % 360}, 100%, 55%, ${a * 0.4})`)
+  grad.addColorStop(1,   'rgba(0,0,0,0)')
+
+  ctx.save()
+  ctx.globalCompositeOperation = 'screen'
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
 // ─── Draw: Dice ──────────────────────────────────────────────────────────────
 
 function drawDice(
@@ -334,10 +445,18 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
   const startRef   = useRef<number>(0)
 
   const spawnOne = useCallback((engine: Matter.Engine, w: number) => {
-    const type: PType = Math.random() < 0.42 ? 'coin' : Math.random() < 0.55 ? 'chip' : 'die'
-    const size        = type === 'die'  ? 22 + Math.random() * 14
-                      : type === 'coin' ? 24 + Math.random() * 18
-                      :                   28 + Math.random() * 16
+    // ~15% holochip · 36% coin · 32% chip · 17% die
+    const roll = Math.random()
+    const type: PType =
+      roll < 0.15 ? 'holochip'
+      : roll < 0.51 ? 'coin'
+      : roll < 0.83 ? 'chip'
+      :               'die'
+
+    const size        = type === 'die'      ? 22 + Math.random() * 14
+                      : type === 'coin'     ? 24 + Math.random() * 18
+                      : type === 'holochip' ? 26 + Math.random() * 18
+                      :                       28 + Math.random() * 16
 
     const body = type === 'die'
       ? Matter.Bodies.rectangle(
@@ -349,14 +468,16 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
       : Matter.Bodies.circle(
           Math.random() * w, -size / 2 - 20,
           size / 2,
-          { restitution: 0.72, friction: 0.07, frictionAir: 0.005, label: type }
+          { restitution: type === 'holochip' ? 0.78 : 0.72, friction: 0.07, frictionAir: 0.005, label: type }
         )
 
     Matter.Body.setVelocity(body, {
       x: (Math.random() - 0.5) * 7,
       y: 3.5 + Math.random() * 5,
     })
-    Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.35)
+    // Holochips spin faster for futuristic feel
+    const angVelBoost = type === 'holochip' ? 0.55 : 0.35
+    Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * angVelBoost)
 
     const palette = CHIP_PALETTES[Math.floor(Math.random() * CHIP_PALETTES.length)]!
     const meta: ParticleMeta = {
@@ -365,6 +486,12 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
       face:      Math.floor(Math.random() * 6) + 1,
       chipColor: palette.main,
       size,
+      holoSymbol: type === 'holochip'
+        ? HOLO_SYMBOLS[Math.floor(Math.random() * HOLO_SYMBOLS.length)]!
+        : undefined,
+      holoHue: type === 'holochip'
+        ? [190, 215, 285, 315, 340][Math.floor(Math.random() * 5)]!
+        : undefined,
     }
 
     Matter.World.add(engine.world, body)
@@ -395,16 +522,37 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
 
     startRef.current = performance.now()
     let lastSpawn    = -999
+    let lastAmb      = -999
+    let lastFrame    = performance.now()
     const spawnGap   = SPAWN_DURATION / PARTICLE_COUNT
+    const ambients: AmbientFloater[] = []
+    const AMB_HUES = [190, 215, 285, 315, 340]
 
     const loop = (now: number) => {
       const elapsed = now - startRef.current
+      const dt = Math.min(64, now - lastFrame)
+      lastFrame = now
 
       // Spawn
       if (elapsed < SPAWN_DURATION && elapsed - lastSpawn > spawnGap) {
         const { body, meta } = spawnOne(engine, W)
         metaMap.set(body.id, meta)
         lastSpawn = elapsed
+      }
+
+      // Ambient neon floaters — 1 every 3-4s (low frequency background layer)
+      if (elapsed - lastAmb > 3000 + Math.random() * 1000) {
+        ambients.push({
+          x:       Math.random() * W,
+          y:       H * (0.25 + Math.random() * 0.6),
+          vx:      (Math.random() - 0.5) * 0.02,
+          vy:      -0.015 - Math.random() * 0.025,
+          size:    40 + Math.random() * 45,
+          hue:     AMB_HUES[Math.floor(Math.random() * AMB_HUES.length)]!,
+          life:    0,
+          maxLife: 4500 + Math.random() * 1500,
+        })
+        lastAmb = elapsed
       }
 
       // Global alpha for fade
@@ -426,6 +574,16 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
 
       ctx.clearRect(0, 0, W, H)
 
+      // ── Ambient neon floaters (background layer) ───────────
+      for (let i = ambients.length - 1; i >= 0; i--) {
+        const f = ambients[i]!
+        f.life += dt
+        f.x += f.vx * dt
+        f.y += f.vy * dt
+        if (f.life >= f.maxLife) { ambients.splice(i, 1); continue }
+        drawAmbient(ctx, f, globalAlpha)
+      }
+
       // ── Glow pass (additive blending) ──────────────────────
       ctx.save()
       ctx.globalCompositeOperation = 'screen'
@@ -436,8 +594,14 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
         if (!meta) continue
         const { x, y } = body.position
         const gr = ctx.createRadialGradient(x, y, 0, x, y, meta.size * 0.7)
-        gr.addColorStop(0,   'rgba(255,210,50,0.22)')
-        gr.addColorStop(1,   'rgba(255,180,0,0)')
+        if (meta.type === 'holochip') {
+          const hue = meta.holoHue ?? 200
+          gr.addColorStop(0, `hsla(${hue}, 100%, 65%, 0.35)`)
+          gr.addColorStop(1, `hsla(${hue}, 100%, 55%, 0)`)
+        } else {
+          gr.addColorStop(0, 'rgba(255,210,50,0.22)')
+          gr.addColorStop(1, 'rgba(255,180,0,0)')
+        }
         ctx.fillStyle = gr
         ctx.beginPath()
         ctx.arc(x, y, meta.size * 0.7, 0, Math.PI * 2)
@@ -474,9 +638,10 @@ export const CasinoShower = memo(function CasinoShower({ active, onComplete }: C
         if (body.isStatic) continue
         const meta = metaMap.get(body.id)
         if (!meta) continue
-        if      (meta.type === 'coin') drawCoin(ctx, body, meta, globalAlpha)
-        else if (meta.type === 'chip') drawChip(ctx, body, meta, globalAlpha)
-        else                           drawDice(ctx, body, meta, globalAlpha)
+        if      (meta.type === 'coin')     drawCoin(ctx, body, meta, globalAlpha)
+        else if (meta.type === 'chip')     drawChip(ctx, body, meta, globalAlpha)
+        else if (meta.type === 'holochip') drawHolochip(ctx, body, meta, globalAlpha)
+        else                               drawDice(ctx, body, meta, globalAlpha)
       }
 
       rafRef.current = requestAnimationFrame(loop)

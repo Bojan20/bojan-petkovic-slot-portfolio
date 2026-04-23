@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useSlotStore } from './slotStore'
+import { useSlotStore, selectAmbientPhase } from './slotStore'
 
 describe('slotStore', () => {
   beforeEach(() => {
@@ -12,6 +12,7 @@ describe('slotStore', () => {
       currentItemIdx: 0,
       isSpinning: false,
       spinPhase: 'idle',
+      ambientPhase: 'idle',
       credits: 777,
       jackpot: 1337,
     })
@@ -57,5 +58,21 @@ describe('slotStore', () => {
     expect(after).toBeGreaterThan(before)
     expect(after - before).toBeLessThanOrEqual(5)
     expect(after - before).toBeGreaterThanOrEqual(1)
+  })
+
+  it('sets ambient phase', () => {
+    useSlotStore.getState().setAmbientPhase('spinning')
+    expect(useSlotStore.getState().ambientPhase).toBe('spinning')
+    useSlotStore.getState().setAmbientPhase('winning')
+    expect(useSlotStore.getState().ambientPhase).toBe('winning')
+  })
+
+  it('selectAmbientPhase maps spinPhase correctly', () => {
+    expect(selectAmbientPhase({ spinPhase: 'idle' })).toBe('idle')
+    expect(selectAmbientPhase({ spinPhase: 'windup' })).toBe('spinning')
+    expect(selectAmbientPhase({ spinPhase: 'spinning' })).toBe('spinning')
+    expect(selectAmbientPhase({ spinPhase: 'landing' })).toBe('landing')
+    expect(selectAmbientPhase({ spinPhase: 'snapping' })).toBe('landing')
+    expect(selectAmbientPhase({ spinPhase: 'landed' })).toBe('landing')
   })
 })

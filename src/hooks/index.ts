@@ -5,6 +5,7 @@ export {
   useBootProgress,
   useBootTap,
   useBootAudioUnlocked,
+  useBootUnlockBurst,
   useBootComplete,
   useBootFadeOut,
 } from './useBootEvents'
@@ -52,3 +53,8 @@ export {
 } from './useSystemEvents'
 
 export { useSoundTrigger, useSoundCallback } from './useSoundTrigger'
+
+export { useAmbientPhase } from './useAmbientPhase'
+export { useChromaticShift } from './useChromaticShift'
+export type { ChromaticShift } from './useChromaticShift'
+export { useAmbientPhaseSync } from './useAmbientPhaseSync'

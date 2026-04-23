@@ -1,16 +1,14 @@
 /**
- * BootScreen — Slot Machine Boot Sequence
+ * BootScreen — Neural Sync Boot Sequence (Cyberpunk)
  *
- * Modeled after real IGT/Aristocrat cabinet power-on:
- * - Dark screen, manufacturer gold bar, CRT scanlines, vignette
- * - Simulated loading progress (font, three.js, audio preload)
- * - "TAP TO BEGIN" — unlocks AudioContext (user gesture)
- *
- * After tap: fade out → splash starts with FULL AUDIO capability.
- * This solves the browser autoplay restriction permanently.
+ * - Data stream background (hex/binary curtain)
+ * - 6 loading steps with typewriter reveal (~30 ms/char)
+ * - Holographic ring pulse around the CTA
+ * - System-online burst: scanline flash + static noise overlay
+ * - Tap / Space / Enter → AudioContext unlock + boot:complete
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { bus, unlockAudioContext, initSoundManager, portfolioConfig } from '../engine'
 import styles from './BootScreen.module.css'
 
@@ -18,16 +16,52 @@ interface BootScreenProps {
   onComplete: () => void
 }
 
+/* ── Data stream columns ─ seeded randomness keeps SSR/CSR parity ── */
+const HEX_CHARS = '0123456789ABCDEF'
+const STREAM_COLS = 24
+const STREAM_ROWS = 48
+
+function seeded(seed: number): number {
+  const x = Math.sin(seed * 9301 + 49297) * 49297
+  return x - Math.floor(x)
+}
+
+function buildStreamText(col: number): string {
+  let out = ''
+  for (let r = 0; r < STREAM_ROWS; r++) {
+    const idx = Math.floor(seeded(col * 101 + r * 7) * HEX_CHARS.length)
+    out += HEX_CHARS[idx]
+    if (r % 4 === 3) out += ' '
+    out += '\n'
+  }
+  return out
+}
+
 export function BootScreen({ onComplete }: BootScreenProps) {
   const [progress, setProgress] = useState(0)
   const [loadingDone, setLoadingDone] = useState(false)
   const [exiting, setExiting] = useState(false)
+  const [burst, setBurst] = useState(false)
+  const [stepIdx, setStepIdx] = useState(0)
+  const [typed, setTyped] = useState('')
   const tappedRef = useRef(false)
   const startTimeRef = useRef(0)
 
   const { boot, audio } = portfolioConfig
+  const loadingSteps: string[] = boot.loadingSteps ?? []
 
-  // Simulated loading progress — drives the seven blur focus
+  // Pre-compute data stream columns once
+  const streamColumns = useMemo(
+    () => Array.from({ length: STREAM_COLS }, (_, i) => ({
+      text: buildStreamText(i),
+      delay: `${seeded(i * 13) * 4}s`,
+      duration: `${3.5 + seeded(i * 17) * 3.5}s`,
+      left: `${(i / STREAM_COLS) * 100}%`,
+    })),
+    [],
+  )
+
+  // Progress tick
   useEffect(() => {
     startTimeRef.current = performance.now()
     const duration = boot.progressDuration
@@ -51,28 +85,50 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => cancelAnimationFrame(raf)
   }, [boot])
 
-  // Handle tap — unlock audio, init SoundManager, exit
+  // Typewriter: drive step index from progress, then type chars at 30 ms/char
+  useEffect(() => {
+    if (loadingSteps.length === 0) return
+    const targetIdx = Math.min(
+      Math.floor(progress * loadingSteps.length),
+      loadingSteps.length - 1,
+    )
+    if (targetIdx !== stepIdx) {
+      setStepIdx(targetIdx)
+      setTyped('')
+    }
+  }, [progress, loadingSteps, stepIdx])
+
+  useEffect(() => {
+    const phrase = loadingSteps[stepIdx] ?? ''
+    if (!phrase) return
+    if (typed.length >= phrase.length) return
+    const t = setTimeout(() => {
+      setTyped(phrase.slice(0, typed.length + 1))
+    }, 30)
+    return () => clearTimeout(t)
+  }, [typed, stepIdx, loadingSteps])
+
+  // Tap handler — unlock audio + fire system-online burst
   const handleTap = useCallback(async () => {
     if (tappedRef.current || !loadingDone) return
     tappedRef.current = true
 
-    // CRITICAL: This runs inside user gesture handler — browser allows AudioContext unlock
+    // CRITICAL: user gesture for AudioContext unlock (iOS/Safari)
     await unlockAudioContext()
-
-    // Initialize the SoundManager with JSON config (event → sound mappings)
     initSoundManager(audio)
-
-    // Emit boot:tap (plays sfx_boot_hum via SoundManager)
     bus.emit('boot:tap')
 
-    // Short delay for the boot SFX to play, then exit
-    setExiting(true)
+    // Scanline flash + static burst (200ms)
+    setBurst(true)
+    setTimeout(() => setBurst(false), 280)
 
-    // Wait for exit animation (800ms CSS), then emit complete
+    // Exit after burst
+    setTimeout(() => setExiting(true), 180)
+
     setTimeout(() => {
       bus.emit('boot:complete')
       onComplete()
-    }, 800)
+    }, 900)
   }, [loadingDone, audio, onComplete])
 
   // Keyboard support
@@ -87,6 +143,8 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleTap])
 
+  const percent = Math.round(progress * 100)
+
   return (
     <div
       className={`${styles.boot} ${exiting ? styles.bootExit : ''}`}
@@ -95,10 +153,27 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       tabIndex={0}
       aria-label="Tap to begin"
     >
+      {/* Data stream background — columns of hex cascading downward */}
+      <div className={styles.dataStream} aria-hidden="true">
+        {streamColumns.map((c, i) => (
+          <pre
+            key={i}
+            className={styles.streamCol}
+            style={{
+              left: c.left,
+              animationDelay: c.delay,
+              animationDuration: c.duration,
+            }}
+          >
+            {c.text}
+          </pre>
+        ))}
+      </div>
+
       {/* Manufacturer gold bar */}
       <div className={styles.mfgBar} />
 
-      {/* Fullscreen Lucky 7 — blurs from 40px to 0 as loading completes */}
+      {/* Fullscreen Lucky 7 — blur focus loader */}
       <div
         className={styles.sevenStage}
         style={{ '--seven-progress': progress } as React.CSSProperties}
@@ -112,8 +187,30 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         />
       </div>
 
-      {/* CONTINUE — appears under the 7 once loading completes */}
+      {/* Loading HUD — typewriter step + % + bar */}
+      <div className={styles.hud} aria-live="polite">
+        <div className={styles.hudLine}>
+          <span className={styles.hudPrompt}>&gt; NEURAL&nbsp;SYNC</span>
+          <span className={styles.hudPct}>{percent.toString().padStart(3, '0')}%</span>
+        </div>
+        <div className={styles.hudStep}>
+          {typed}
+          <span className={styles.caret} />
+        </div>
+        <div className={styles.hudBar}>
+          <div
+            className={styles.hudBarFill}
+            style={{ transform: `scaleX(${progress})` }}
+          />
+        </div>
+      </div>
+
+      {/* CONTINUE — holographic ring pulse when ready */}
       <div className={styles.continueWrap}>
+        <div
+          className={`${styles.holoRing} ${loadingDone ? styles.holoRingActive : ''}`}
+          aria-hidden="true"
+        />
         <button
           className={`${styles.tapBtn} ${loadingDone ? styles.tapBtnVisible : ''}`}
           type="button"
@@ -128,6 +225,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       <div className={styles.versionBar}>
         CORTEX ENGINE v1.0 — PORTFOLIO SYSTEM
       </div>
+
+      {/* System-online burst — radial scanline flash + static noise */}
+      {burst && <div className={styles.systemBurst} aria-hidden="true" />}
     </div>
   )
 }

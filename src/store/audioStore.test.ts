@@ -13,6 +13,7 @@ describe('audioStore', () => {
       sfxVolume: 0.6,
       isMuted: false,
       ambientPlaying: false,
+      cinematicMode: true,
     })
   })
 
@@ -45,5 +46,23 @@ describe('audioStore', () => {
   it('sets ambient playing', () => {
     useAudioStore.getState().setAmbientPlaying(true)
     expect(useAudioStore.getState().ambientPlaying).toBe(true)
+  })
+
+  it('defaults cinematicMode to true', () => {
+    expect(useAudioStore.getState().cinematicMode).toBe(true)
+  })
+
+  it('toggles cinematicMode', () => {
+    useAudioStore.getState().toggleCinematicMode()
+    expect(useAudioStore.getState().cinematicMode).toBe(false)
+    useAudioStore.getState().toggleCinematicMode()
+    expect(useAudioStore.getState().cinematicMode).toBe(true)
+  })
+
+  it('sets cinematicMode directly', () => {
+    useAudioStore.getState().setCinematicMode(false)
+    expect(useAudioStore.getState().cinematicMode).toBe(false)
+    useAudioStore.getState().setCinematicMode(true)
+    expect(useAudioStore.getState().cinematicMode).toBe(true)
   })
 })

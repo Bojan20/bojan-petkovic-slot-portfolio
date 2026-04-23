@@ -1,14 +1,15 @@
 /**
- * SplashScreen — Attract Mode (CORTEX Engine powered)
+ * SplashScreen — Attract Mode (Cyberpunk cinematic)
  *
- * Titles animate in one by one. Each animation emits an event
- * on the EventBus → SoundManager plays the configured SFX.
+ * 5-step GSAP timeline with:
+ *   1. Lucky 7 3D entrance + lens flare sweep
+ *   2. Label glitch reveal (RGB chromatic separation)
+ *   3. Name glitch reveal
+ *   4. Power core charging rings (staggered implosion)
+ *   5. Line reveal + ready state
  *
  * Audio is ALREADY UNLOCKED from BootScreen tap, so SFX play
- * automatically without any user interaction on this screen.
- *
- * This is "attract mode" in slot industry terminology —
- * the screen that draws in players with light and sound.
+ * automatically. Each animation emits a bus event.
  */
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
@@ -27,7 +28,7 @@ function seededRandom(seed: number): number {
 }
 
 /** Static particle data — computed once at module load, not during render */
-const PARTICLE_DATA = Array.from({ length: 20 }, (_, i) => ({
+const PARTICLE_DATA = Array.from({ length: 28 }, (_, i) => ({
   left: `${5 + seededRandom(i * 6 + 1) * 90}%`,
   top: `${5 + seededRandom(i * 6 + 2) * 90}%`,
   animationDelay: `${seededRandom(i * 6 + 3) * 6}s`,
@@ -49,10 +50,13 @@ function Particles() {
 export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
   function SplashScreen({ onEnter }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const sevenRef = useRef<HTMLDivElement>(null)
+    const flareRef = useRef<HTMLDivElement>(null)
     const nameRef = useRef<HTMLDivElement>(null)
     const labelRef = useRef<HTMLDivElement>(null)
     const cornersRef = useRef<HTMLDivElement>(null)
     const lineRef = useRef<HTMLDivElement>(null)
+    const coreRef = useRef<HTMLDivElement>(null)
     const [ready, setReady] = useState(false)
     const enteredRef = useRef(false)
 
@@ -67,41 +71,80 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     useEffect(() => {
       const tl = gsap.timeline({ delay: 0.2 })
 
-      // Step 1: Corners
+      // Step 1a: Corners
       tl.fromTo(cornersRef.current, { opacity: 0 }, {
-        opacity: 1, duration: 0.8, ease: 'power2.out',
+        opacity: 1, duration: 0.6, ease: 'power2.out',
         onStart: () => bus.emit('splash:title:corners'),
-      })
+      }, 0)
 
-      // Step 2: Label
+      // Step 1b: Lucky 7 — 3D rotateY entrance (fade + blur + depth pop)
+      // Position/scale are driven by CSS custom properties --seven-y / --seven-scale
+      // so the entrance here only touches opacity + filter (no transform conflict).
+      tl.fromTo(sevenRef.current,
+        { opacity: 0, filter: 'blur(28px)', '--seven-scale': 0.75 },
+        { opacity: 1, filter: 'blur(0px)', '--seven-scale': 1, duration: 0.6, ease: 'expo.out' },
+        0.05,
+      )
+      // Lens flare sweep (left → right across the 7)
+      tl.fromTo(flareRef.current,
+        { xPercent: -140, opacity: 0 },
+        { xPercent: 140, opacity: 1, duration: 0.8, ease: 'power2.inOut' },
+        0.3,
+      )
+      tl.to(flareRef.current, { opacity: 0, duration: 0.2 }, '>')
+
+      // Step 2: Label with glitch
       tl.fromTo(labelRef.current,
         { opacity: 0, y: -20, letterSpacing: '0.3em' },
         {
-          opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.7, ease: 'power3.out',
-          onStart: () => bus.emit('splash:title:label'),
+          opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.5, ease: 'power3.out',
+          onStart: () => {
+            bus.emit('splash:title:label')
+            // Trigger 150 ms chromatic glitch via class
+            labelRef.current?.classList.add(styles.glitchOn as string)
+            setTimeout(() => labelRef.current?.classList.remove(styles.glitchOn as string), 180)
+          },
         },
-        '-=0.4'
+        '-=0.2',
       )
 
-      // Step 3: Name
+      // Step 3: Name with glitch + simultaneous Lucky 7 morph to under-name position
       tl.fromTo(nameRef.current,
         { opacity: 0, scale: 0.92, y: 30 },
         {
-          opacity: 1, scale: 1, y: 0, duration: 1.0, ease: 'expo.out',
-          onStart: () => bus.emit('splash:title:name'),
+          opacity: 1, scale: 1, y: 0, duration: 0.9, ease: 'expo.out',
+          onStart: () => {
+            bus.emit('splash:title:name')
+            nameRef.current?.classList.add(styles.glitchOn as string)
+            setTimeout(() => nameRef.current?.classList.remove(styles.glitchOn as string), 220)
+          },
         },
-        '-=0.3'
+        '-=0.15',
       )
 
-      // Step 4: Line
+      // Seven glides to "logo under name" spot + scales down — smooth morph
+      // synchronized with name reveal, lands just after name finishes
+      tl.to(sevenRef.current, {
+        '--seven-y': '38%',
+        '--seven-scale': '0.42',
+        duration: 1.1,
+        ease: 'power3.inOut',
+      }, '<')
+
+      // Step 4: Power core charging — 3 concentric rings implode in
+      tl.fromTo(coreRef.current, { opacity: 0 }, {
+        opacity: 1, duration: 0.3,
+      }, '-=0.4')
+
+      // Step 5: Line reveal → ready
       tl.fromTo(lineRef.current,
         { scaleX: 0 },
         {
-          scaleX: 1, duration: 0.6, ease: 'power2.inOut',
+          scaleX: 1, duration: 0.55, ease: 'power2.inOut',
           onStart: () => bus.emit('splash:title:line'),
           onComplete: () => setReady(true),
         },
-        '-=0.4'
+        '-=0.2',
       )
 
       return () => { tl.kill() }
@@ -140,6 +183,32 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
 
     return (
       <div ref={setRefs} className={styles.splash} onClick={handleEnter}>
+        {/* Animated SVG turbulence noise — ambient cyberpunk grain */}
+        <svg className={styles.noiseLayer} aria-hidden="true">
+          <filter id="splashTurb">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" />
+            <feColorMatrix values="0 0 0 0 0.5  0 0 0 0 0.2  0 0 0 0 1  0 0 0 0.12 0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#splashTurb)" />
+        </svg>
+
+        {/* Star-field parallax tačke */}
+        <div className={styles.starField} aria-hidden="true">
+          {Array.from({ length: 40 }).map((_, i) => (
+            <span
+              key={i}
+              className={styles.star}
+              style={{
+                left: `${seededRandom(i * 3 + 11) * 100}%`,
+                top: `${seededRandom(i * 3 + 17) * 100}%`,
+                animationDelay: `${seededRandom(i * 3 + 5) * 5}s`,
+                animationDuration: `${3 + seededRandom(i * 3 + 9) * 4}s`,
+                opacity: 0.15 + seededRandom(i * 3 + 23) * 0.4,
+              }}
+            />
+          ))}
+        </div>
+
         {/* Corner frames */}
         <div ref={cornersRef} className={styles.corners}>
           <div className={`${styles.corner} ${styles.tl}`} />
@@ -151,13 +220,37 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
         {/* Ambient particles */}
         <Particles />
 
+        {/* Lucky 7 cinematic 3D entrance + lens flare */}
+        <div ref={sevenRef} className={styles.sevenStage} aria-hidden="true">
+          <img src="/seven-cyber.png" alt="" className={styles.sevenImg} draggable={false} />
+          <div ref={flareRef} className={styles.lensFlare} />
+        </div>
+
+        {/* Power core — 3 concentric charging rings */}
+        <div ref={coreRef} className={styles.powerCore} aria-hidden="true">
+          <svg className={styles.coreSvg} viewBox="0 0 200 200">
+            <circle className={styles.ring1} cx="100" cy="100" r="90" />
+            <circle className={styles.ring2} cx="100" cy="100" r="68" />
+            <circle className={styles.ring3} cx="100" cy="100" r="46" />
+            <circle className={styles.coreDot} cx="100" cy="100" r="4" />
+          </svg>
+        </div>
+
         {/* Content */}
         <div className={styles.content}>
-          <div ref={labelRef} className={styles.label}>
+          <div
+            ref={labelRef}
+            className={styles.label}
+            data-text="AUDIO SLOT GAME DESIGNER — PORTFOLIO"
+          >
             AUDIO SLOT GAME DESIGNER — PORTFOLIO
           </div>
 
-          <div ref={nameRef} className={styles.name}>
+          <div
+            ref={nameRef}
+            className={styles.name}
+            data-text="BOJAN PETKOVIĆ"
+          >
             BOJAN PETKOVIĆ
           </div>
 
@@ -165,7 +258,7 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
         </div>
       </div>
     )
-  }
+  },
 )
 
 export default SplashScreen

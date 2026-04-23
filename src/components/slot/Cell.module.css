@@ -18,6 +18,167 @@
   transition: opacity 0.22s, filter 0.22s, box-shadow 0.3s, border-color 0.3s;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TYPE-REACTIVE GRADIENTS
+   Subtle tinted backdrop per cell type
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.cell[data-cell-type="game"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(177, 76, 255, 0.14) 0%,
+    rgba(255, 43, 214, 0.06) 40%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+.cell[data-cell-type="scope"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 70% 30%,
+    rgba(34, 232, 255, 0.14) 0%,
+    rgba(56, 189, 248, 0.06) 45%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+.cell[data-cell-type="detail"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(255, 179, 0, 0.10) 0%,
+    rgba(240, 216, 120, 0.05) 45%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+.cell[data-cell-type="tools"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 40% 30%,
+    rgba(255, 43, 214, 0.13) 0%,
+    rgba(177, 76, 255, 0.05) 50%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+.cell[data-cell-type="demo"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    rgba(74, 222, 128, 0.12) 0%,
+    rgba(34, 232, 255, 0.06) 50%,
+    transparent 75%
+  );
+  opacity: 0.55;
+}
+.cell[data-cell-type="simple"]::before,
+.cell[data-cell-type="work"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 40% 30%,
+    rgba(177, 76, 255, 0.09) 0%,
+    rgba(34, 232, 255, 0.04) 50%,
+    transparent 75%
+  );
+  opacity: 0.5;
+}
+
+/* Center cell slightly brighter tint */
+.cell.center[data-cell-type]::before {
+  opacity: 0.85;
+}
+
+/* Holographic shimmer — moves through on hover, only visible on non-spin hover */
+.shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(34, 232, 255, 0.10) 42%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(177, 76, 255, 0.10) 58%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  mix-blend-mode: screen;
+  transition: opacity 0.2s ease;
+}
+
+.cell:hover .shimmer {
+  opacity: 1;
+  animation: cellShimmer 1.4s ease-out;
+}
+
+@keyframes cellShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Neon animated outline (center winning cell) */
+.neonOutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 12;
+  overflow: visible;
+}
+
+.neonOutline rect {
+  fill: none;
+  stroke: url(#neonGrad);
+  stroke-width: 1.5;
+  stroke-dasharray: 14 9;
+  stroke-dashoffset: 0;
+  animation: neonMarch 6s linear infinite;
+  filter:
+    drop-shadow(0 0 3px rgba(34, 232, 255, 0.6))
+    drop-shadow(0 0 6px rgba(177, 76, 255, 0.4));
+}
+
+@keyframes neonMarch {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -46; }
+}
+
+/* Center cell also has dashed neon (simpler fallback without gradient since module-scoped SVG gradient not loaded) */
+.center .neonOutline rect {
+  stroke: rgba(34, 232, 255, 0.75);
+  filter:
+    drop-shadow(0 0 4px rgba(34, 232, 255, 0.6))
+    drop-shadow(0 0 8px rgba(177, 76, 255, 0.45));
+}
+
 .cell:last-child {
   margin-bottom: 0;
 }

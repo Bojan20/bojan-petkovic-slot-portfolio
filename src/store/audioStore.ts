@@ -15,6 +15,13 @@ interface AudioStore {
   sfxVolume: number
   isMuted: boolean
   ambientPlaying: boolean
+  /**
+   * When `true` (default) procedural synths should render the futuristic
+   * / cyberpunk palette. When `false`, classic casino palette is used.
+   * SoundManager reads this flag — the store does not drive any synth
+   * switching itself, it only persists the preference.
+   */
+  cinematicMode: boolean
 
   // — Actions —
   setMasterVolume: (vol: number) => void
@@ -22,6 +29,8 @@ interface AudioStore {
   setSfxVolume: (vol: number) => void
   toggleMute: () => void
   setAmbientPlaying: (playing: boolean) => void
+  setCinematicMode: (on: boolean) => void
+  toggleCinematicMode: () => void
 }
 
 export const useAudioStore = create<AudioStore>()(
@@ -32,12 +41,15 @@ export const useAudioStore = create<AudioStore>()(
       sfxVolume: 0.6,
       isMuted: false,
       ambientPlaying: false,
+      cinematicMode: true,
 
       setMasterVolume: (vol) => set({ masterVolume: clamp01(vol) }),
       setMusicVolume: (vol) => set({ musicVolume: clamp01(vol) }),
       setSfxVolume: (vol) => set({ sfxVolume: clamp01(vol) }),
       toggleMute: () => set((s) => ({ isMuted: !s.isMuted })),
       setAmbientPlaying: (playing) => set({ ambientPlaying: playing }),
+      setCinematicMode: (on) => set({ cinematicMode: on }),
+      toggleCinematicMode: () => set((s) => ({ cinematicMode: !s.cinematicMode })),
     }),
     {
       name: 'bp-slot-audio',
@@ -46,6 +58,7 @@ export const useAudioStore = create<AudioStore>()(
         musicVolume: s.musicVolume,
         sfxVolume: s.sfxVolume,
         isMuted: s.isMuted,
+        cinematicMode: s.cinematicMode,
       }),
     }
   )

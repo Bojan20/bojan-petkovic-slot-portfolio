@@ -6,13 +6,221 @@
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse at 50% 40%, rgba(12, 10, 24, 0.72) 0%, rgba(5, 7, 16, 0.85) 50%, rgba(2, 3, 8, 0.92) 100%),
+    radial-gradient(ellipse at 50% 40%, rgba(177, 76, 255, 0.20) 0%, rgba(12, 10, 24, 0.72) 35%, rgba(5, 7, 16, 0.88) 70%, rgba(2, 3, 8, 0.94) 100%),
     url('/splash-bg.png') center center / cover no-repeat;
   cursor: pointer;
   overflow: hidden;
+  perspective: 1200px;
   /* Slow fade-in over the boot shield for a soft handoff */
   opacity: 0;
   animation: splashFadeIn 1.6s ease-out 0.05s forwards;
+}
+
+/* ── Noise turbulence overlay (SVG feTurbulence) ── */
+.noiseLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.7;
+  mix-blend-mode: overlay;
+  animation: noiseDrift 8s linear infinite;
+}
+
+@keyframes noiseDrift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-2%, 1%); }
+  50%  { transform: translate(1%, -1%); }
+  75%  { transform: translate(-1%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ── Star field (parallax) ── */
+.starField {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 4px var(--neon-cyan-glow);
+  animation: starTwinkle linear infinite;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.6); }
+  50%      { opacity: 0.9; transform: scale(1.2); }
+}
+
+/* ── Lucky 7 cinematic entrance ── */
+/* CSS vars drive the morph from center → below-name position.
+ * GSAP animates --seven-y and --seven-scale for smooth reposition. */
+.sevenStage {
+  --seven-y: -8%;       /* starts centered (slight lift) */
+  --seven-scale: 1;     /* starts full size */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(200px, 40vw, 400px);
+  height: clamp(200px, 40vw, 400px);
+  transform: translate(-50%, var(--seven-y)) scale(var(--seven-scale));
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 0 60px rgba(201, 162, 39, 0.5)) drop-shadow(0 0 100px rgba(177, 76, 255, 0.25));
+  will-change: transform;
+}
+
+@property --seven-y {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -8%;
+}
+@property --seven-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+.sevenImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Lens flare sweep — narrow diagonal bright beam that sweeps across */
+.lensFlare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.6) 48%,
+    rgba(240, 216, 120, 0.85) 50%,
+    rgba(255, 255, 255, 0.6) 52%,
+    transparent 65%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(2px);
+  opacity: 0;
+}
+
+/* ── Power core — 3 concentric charging rings ── */
+.powerCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 520px;
+  height: 520px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+.coreSvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.coreSvg circle {
+  fill: none;
+  stroke-width: 1.4;
+  transform-origin: 100px 100px;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.ring1 {
+  stroke: var(--neon-cyan);
+  stroke-dasharray: 4 6;
+  animation: ringRotate 18s linear infinite, ringCharge1 3.5s ease-in-out infinite;
+}
+.ring2 {
+  stroke: var(--g100);
+  stroke-dasharray: 3 9;
+  animation: ringRotateRev 12s linear infinite, ringCharge2 3.5s ease-in-out infinite;
+}
+.ring3 {
+  stroke: var(--neon-magenta);
+  stroke-dasharray: 2 4;
+  animation: ringRotate 8s linear infinite, ringCharge3 3.5s ease-in-out infinite;
+}
+.coreDot {
+  fill: var(--g100);
+  filter: drop-shadow(0 0 8px var(--g100)) drop-shadow(0 0 14px var(--neon-cyan));
+  animation: coreDotPulse 2s ease-in-out infinite;
+}
+
+@keyframes ringRotate    { to { transform: rotate(360deg); } }
+@keyframes ringRotateRev { to { transform: rotate(-360deg); } }
+@keyframes ringCharge1 {
+  0%,100% { opacity: 0.35; transform: scale(1); }
+  50%     { opacity: 0.9;  transform: scale(0.96); }
+}
+@keyframes ringCharge2 {
+  0%,100% { opacity: 0.45; transform: scale(1); }
+  50%     { opacity: 0.95; transform: scale(0.93); }
+}
+@keyframes ringCharge3 {
+  0%,100% { opacity: 0.55; transform: scale(1); }
+  50%     { opacity: 1;    transform: scale(0.90); }
+}
+@keyframes coreDotPulse {
+  0%,100% { r: 3;  opacity: 0.8; }
+  50%     { r: 6;  opacity: 1; }
+}
+
+/* ── Glitch — RGB chromatic separation on appearance ── */
+.glitchOn {
+  animation: rgbGlitch 180ms steps(3) 1;
+}
+.glitchOn[data-text]::before,
+.glitchOn[data-text]::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.glitchOn[data-text]::before {
+  color: var(--neon-magenta);
+  transform: translate(-3px, 0);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  clip-path: polygon(0 0, 100% 0, 100% 48%, 0 48%);
+}
+.glitchOn[data-text]::after {
+  color: var(--neon-cyan);
+  transform: translate(3px, 0);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  clip-path: polygon(0 52%, 100% 52%, 100% 100%, 0 100%);
+}
+
+@keyframes rgbGlitch {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-2px, 1px); }
+  66%  { transform: translate(2px, -1px); }
+  100% { transform: translate(0, 0); }
 }
 
 @keyframes splashFadeIn {
@@ -91,18 +299,21 @@
 
 /* Top label */
 .label {
+  position: relative;
   font-family: var(--f-ui);
   font-weight: 600;
   font-size: clamp(14px, 2.5vw, 24px);
   letter-spacing: 0.35em;
   color: var(--ice);
-  opacity: 0.6;
+  opacity: 0.85;
   margin-bottom: clamp(12px, 2vh, 24px);
   text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
 }
 
 /* Hero name — premium holographic shimmer */
 .name {
+  position: relative;
   font-family: var(--f-ui);
   font-weight: 700;
   font-size: clamp(42px, 10vw, 120px);

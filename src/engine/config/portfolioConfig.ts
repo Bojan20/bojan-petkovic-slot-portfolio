@@ -9,7 +9,7 @@
 import type { PortfolioConfig } from './configTypes'
 
 export const portfolioConfig: PortfolioConfig = {
-  version: '1.0.0',
+  version: '1.1.0',
 
   // ─── Boot Screen Config ──────────────────────────────────────────────────
   boot: {
@@ -33,7 +33,7 @@ export const portfolioConfig: PortfolioConfig = {
       sfx: 0.6,
     },
     events: {
-      // Splash SFX — auto-triggered after boot
+      // ─── Splash SFX (retuned to cyberpunk) ──────────────────────────────
       'splash:title:corners': {
         audio: { play: 'sfx_shimmer', volume: 0.4 },
         haptic: 'light',
@@ -55,12 +55,36 @@ export const portfolioConfig: PortfolioConfig = {
         haptic: 'button',
       },
 
-      // Boot SFX
+      // ─── Boot SFX ───────────────────────────────────────────────────────
       'boot:tap': {
         audio: { play: 'sfx_boot_hum', volume: 0.5 },
       },
       'boot:complete': {
         audio: { play: 'sfx_boot_ready', volume: 0.6 },
+      },
+
+      // ─── Slot SFX (cyberpunk synths) ────────────────────────────────────
+      'slot:spin:start': {
+        audio: { play: 'sfx_warp_ignite', volume: 0.55 },
+        haptic: 'medium',
+      },
+      'slot:reel:stop': {
+        audio: { play: 'sfx_rail_tick', volume: 0.45 },
+        haptic: 'light',
+      },
+      'slot:reel:land': {
+        audio: { play: 'sfx_plasma_impact', volume: 0.6 },
+        haptic: 'reel_stop',
+      },
+      'slot:win': {
+        audio: { play: 'sfx_digital_ascension', volume: 0.7 },
+        haptic: 'big_win',
+      },
+
+      // ─── Transition SFX ─────────────────────────────────────────────────
+      'transition:splash_to_slot': {
+        audio: { play: 'sfx_chromatic_burst', volume: 0.5 },
+        haptic: 'light',
       },
     },
   },
@@ -75,6 +99,34 @@ export const portfolioConfig: PortfolioConfig = {
         { event: 'splash:title:name', delay: 300, duration: 1000 },
         { event: 'splash:title:line', delay: 400, duration: 600 },
         { event: 'splash:title:button', delay: 100, duration: 500 },
+      ],
+    },
+
+    // ─── cyberBoot: warp ignition + rising pad + crystalline arp ───────────
+    // Used for boot→splash→slot transition when a full cinematic is desired.
+    // Total ≈ 2100ms. Steps rely on sound-only bindings via custom:* if
+    // needed, but we reuse existing semantic events so all listeners react.
+    cyberBoot: {
+      name: 'cyberBoot',
+      steps: [
+        // 0ms: power-on hum + sub drone
+        { event: 'boot:tap', delay: 0, duration: 650 },
+        // 650ms: warp drive ignition (whoosh → warp)
+        { event: 'splash:title:label', delay: 0, duration: 550 },
+        // 1200ms: plasma impact (confirms "online")
+        { event: 'splash:title:name', delay: 0, duration: 450 },
+        // 1650ms: crystalline arp tail
+        { event: 'splash:title:corners', delay: 0, duration: 450 },
+      ],
+    },
+
+    // ─── hyperspaceSnap: 200ms chromatic burst for landing phase ────────────
+    // Short stinger — play right before takeover or on payline reveal.
+    hyperspaceSnap: {
+      name: 'hyperspaceSnap',
+      steps: [
+        { event: 'transition:splash_to_slot', delay: 0, duration: 200 },
+        { event: 'splash:title:line', delay: 0, duration: 120 },
       ],
     },
   },

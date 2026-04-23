@@ -4,16 +4,15 @@
  * Three-phase flow modeled after real slot cabinets:
  *
  * Phase 1: BOOT (BootScreen)
- *   - Loading progress, CRT scanlines, "TAP TO BEGIN"
+ *   - Neural-sync loader, CRT scanlines, tap-to-unlock
  *   - Tap = user gesture → AudioContext unlocked forever
  *
  * Phase 2: SPLASH (Attract Mode)
- *   - Titles animate in one by one WITH SFX (audio already unlocked!)
+ *   - Lucky 7 cinematic timeline with glitch/implode exit
  *   - Lounge ambient music starts automatically
- *   - "PRESS TO ENTER" button waits for user
  *
  * Phase 3: SLOT (Main App)
- *   - Casino shower transition → slot machine portfolio
+ *   - Chromatic bleed cross-dissolve + elastic pop-in
  *
  * All audio, animations, and timing driven by engine config.
  */
@@ -37,6 +36,11 @@ export default function App() {
   const splashRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  // Sync body[data-phase] for global CSS tint + cursor policy
+  useEffect(() => {
+    document.body.setAttribute('data-phase', phase)
+  }, [phase])
+
   // Pre-create ambient audio element (doesn't play until splash)
   useEffect(() => {
     const a = new Audio('/ambient/lounge.mp3')
@@ -46,7 +50,7 @@ export default function App() {
     return () => { a.pause(); a.src = '' }
   }, [])
 
-  // Connect to CORTEX Audio Manager (WebSocket bridge)
+  // Connect to CORTEX Audio Manager (WebSocket bridge) — idempotent
   useEffect(() => {
     initAudioBridge()
     return () => disposeAudioBridge()
@@ -55,10 +59,6 @@ export default function App() {
   // Boot complete → transition to splash
   const handleBootComplete = useCallback(() => {
     setPhase('splash')
-
-    // Splash (z-index 2001) sits ABOVE the pre-shield (1999) and has its
-    // own full-screen bg. The shield stays up — it masks the body slot-bg
-    // until the splash→slot transition fades it out in handleEnter().
 
     // Start ambient music immediately (audio is unlocked from boot tap)
     const audio = audioRef.current
@@ -69,51 +69,67 @@ export default function App() {
     bus.emit('splash:start')
   }, [])
 
-  // Splash enter → transition to slot
+  // Splash enter → transition to slot — cyberpunk cinematic cross-dissolve
   const handleEnter = useCallback(() => {
     if (phase !== 'splash') return
     setPhase('entering')
     setShowerActive(true)
 
     bus.emit('splash:enter')
+    // Audio hook — cyberBoot/hyperspaceSnap sequence (mapped in config)
+    bus.emit('transition:splash_to_slot')
 
     const tl = gsap.timeline({
       onComplete: () => setPhase('slot'),
     })
 
-    // Splash exit: smooth fade out as the shower starts (0 → 1.2s).
-    // Shower timing: spawn 0-2.8s, fade out 3.4-4.2s, done at 4.2s.
+    // ── Splash exit: chromatic implosion ────────────────────────────
     tl.to(splashRef.current, {
+      scale: 1.12,
+      filter: 'blur(24px) hue-rotate(80deg) saturate(1.6)',
       opacity: 0,
-      scale: 1.06,
-      filter: 'blur(16px)',
-      duration: 1.2,
-      ease: 'power2.in',
+      duration: 0.7,
+      ease: 'power3.in',
     }, 0)
 
-    // Slot entrance: frame + body slot-bg fade in together on the TAIL
-    // of the shower — starts 2.5 s, ends 4.2 s (exactly when shower dies).
+    // Chromatic flash overlay — quick burst at the crossover moment
+    const burst = document.getElementById('chromatic-burst')
+    if (burst) {
+      tl.fromTo(burst,
+        { opacity: 0, scale: 0.4, filter: 'blur(0px)' },
+        { opacity: 1, scale: 1.4, filter: 'blur(40px)', duration: 0.35, ease: 'expo.out' },
+        0.1,
+      )
+      tl.to(burst,
+        { opacity: 0, duration: 0.45, ease: 'power2.in' },
+        0.55,
+      )
+    }
+
+    // ── Slot entrance: SLOW fade-in that runs the whole length of the
+    //    casino shower (~3s). Reels + background emerge gradually while
+    //    chips/dice are raining — no pop, just a gentle materialization.
     tl.fromTo(slotWrapRef.current,
-      { opacity: 0, filter: 'blur(10px)' },
+      { opacity: 0, scale: 0.96, filter: 'blur(18px) brightness(1.25)' },
       {
         opacity: 1,
-        filter: 'blur(0px)',
-        duration: 1.7,
-        ease: 'power2.out',
+        scale: 1,
+        filter: 'blur(0px) brightness(1)',
+        duration: 3.0,
+        ease: 'power1.inOut',
       },
-      2.5
+      0.3,
     )
 
-    // Pre-shield (masking body slot-bg) fades out in lockstep with the
-    // slot wrapper — so bg image and reel frame reveal together.
+    // Pre-shield fade — slow lockstep with slot wrapper
     const shield = document.getElementById('pre-shield')
     if (shield) {
       tl.to(shield, {
         opacity: 0,
-        duration: 1.7,
-        ease: 'power2.out',
+        duration: 2.6,
+        ease: 'power1.inOut',
         onComplete: () => { shield.style.display = 'none' },
-      }, 2.5)
+      }, 0.3)
     }
   }, [phase])
 
@@ -130,7 +146,7 @@ export default function App() {
         ref={slotWrapRef}
         style={{
           opacity: phase === 'boot' || phase === 'splash' ? 0 : undefined,
-          willChange: phase === 'entering' ? 'opacity, filter' : undefined,
+          willChange: phase === 'entering' ? 'opacity, filter, transform' : undefined,
         }}
       >
         <SlotMachine locked={introLocked} />
@@ -138,6 +154,22 @@ export default function App() {
 
       {/* Casino particle shower — coins, chips, dice rain */}
       <CasinoShower active={showerActive} onComplete={handleShowerDone} />
+
+      {/* Chromatic burst — fullscreen radial flash during entering phase */}
+      <div
+        id="chromatic-burst"
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 2003,
+          pointerEvents: 'none',
+          opacity: 0,
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(34,232,255,0.9) 0%, rgba(177,76,255,0.55) 28%, rgba(255,43,214,0.2) 55%, transparent 75%)',
+          mixBlendMode: 'screen',
+        }}
+      />
 
       {/* Splash — attract mode with auto SFX */}
       {(phase === 'splash' || phase === 'entering') && (

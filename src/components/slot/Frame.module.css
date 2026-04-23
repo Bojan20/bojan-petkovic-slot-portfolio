@@ -7,6 +7,43 @@
   flex-direction: column;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HOLOGRAPHIC CHROMATIC EDGE (cyberpunk ring)
+   Full frame halo — slow hue-rotate cycle ~20s
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  z-index: 108;
+  border-radius: 6px;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    rgba(177, 76, 255, 0.35) 0%,
+    rgba(34, 232, 255, 0.28) 25%,
+    rgba(255, 43, 214, 0.30) 50%,
+    rgba(34, 232, 255, 0.28) 75%,
+    rgba(177, 76, 255, 0.35) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  filter: hue-rotate(0deg) blur(0.5px);
+  animation: frameChromaCycle 20s linear infinite;
+}
+
+@keyframes frameChromaCycle {
+  0%   { filter: hue-rotate(0deg)   blur(0.5px); opacity: 0.45; }
+  50%  { filter: hue-rotate(180deg) blur(1px);   opacity: 0.70; }
+  100% { filter: hue-rotate(360deg) blur(0.5px); opacity: 0.45; }
+}
+
 /* WoO Fluted gold pillars */
 .pillar {
   position: absolute;
@@ -63,9 +100,10 @@
   z-index: 5;
   background: linear-gradient(
     180deg,
-    transparent 0%, rgba(240, 216, 120, 0.28) 12%,
-    rgba(255, 255, 255, 0.82) 32%, rgba(255, 245, 200, 0.58) 50%,
-    rgba(255, 255, 255, 0.78) 68%, rgba(240, 216, 120, 0.38) 88%, transparent 100%
+    transparent 0%, rgba(177, 76, 255, 0.22) 8%,
+    rgba(255, 255, 255, 0.82) 26%, rgba(34, 232, 255, 0.58) 42%,
+    rgba(255, 255, 255, 0.72) 58%, rgba(255, 43, 214, 0.35) 76%,
+    rgba(240, 216, 120, 0.38) 88%, transparent 100%
   );
   border-radius: 2px;
   animation: gleamPulse 6s ease-in-out infinite;
@@ -74,32 +112,49 @@
 .left::before { left: 3px; }
 .right::before { right: 3px; }
 
+/* ANIMATED NEON SCANLINE — vertical pulse that sweeps the pillar */
 .pillar::after {
   content: '';
   position: absolute;
-  top: 18%;
-  bottom: 18%;
-  width: 2px;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
   z-index: 6;
   background: linear-gradient(
     180deg,
-    transparent 0%, rgba(255, 240, 180, 0.32) 20%,
-    rgba(255, 255, 255, 0.52) 40%, rgba(255, 240, 180, 0.26) 60%,
-    rgba(255, 255, 255, 0.42) 80%, transparent 100%
+    transparent 0%,
+    rgba(34, 232, 255, 0.0) 40%,
+    rgba(34, 232, 255, 0.85) 48%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(177, 76, 255, 0.85) 52%,
+    rgba(177, 76, 255, 0.0) 60%,
+    transparent 100%
   );
-  animation: gleamPulse 6s ease-in-out infinite;
-  animation-delay: 2s;
+  filter: blur(1.5px);
+  mix-blend-mode: screen;
+  animation: pillarScanline 7s ease-in-out infinite;
+  opacity: 0.85;
+  border-radius: 3px;
 }
 
-.left::after { left: 10px; }
-.right::after { right: 10px; }
+.right::after { animation-delay: 3.5s; }
+
+@keyframes pillarScanline {
+  0%   { transform: translateX(-50%) translateY(-60%); opacity: 0; }
+  10%  { opacity: 0.85; }
+  50%  { transform: translateX(-50%) translateY(60%); opacity: 0.85; }
+  60%  { opacity: 0; }
+  100% { transform: translateX(-50%) translateY(60%); opacity: 0; }
+}
 
 @keyframes gleamPulse {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 0.82; }
 }
 
-/* Corner medallions */
+/* Corner medallions — slow rotation + neon inner glow */
 .medallion {
   position: absolute;
   width: clamp(20px, 2.8vw, 32px);
@@ -123,14 +178,48 @@
     inset 0 2px 3px rgba(240, 216, 120, 0.35),
     inset 0 -2px 3px rgba(80, 50, 10, 0.5),
     0 0 6px var(--g-shadow);
-  animation: medalShine 8s ease-in-out infinite;
+  animation:
+    medalRotate 55s linear infinite,
+    medalShine 8s ease-in-out infinite;
+}
+
+/* Neon inner glow pulse (sync'd with jackpot pulse feel) */
+.medallion::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(34, 232, 255, 0.55) 0%,
+    rgba(177, 76, 255, 0.30) 40%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  filter: blur(3px);
+  animation: medalInnerGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes medalRotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes medalInnerGlow {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.90; }
 }
 
 /* Position medallions at pillar edges (vertically centered with pillars) */
 .tl { top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); left: 0; }
-.tr { top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 2s; }
-.bl { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); left: 0; animation-delay: 2s; }
-.br { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 4s; }
+.tr { top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 0s, 2s; }
+.bl { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); left: 0; animation-delay: 0s, 2s; }
+.br { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 0s, 4s; }
+
+/* Counter-rotate the even medallions for cinematic variety */
+.tr { animation-direction: reverse, normal; }
+.bl { animation-direction: reverse, normal; }
 
 @keyframes medalShine {
   0%, 100% {
@@ -149,7 +238,8 @@
       0 2px 8px rgba(0, 0, 0, 0.5),
       inset 0 2px 3px rgba(255, 240, 180, 0.5),
       inset 0 -2px 3px rgba(80, 50, 10, 0.4),
-      0 0 14px var(--g-shadow);
+      0 0 14px var(--g-shadow),
+      0 0 22px rgba(34, 232, 255, 0.22);
   }
 }
 
@@ -164,10 +254,16 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    transparent 0%, rgba(200, 220, 255, 0.32) 18%,
-    rgba(255, 255, 255, 0.52) 50%,
-    rgba(200, 220, 255, 0.32) 82%, transparent 100%
+    transparent 0%, rgba(177, 76, 255, 0.32) 15%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(34, 232, 255, 0.32) 85%, transparent 100%
   );
+  animation: topStripHue 18s linear infinite;
+}
+
+@keyframes topStripHue {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
 }
 
 /* Inner glow — activates during spin */
@@ -181,7 +277,9 @@
   pointer-events: none;
   background: radial-gradient(
     ellipse 80% 60% at 50% 50%,
-    rgba(201, 162, 39, 0.12) 0%, transparent 70%
+    rgba(177, 76, 255, 0.14) 0%,
+    rgba(34, 232, 255, 0.06) 45%,
+    transparent 70%
   );
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -193,8 +291,8 @@
 }
 
 @keyframes innerGlowPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.55; filter: hue-rotate(0deg); }
+  50%      { opacity: 1;    filter: hue-rotate(40deg); }
 }
 
 /* Content slot */

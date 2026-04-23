@@ -1,5 +1,5 @@
 /**
- * Global Styles Entry Point
+ * Global Styles Entry Point — cyberpunk phase-aware body
  */
 
 @import './tokens.css';
@@ -17,6 +17,27 @@ html, body {
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
+  transition: background-color 800ms ease;
+}
+
+/* ── Phase-aware body tint (driven by [data-phase] on <body>) ── */
+body[data-phase='boot'] {
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(22, 20, 60, 0.35) 0%, rgba(2, 3, 8, 0.95) 70%),
+    linear-gradient(180deg, #040616 0%, #020308 100%);
+}
+body[data-phase='splash'] {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(72, 24, 140, 0.35) 0%, rgba(6, 4, 18, 0.85) 55%, rgba(2, 2, 8, 0.95) 100%),
+    linear-gradient(180deg, #0a041c 0%, #02010a 100%);
+}
+body[data-phase='entering'] {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(34, 232, 255, 0.22) 0%, rgba(177, 76, 255, 0.18) 40%, rgba(2, 3, 8, 0.9) 100%);
+  cursor: none !important;
+}
+body[data-phase='slot'] {
+  background: url('/slot-bg.png') center center / cover no-repeat fixed;
 }
 
 /* CRT scanlines overlay */
@@ -32,6 +53,18 @@ body::after {
     transparent 3px,
     rgba(0, 0, 0, 0.03) 3px,
     rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* Boot/splash get a stronger scanline */
+body[data-phase='boot']::after,
+body[data-phase='splash']::after {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 2px,
+    rgba(34, 232, 255, 0.04) 2px,
+    rgba(34, 232, 255, 0.04) 3px
   );
 }
 

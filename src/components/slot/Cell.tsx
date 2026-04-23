@@ -28,10 +28,19 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
       className={cls}
       style={{ height: `${height}px`, boxSizing: 'border-box' }}
       onClick={handleClick}
+      data-cell-type={data.type}
       {...(isCenter ? { 'data-center-cell': '' } : {})}
     >
       {/* Ambient color layer */}
       <div className={styles.colorBg} style={bgStyle} />
+      {/* Holographic shimmer sweep (activated on hover via CSS) */}
+      <div className={styles.shimmer} aria-hidden />
+      {/* Neon animated outline SVG (shown on center winning cell) */}
+      {isCenter && (
+        <svg className={styles.neonOutline} aria-hidden>
+          <rect x="1.5" y="1.5" width="calc(100% - 3px)" height="calc(100% - 3px)" rx="4" ry="4" />
+        </svg>
+      )}
 
       {data.type === 'game' && (
         <>

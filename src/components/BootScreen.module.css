@@ -1,9 +1,8 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   BootScreen — Slot Machine Boot Sequence
+   BootScreen — Neural Sync (Cyberpunk)
 
-   Fullscreen Lucky 7 image that focuses in from
-   heavy blur as loading progresses. CONTINUE
-   button appears below once ready.
+   Fullscreen Lucky 7 blur-focus loader +
+   data-stream background + HUD + holo ring.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .boot {
@@ -14,10 +13,47 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #020308;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(34, 232, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 60%, rgba(177, 76, 255, 0.08) 0%, transparent 60%),
+    #020308;
   overflow: hidden;
-  cursor: default;
+  cursor: crosshair;
   user-select: none;
+}
+
+/* ── Data stream curtain — monospace hex columns ── */
+.dataStream {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.15;
+  mix-blend-mode: screen;
+}
+
+.streamCol {
+  position: absolute;
+  top: -60%;
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px var(--neon-cyan-glow);
+  animation-name: streamFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  white-space: pre;
+}
+
+@keyframes streamFall {
+  0%   { transform: translateY(-20%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(120%); opacity: 0; }
 }
 
 /* ── CRT Scanline overlay ── */
@@ -29,8 +65,9 @@
     0deg,
     transparent 0px,
     transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(34, 232, 255, 0.04) 3px,
+    rgba(0, 0, 0, 0.12) 4px
   );
   pointer-events: none;
   z-index: 10;
@@ -41,7 +78,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.82) 100%);
   pointer-events: none;
   z-index: 10;
 }
@@ -52,10 +89,18 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--g300), var(--g100), var(--g300), transparent);
-  opacity: 0.6;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--neon-cyan) 15%,
+    var(--g100) 50%,
+    var(--neon-violet) 85%,
+    transparent
+  );
+  opacity: 0.8;
   z-index: 6;
+  box-shadow: 0 0 10px rgba(34, 232, 255, 0.5);
 }
 
 /* ── Fullscreen Lucky 7 — blur focus loader ── */
@@ -63,7 +108,6 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  /* scale grows 0.65 → 1.0 as loading completes (alongside blur focus) */
   transform: translate(-50%, -56%) scale(calc(0.65 + var(--seven-progress, 0) * 0.35));
   width: min(95vw, 95vh);
   height: min(95vw, 95vh);
@@ -73,10 +117,11 @@
   pointer-events: none;
   z-index: 4;
   transform-origin: center;
-  /* --seven-progress is 0..1 set inline by React */
   --blur-max: 48px;
-  filter: blur(calc((1 - var(--seven-progress, 0)) * var(--blur-max)))
-          drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.15 + var(--seven-progress, 0) * 0.4)));
+  filter:
+    blur(calc((1 - var(--seven-progress, 0)) * var(--blur-max)))
+    drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.15 + var(--seven-progress, 0) * 0.4)))
+    drop-shadow(0 0 60px rgba(34, 232, 255, calc(var(--seven-progress, 0) * 0.25)));
   opacity: calc(0.35 + var(--seven-progress, 0) * 0.65);
   transition: filter 120ms linear, opacity 120ms linear, transform 120ms linear;
 }
@@ -89,7 +134,82 @@
   -webkit-user-drag: none;
 }
 
-/* ── CONTINUE wrapper — sits below the 7 ── */
+/* ── HUD (loading step / %) ── */
+.hud {
+  position: absolute;
+  top: clamp(22px, 5vh, 44px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 6;
+  font-family: var(--f-mono);
+  color: var(--neon-cyan);
+  text-shadow: 0 0 6px var(--neon-cyan-glow);
+}
+
+.hudLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.hudPrompt { color: var(--g100); text-shadow: 0 0 6px rgba(240, 216, 120, 0.5); }
+.hudPct    { color: var(--neon-magenta); text-shadow: 0 0 6px var(--neon-magenta-glow); }
+
+.hudStep {
+  font-size: clamp(12px, 1.4vw, 14px);
+  letter-spacing: 0.1em;
+  color: var(--g-text);
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.caret {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  margin-left: 4px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+  animation: caretBlink 0.9s steps(2) infinite;
+}
+
+@keyframes caretBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.hudBar {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(34, 232, 255, 0.08), rgba(177, 76, 255, 0.08));
+  border: 1px solid rgba(34, 232, 255, 0.18);
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.hudBarFill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--neon-cyan) 0%,
+    var(--g100) 50%,
+    var(--neon-magenta) 100%
+  );
+  box-shadow: 0 0 12px var(--neon-cyan-glow), 0 0 20px rgba(240, 216, 120, 0.35);
+  transition: transform 80ms linear;
+}
+
+/* ── CONTINUE wrapper ── */
 .continueWrap {
   position: absolute;
   left: 50%;
@@ -97,14 +217,44 @@
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
+  align-items: center;
   z-index: 5;
+  width: max-content;
+}
+
+/* Holographic ring — 2s pulse around the CTA */
+.holoRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 92px;
+  border-radius: 80px;
+  border: 1px solid rgba(34, 232, 255, 0.35);
+  box-shadow:
+    0 0 25px rgba(34, 232, 255, 0.15),
+    inset 0 0 25px rgba(177, 76, 255, 0.12);
+  transform: translate(-50%, -50%) scale(0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.holoRingActive {
+  animation: holoPulse 2s ease-in-out infinite;
+}
+
+@keyframes holoPulse {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.85); border-color: rgba(34, 232, 255, 0.2); }
+  50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); border-color: rgba(177, 76, 255, 0.7); box-shadow: 0 0 45px rgba(34, 232, 255, 0.35), inset 0 0 40px rgba(177, 76, 255, 0.3); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); border-color: rgba(34, 232, 255, 0.0); }
 }
 
 /* ── CONTINUE button ── */
 .tapBtn {
+  position: relative;
   padding: clamp(12px, 2vh, 20px) clamp(32px, 5vw, 56px);
-  background: transparent;
-  border: 1px solid rgba(201, 162, 39, 0.25);
+  background: linear-gradient(180deg, rgba(10, 14, 30, 0.6), rgba(4, 6, 16, 0.8));
+  border: 1px solid rgba(34, 232, 255, 0.35);
   border-radius: 2px;
   color: var(--g-text);
   font-family: var(--f-mono);
@@ -113,17 +263,19 @@
   cursor: pointer;
   opacity: 0;
   transform: translateY(8px);
-  transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
 .tapBtn:hover {
-  border-color: var(--g300);
+  border-color: var(--neon-cyan);
   color: var(--g100);
-  box-shadow: 0 0 20px rgba(201, 162, 39, 0.15);
+  box-shadow:
+    0 0 20px var(--neon-cyan-glow),
+    inset 0 0 14px rgba(177, 76, 255, 0.18);
 }
 
 .tapBtn:focus-visible {
-  outline: 1px solid var(--g300);
+  outline: 1px solid var(--neon-cyan);
   outline-offset: 4px;
 }
 
@@ -140,12 +292,12 @@
 
 @keyframes tapBtnPulse {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(201, 162, 39, 0.08);
-    border-color: rgba(201, 162, 39, 0.25);
+    box-shadow: 0 0 15px rgba(34, 232, 255, 0.18);
+    border-color: rgba(34, 232, 255, 0.35);
   }
   50% {
-    box-shadow: 0 0 25px rgba(201, 162, 39, 0.2);
-    border-color: rgba(201, 162, 39, 0.5);
+    box-shadow: 0 0 28px var(--neon-cyan-glow), 0 0 40px rgba(177, 76, 255, 0.3);
+    border-color: var(--neon-cyan);
   }
 }
 
@@ -155,9 +307,35 @@
   bottom: clamp(16px, 3vh, 32px);
   font-family: var(--f-mono);
   font-size: 9px;
-  letter-spacing: 0.2em;
-  color: rgba(96, 112, 154, 0.4);
+  letter-spacing: 0.25em;
+  color: rgba(34, 232, 255, 0.45);
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.3);
   z-index: 5;
+}
+
+/* ── System-online burst: radial scanline flash + static noise ── */
+.systemBurst {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.85) 0%, rgba(34, 232, 255, 0.35) 18%, rgba(177, 76, 255, 0.15) 40%, transparent 75%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  mix-blend-mode: screen;
+  animation: burstFade 280ms ease-out forwards;
+}
+
+@keyframes burstFade {
+  0%   { opacity: 0; transform: scale(0.6); }
+  30%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.4); }
 }
 
 /* ── Exit animation ── */
@@ -166,6 +344,7 @@
 }
 
 @keyframes bootFadeOut {
-  0% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.02); filter: blur(6px); }
+  0%   { opacity: 1; }
+  60%  { opacity: 0.4; transform: scale(1.04); filter: blur(4px) hue-rotate(30deg); }
+  100% { opacity: 0; transform: scale(1.08); filter: blur(10px) hue-rotate(60deg); }
 }

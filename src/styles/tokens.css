@@ -41,6 +41,17 @@
   --red: #cc1133;
   --cyan: #00ffcc;
 
+  /* ── Cyberpunk neon triad (Futuristic polish) ── */
+  --neon-violet: #b14cff;
+  --neon-violet-glow: rgba(177, 76, 255, 0.55);
+  --neon-cyan: #22e8ff;
+  --neon-cyan-glow: rgba(34, 232, 255, 0.55);
+  --neon-magenta: #ff2bd6;
+  --neon-magenta-glow: rgba(255, 43, 214, 0.55);
+  --neon-plasma: #8a2be2;
+  --neon-amber: #ffb300;
+  --neon-lime: #4ade80;
+
   /* ── Typography ── */
   --f-ui: 'Rajdhani', 'Segoe UI', sans-serif;
   --f-mono: 'JetBrains Mono', 'Courier New', monospace;

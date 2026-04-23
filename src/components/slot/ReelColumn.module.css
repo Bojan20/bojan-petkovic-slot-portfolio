@@ -5,6 +5,7 @@
   position: relative;
   overflow: hidden;
   background: transparent;
+  transition: box-shadow 0.25s ease;
 }
 
 .column.gameReel {
@@ -15,12 +16,83 @@
   cursor: grabbing;
 }
 
+/* Vertical motion-trail fade — visible only during spin */
+.column::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 7, 14, 0.85) 0%,
+    rgba(5, 7, 14, 0.35) 8%,
+    transparent 15%,
+    transparent 85%,
+    rgba(5, 7, 14, 0.35) 92%,
+    rgba(5, 7, 14, 0.85) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.spinning::before {
+  opacity: 1;
+}
+
+/* Vertical neon streak overlay — only during spin, GPU-only */
+.column::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 51;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    rgba(34, 232, 255, 0.10) 1px,
+    transparent 3px
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.14s ease;
+}
+
+.spinning::after {
+  opacity: 0.8;
+  animation: spinStreak 0.35s linear infinite;
+}
+
+@keyframes spinStreak {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(18px); }
+}
+
+/* Windup — subtle neon halo around the active column */
+.windup {
+  box-shadow:
+    inset 0 0 22px rgba(177, 76, 255, 0.18),
+    0 0 18px rgba(34, 232, 255, 0.22);
+  animation: windupHalo 0.14s ease-out;
+}
+
+@keyframes windupHalo {
+  0% {
+    box-shadow: inset 0 0 0 rgba(177, 76, 255, 0), 0 0 0 rgba(34, 232, 255, 0);
+  }
+  100% {
+    box-shadow:
+      inset 0 0 22px rgba(177, 76, 255, 0.18),
+      0 0 18px rgba(34, 232, 255, 0.22);
+  }
+}
+
 .strip {
   display: flex;
   flex-direction: column;
   position: absolute;
   width: 100%;
-  will-change: transform;
+  will-change: transform, filter;
   transform-origin: center bottom;
 }
 
@@ -34,12 +106,8 @@
   animation: reelWindup 0.12s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Motion blur during spin */
-.spinning .strip {
-  animation: rspin 0.07s linear infinite;
-  filter: blur(4px) brightness(0.68);
-}
-
+/* Motion blur during spin — JS-driven (GSAP applies inline filter/y).
+   CSS class kept for legacy fallback only; inline style wins. */
 @keyframes rspin {
   0% { transform: translateY(0); }
   100% { transform: translateY(calc(-100% / 7)); }
@@ -61,6 +129,31 @@
 .snapping .strip {
   animation: reelSnap 0.48s cubic-bezier(0.22, 1, 0.36, 1) !important;
   filter: none !important;
+}
+
+/* HYPERSPACE SNAP — chromatic shift flash at impact */
+.snapping {
+  animation: hyperSnap 0.16s ease-out;
+}
+
+@keyframes hyperSnap {
+  0%   {
+    filter: none;
+    text-shadow: none;
+  }
+  25%  {
+    filter:
+      drop-shadow(-2.5px 0 0 rgba(255, 43, 214, 0.85))
+      drop-shadow(2.5px 0 0 rgba(34, 232, 255, 0.85));
+  }
+  55%  {
+    filter:
+      drop-shadow(-1px 0 0 rgba(255, 43, 214, 0.45))
+      drop-shadow(1px 0 0 rgba(34, 232, 255, 0.45));
+  }
+  100% {
+    filter: none;
+  }
 }
 
 /* Landing pulse */
