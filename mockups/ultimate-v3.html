@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOJAN PETKOVIĆ — Audio Director · iGaming Specialist</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --bg: #05070c;
+  --bg2: #080b12;
+  --bg3: #0c1020;
+  --g300: #c9a227;
+  --g200: #e8c84d;
+  --g100: #ffd700;
+  --nc: #22e8ff;
+  --nv: #b14cff;
+  --nm: #ff2bd6;
+  --ng: #00ff88;
+  --nr: #ff4444;
+  --font-h: 'Rajdhani', sans-serif;
+  --font-m: 'JetBrains Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:#fff;font-family:var(--font-h);overflow-x:hidden;cursor:default}
+::selection{background:var(--g300);color:#000}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--g300);border-radius:2px}
+
+/* ═══════════════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════════════ */
+.screen{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;transition:opacity .6s ease,transform .6s ease}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(.97)}
+.screen.gone{display:none}
+
+/* ═══════════════════════════════════════════════════
+   BOOT SCREEN
+═══════════════════════════════════════════════════ */
+#boot{background:var(--bg);flex-direction:column;gap:0;cursor:pointer}
+.boot-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.015) 2px,rgba(0,255,136,.015) 4px);pointer-events:none;animation:scan 8s linear infinite}
+@keyframes scan{0%{background-position:0 0}100%{background-position:0 100%}}
+
+.boot-glitch{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.boot-glitch::before,.boot-glitch::after{content:'';position:absolute;left:0;right:0;height:2px;background:var(--nc);opacity:0;animation:glitch-h 4s ease-in-out infinite}
+.boot-glitch::before{top:30%;animation-delay:.5s}
+.boot-glitch::after{top:70%;animation-delay:1.5s}
+@keyframes glitch-h{0%,90%,100%{opacity:0;transform:translateX(0)}92%{opacity:.8;transform:translateX(-10px)}95%{opacity:.4;transform:translateX(8px)}97%{opacity:.8;transform:translateX(-4px)}}
+
+.boot-logo{position:relative;margin-bottom:40px}
+.boot-logo-svg{width:120px;height:120px;filter:drop-shadow(0 0 30px var(--g300))drop-shadow(0 0 60px rgba(201,162,39,.4))}
+.boot-logo-ring{position:absolute;inset:-20px;border-radius:50%;border:1px solid var(--g300);opacity:.4;animation:ring-pulse 3s ease-in-out infinite}
+.boot-logo-ring2{position:absolute;inset:-35px;border-radius:50%;border:1px solid rgba(201,162,39,.2);animation:ring-pulse 3s ease-in-out infinite .5s}
+@keyframes ring-pulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.05);opacity:.2}}
+
+.boot-title{font-family:var(--font-m);font-size:11px;letter-spacing:6px;color:var(--g300);text-transform:uppercase;margin-bottom:8px;opacity:.8}
+.boot-subtitle{font-family:var(--font-m);font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase}
+
+.boot-terminal{width:min(580px,90vw);background:rgba(0,255,136,.03);border:1px solid rgba(0,255,136,.15);border-radius:8px;padding:24px 28px;margin-top:40px;font-family:var(--font-m);font-size:12px;line-height:1.8}
+.boot-terminal .t-head{color:rgba(0,255,136,.5);margin-bottom:12px;font-size:10px;letter-spacing:2px}
+.boot-log{color:rgba(0,255,136,.7)}
+.boot-log .dim{color:rgba(0,255,136,.35)}
+.boot-log .gold{color:var(--g300)}
+.boot-log .cyan{color:var(--nc)}
+.boot-log .pink{color:var(--nm)}
+.boot-log span{opacity:0;animation:fade-line .3s ease forwards}
+.boot-cursor{display:inline-block;width:8px;height:13px;background:var(--ng);animation:blink .8s ease-in-out infinite;vertical-align:middle;margin-left:4px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes fade-line{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+.boot-tap{margin-top:32px;font-family:var(--font-m);font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.25);text-transform:uppercase;animation:pulse-text 2s ease-in-out infinite}
+@keyframes pulse-text{0%,100%{opacity:.25}50%{opacity:.7}}
+
+/* ═══════════════════════════════════════════════════
+   SPLASH / MODE GATE
+═══════════════════════════════════════════════════ */
+#splash{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+
+.splash-bg{position:absolute;inset:0;overflow:hidden}
+.splash-bg-img{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(177,76,255,.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 20% 70%,rgba(34,232,255,.08) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 30%,rgba(255,43,214,.07) 0%,transparent 60%)}
+.splash-particles{position:absolute;inset:0;pointer-events:none}
+.s-particle{position:absolute;width:3px;height:3px;border-radius:50%;animation:float-up 8s ease-in infinite}
+@keyframes float-up{0%{transform:translateY(100vh) translateX(0) scale(0);opacity:0}10%{opacity:1}90%{opacity:.3}100%{transform:translateY(-100px) translateX(var(--dx)) scale(var(--s));opacity:0}}
+
+.splash-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0}
+.splash-over{font-family:var(--font-m);font-size:10px;letter-spacing:8px;color:var(--g300);text-transform:uppercase;margin-bottom:24px;opacity:.8}
+.splash-name{font-family:var(--font-h);font-size:clamp(48px,8vw,96px);font-weight:700;letter-spacing:8px;text-transform:uppercase;line-height:1;position:relative}
+.splash-name-text{background:linear-gradient(135deg,#fff 0%,var(--g300) 40%,#fff 60%,var(--g200) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 100%;animation:shimmer-name 3s ease-in-out infinite}
+@keyframes shimmer-name{0%,100%{background-position:100% 0}50%{background-position:0% 0}}
+.splash-name-shadow{position:absolute;inset:0;font-family:var(--font-h);font-size:clamp(48px,8vw,96px);font-weight:700;letter-spacing:8px;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px rgba(201,162,39,.15);filter:blur(20px);transform:translateY(4px)}
+
+.splash-role{font-family:var(--font-m);font-size:13px;letter-spacing:5px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:16px;margin-bottom:48px}
+.splash-role span{color:var(--nc)}
+
+.splash-modes{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.mode-btn{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 36px;border:1px solid;border-radius:12px;cursor:pointer;transition:all .3s ease;min-width:220px;position:relative;overflow:hidden}
+.mode-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s ease}
+.mode-btn:hover::before{opacity:1}
+.mode-btn:hover{transform:translateY(-4px)}
+
+.mode-quick{border-color:rgba(34,232,255,.3);background:rgba(34,232,255,.04)}
+.mode-quick::before{background:linear-gradient(135deg,rgba(34,232,255,.08) 0%,transparent 100%)}
+.mode-quick:hover{border-color:var(--nc);box-shadow:0 0 30px rgba(34,232,255,.2),0 20px 40px rgba(0,0,0,.4)}
+.mode-quick .mode-icon{font-size:32px}
+.mode-quick .mode-label{font-family:var(--font-h);font-weight:700;font-size:16px;letter-spacing:3px;color:var(--nc);text-transform:uppercase}
+.mode-quick .mode-time{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(34,232,255,.5);text-transform:uppercase}
+.mode-quick .mode-desc{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.4);text-align:center;line-height:1.6}
+
+.mode-casino{border-color:rgba(201,162,39,.3);background:rgba(201,162,39,.04)}
+.mode-casino::before{background:linear-gradient(135deg,rgba(201,162,39,.08) 0%,transparent 100%)}
+.mode-casino:hover{border-color:var(--g300);box-shadow:0 0 30px rgba(201,162,39,.2),0 20px 40px rgba(0,0,0,.4)}
+.mode-casino .mode-icon{font-size:32px}
+.mode-casino .mode-label{font-family:var(--font-h);font-weight:700;font-size:16px;letter-spacing:3px;color:var(--g300);text-transform:uppercase}
+.mode-casino .mode-time{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(201,162,39,.5);text-transform:uppercase}
+.mode-casino .mode-desc{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.4);text-align:center;line-height:1.6}
+
+.splash-skip{position:absolute;bottom:24px;right:32px;font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.2);cursor:pointer;text-transform:uppercase;border:1px solid rgba(255,255,255,.1);padding:6px 12px;border-radius:4px;transition:all .2s}
+.splash-skip:hover{color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.3)}
+
+/* ═══════════════════════════════════════════════════
+   QUICK MODE — RECRUITER VIEW
+═══════════════════════════════════════════════════ */
+#quick{display:block;position:relative;z-index:1;overflow-y:auto;height:100vh;opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease}
+#quick.active{opacity:1;pointer-events:auto;transform:translateY(0)}
+#quick.gone{display:none}
+
+/* Sticky nav */
+.q-nav{position:sticky;top:0;z-index:100;background:rgba(5,7,12,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,162,39,.15);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px}
+.q-nav-logo{display:flex;align-items:center;gap:12px}
+.q-nav-vv{width:28px;height:28px}
+.q-nav-name{font-family:var(--font-h);font-weight:700;font-size:15px;letter-spacing:2px;color:var(--g300)}
+.q-nav-links{display:flex;gap:28px}
+.q-nav-link{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.4);text-decoration:none;text-transform:uppercase;transition:color .2s;cursor:pointer;padding:4px 0;border-bottom:1px solid transparent;transition:all .2s}
+.q-nav-link:hover{color:var(--g300);border-bottom-color:var(--g300)}
+.q-nav-cta{display:flex;gap:12px;align-items:center}
+.q-nav-book{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:var(--bg);background:var(--g300);padding:7px 16px;border-radius:4px;cursor:pointer;text-transform:uppercase;border:none;transition:all .2s}
+.q-nav-book:hover{background:var(--g200);transform:translateY(-1px)}
+.q-nav-casino{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:var(--g300);background:transparent;padding:7px 16px;border-radius:4px;cursor:pointer;text-transform:uppercase;border:1px solid rgba(201,162,39,.4);transition:all .2s}
+.q-nav-casino:hover{border-color:var(--g300);background:rgba(201,162,39,.08)}
+
+/* Hero */
+.q-hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding:80px 80px 60px}
+.q-hero-bg{position:absolute;inset:0}
+.q-hero-bg-grad{position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 70% 50%,rgba(177,76,255,.08) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 10% 80%,rgba(201,162,39,.05) 0%,transparent 60%)}
+.q-hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,162,39,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,39,.04) 1px,transparent 1px);background-size:60px 60px;mask:radial-gradient(ellipse 80% 80% at 70% 50%,black 0%,transparent 100%)}
+.q-hero-slots{position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:500px;height:500px;pointer-events:none;opacity:.15}
+
+.q-hero-content{position:relative;z-index:2;max-width:700px}
+.q-hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(201,162,39,.1);border:1px solid rgba(201,162,39,.25);border-radius:20px;padding:6px 14px;margin-bottom:24px}
+.q-hero-badge-dot{width:7px;height:7px;border-radius:50%;background:var(--ng);box-shadow:0 0 8px var(--ng);animation:dot-pulse 2s ease-in-out infinite}
+@keyframes dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.q-hero-badge-text{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:var(--g300);text-transform:uppercase}
+
+.q-hero-name{font-family:var(--font-h);font-weight:700;font-size:clamp(52px,6vw,80px);letter-spacing:4px;text-transform:uppercase;line-height:.95;margin-bottom:12px}
+.q-hero-name-line1{display:block;color:#fff}
+.q-hero-name-line2{display:block;color:var(--g300);text-shadow:0 0 40px rgba(201,162,39,.4)}
+.q-hero-role{font-family:var(--font-h);font-size:18px;letter-spacing:4px;text-transform:uppercase;color:var(--nc);margin-bottom:8px;opacity:.9}
+.q-hero-sub{font-family:var(--font-m);font-size:12px;color:rgba(255,255,255,.4);letter-spacing:1px;margin-bottom:40px}
+
+.q-hero-stats{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:40px}
+.q-stat{display:flex;flex-direction:column;gap:4px;border-left:2px solid rgba(201,162,39,.2);padding-left:16px}
+.q-stat-num{font-family:var(--font-h);font-weight:700;font-size:32px;color:var(--g300);line-height:1}
+.q-stat-label{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase}
+
+.q-hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.q-btn-primary{font-family:var(--font-h);font-weight:700;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:14px 32px;background:var(--g300);color:#000;border:none;border-radius:6px;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden}
+.q-btn-primary::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .3s}
+.q-btn-primary:hover{background:var(--g200);transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,162,39,.3)}
+.q-btn-secondary{font-family:var(--font-h);font-weight:600;font-size:14px;letter-spacing:3px;text-transform:uppercase;padding:14px 32px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;cursor:pointer;transition:all .3s ease}
+.q-btn-secondary:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.05)}
+
+/* Ticker */
+.q-ticker{background:rgba(201,162,39,.08);border-top:1px solid rgba(201,162,39,.15);border-bottom:1px solid rgba(201,162,39,.15);height:36px;display:flex;align-items:center;overflow:hidden;position:relative}
+.q-ticker-label{position:absolute;left:0;padding:0 20px;font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--g300);background:linear-gradient(90deg,var(--bg) 70%,transparent);z-index:2;white-space:nowrap;text-transform:uppercase;height:100%;display:flex;align-items:center}
+.q-ticker-inner{display:flex;gap:0;white-space:nowrap;animation:ticker 30s linear infinite;padding-left:160px}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.q-ticker-item{font-family:var(--font-m);font-size:10px;color:rgba(255,255,255,.4);padding:0 24px;letter-spacing:1px}
+.q-ticker-item span{color:var(--g300)}
+
+/* Section wrapper */
+.q-section{padding:80px 80px}
+.q-section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:48px}
+.q-section-num{font-family:var(--font-m);font-size:11px;color:var(--g300);opacity:.5}
+.q-section-title{font-family:var(--font-h);font-weight:700;font-size:36px;letter-spacing:4px;text-transform:uppercase}
+.q-section-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,162,39,.3),transparent)}
+
+/* PROJECTS GRID */
+.q-projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+.q-project-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:0;overflow:hidden;transition:all .35s ease;cursor:pointer;position:relative}
+.q-project-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--card-color,.3) 0%,transparent 60%);opacity:0;transition:opacity .35s}
+.q-project-card:hover::before{opacity:.08}
+.q-project-card:hover{border-color:var(--card-color,rgba(255,255,255,.2));transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.4),0 0 0 1px var(--card-color,transparent)}
+.q-card-top{padding:24px 24px 0}
+.q-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.q-card-ico{font-size:28px}
+.q-card-studio{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.q-card-name{font-family:var(--font-h);font-weight:700;font-size:20px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:8px}
+.q-card-name span{color:var(--card-color,var(--g300))}
+.q-card-desc{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.45);line-height:1.7;padding-bottom:16px}
+.q-card-tags{display:flex;gap:6px;flex-wrap:wrap;padding:0 24px 16px}
+.q-card-tag{font-family:var(--font-m);font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.35);background:rgba(255,255,255,.05);padding:3px 8px;border-radius:3px;text-transform:uppercase}
+.q-card-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid rgba(255,255,255,.06)}
+.q-card-scope{display:flex;gap:6px}
+.q-scope-badge{font-family:var(--font-m);font-size:8px;letter-spacing:1px;padding:3px 7px;border-radius:3px;text-transform:uppercase;background:rgba(255,255,255,.06);color:rgba(255,255,255,.4)}
+.q-scope-badge.active{background:rgba(201,162,39,.15);color:var(--g300);border:1px solid rgba(201,162,39,.2)}
+.q-card-play{display:flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--card-color,var(--g300));text-transform:uppercase;cursor:pointer;opacity:.7;transition:opacity .2s}
+.q-card-play:hover{opacity:1}
+.q-card-play-ico{width:24px;height:24px;border-radius:50%;border:1px solid var(--card-color,var(--g300));display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .2s}
+.q-card-play:hover .q-card-play-ico{background:var(--card-color,var(--g300));color:#000}
+
+/* SKILLS */
+.q-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.q-skill-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:28px;transition:all .3s ease}
+.q-skill-card:hover{border-color:var(--skill-color,rgba(255,255,255,.2));transform:translateY(-4px);background:rgba(255,255,255,.05)}
+.q-skill-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.q-skill-icon{font-size:24px}
+.q-skill-level{font-family:var(--font-m);font-size:9px;letter-spacing:2px;padding:4px 10px;border-radius:12px;text-transform:uppercase}
+.q-skill-level.expert{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.2)}
+.q-skill-level.advanced{background:rgba(0,229,255,.08);color:var(--nc);border:1px solid rgba(0,229,255,.15)}
+.q-skill-name{font-family:var(--font-h);font-weight:700;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px}
+.q-skill-domain{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--skill-color,var(--g300));text-transform:uppercase;margin-bottom:12px}
+.q-skill-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:12px;overflow:hidden}
+.q-skill-bar-fill{height:100%;border-radius:2px;background:var(--skill-color,var(--g300));width:0;transition:width 1.5s cubic-bezier(.22,.61,.36,1)}
+.q-skill-desc{font-family:var(--font-m);font-size:10px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:14px}
+.q-skill-tools{display:flex;gap:6px;flex-wrap:wrap}
+.q-skill-tool{font-family:var(--font-m);font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.3);background:rgba(255,255,255,.04);padding:3px 8px;border-radius:3px;text-transform:uppercase}
+
+/* CAREER TIMELINE */
+.q-career-timeline{position:relative;padding-left:40px}
+.q-career-timeline::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--g300),rgba(201,162,39,.1))}
+.q-career-item{position:relative;margin-bottom:48px}
+.q-career-item:last-child{margin-bottom:0}
+.q-career-dot{position:absolute;left:-34px;top:6px;width:16px;height:16px;border-radius:50%;border:2px solid var(--career-color,var(--g300));background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 0 12px var(--career-color,var(--g300))}
+.q-career-period{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--career-color,var(--g300));text-transform:uppercase;margin-bottom:6px}
+.q-career-company{font-family:var(--font-h);font-weight:700;font-size:22px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px}
+.q-career-desc{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.4);line-height:1.7;max-width:600px;margin-bottom:12px}
+.q-career-tags{display:flex;gap:6px;flex-wrap:wrap}
+.q-career-tag{font-family:var(--font-m);font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.3);background:rgba(255,255,255,.04);padding:3px 8px;border-radius:3px;text-transform:uppercase}
+
+/* CONTACT SECTION */
+.q-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:860px}
+@media(max-width:640px){.q-contact-grid{grid-template-columns:1fr}}
+.q-contact-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:12px;transition:all .3s ease}
+.q-contact-card:hover{border-color:var(--contact-color,var(--g300));transform:translateY(-4px)}
+.q-contact-card.full{grid-column:span 2}
+@media(max-width:640px){.q-contact-card.full{grid-column:span 1}}
+.q-contact-ico{font-size:28px;margin-bottom:4px}
+.q-contact-type{font-family:var(--font-m);font-size:9px;letter-spacing:3px;color:var(--contact-color,var(--g300));text-transform:uppercase}
+.q-contact-value{font-family:var(--font-h);font-weight:600;font-size:20px;letter-spacing:1px;color:#fff}
+.q-contact-note{font-family:var(--font-m);font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px}
+.q-contact-copy{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:var(--contact-color,var(--g300));text-transform:uppercase;cursor:pointer;margin-top:4px;opacity:.7;transition:opacity .2s;background:none;border:none;padding:0}
+.q-contact-copy:hover{opacity:1}
+.q-book-card{background:linear-gradient(135deg,rgba(201,162,39,.08),rgba(177,76,255,.06));border:1px solid rgba(201,162,39,.2);border-radius:12px;padding:36px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.q-book-text h3{font-family:var(--font-h);font-weight:700;font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:8px}
+.q-book-text p{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.4);line-height:1.7;max-width:400px}
+.q-book-btn{font-family:var(--font-h);font-weight:700;font-size:13px;letter-spacing:3px;text-transform:uppercase;padding:16px 32px;background:var(--g300);color:#000;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all .3s;flex-shrink:0}
+.q-book-btn:hover{background:var(--g200);transform:scale(1.03);box-shadow:0 8px 24px rgba(201,162,39,.3)}
+
+/* Footer */
+.q-footer{padding:40px 80px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.q-footer-left{font-family:var(--font-m);font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px}
+.q-footer-left span{color:var(--g300)}
+.q-footer-right{display:flex;gap:16px;align-items:center}
+.q-footer-btn{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.3);background:none;border:1px solid rgba(255,255,255,.1);padding:7px 14px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.q-footer-btn:hover{color:var(--g300);border-color:var(--g300)}
+
+/* ═══════════════════════════════════════════════════
+   CASINO MODE
+═══════════════════════════════════════════════════ */
+#casino{display:none;position:fixed;inset:0;z-index:500;flex-direction:column;background:var(--bg);overflow:hidden}
+#casino.active{display:flex;opacity:1;pointer-events:auto}
+
+.c-topbar{height:52px;background:rgba(5,7,12,.95);border-bottom:1px solid rgba(201,162,39,.2);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:relative;z-index:10}
+.c-topbar-left{display:flex;align-items:center;gap:20px}
+.c-topbar-logo{font-family:var(--font-h);font-weight:700;font-size:14px;letter-spacing:3px;color:var(--g300)}
+.c-topbar-sep{width:1px;height:20px;background:rgba(201,162,39,.2)}
+.c-topbar-title{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase}
+.c-topbar-right{display:flex;align-items:center;gap:16px}
+.c-topbar-credits{display:flex;align-items:center;gap:8px}
+.c-topbar-credits-label{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.c-topbar-credits-val{font-family:var(--font-m);font-size:14px;color:var(--g300)}
+.c-jackpot-badge{font-family:var(--font-m);font-size:11px;color:var(--nm);animation:jackpot-pulse 2s ease-in-out infinite}
+@keyframes jackpot-pulse{0%,100%{text-shadow:0 0 8px var(--nm)}50%{text-shadow:0 0 20px var(--nm),0 0 40px var(--nm)}}
+.c-quick-btn{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--nc);background:rgba(34,232,255,.07);border:1px solid rgba(34,232,255,.2);padding:6px 12px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.c-quick-btn:hover{background:rgba(34,232,255,.15);border-color:var(--nc)}
+
+/* Tab bar */
+.c-tabs{height:44px;background:rgba(5,7,12,.8);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:stretch;padding:0 24px;gap:4px;flex-shrink:0}
+.c-tab{display:flex;align-items:center;gap:6px;padding:0 18px;font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.c-tab:hover{color:rgba(255,255,255,.6);background:rgba(255,255,255,.03)}
+.c-tab.active{color:var(--g300);border-bottom-color:var(--g300)}
+.c-tab-icon{font-size:12px}
+
+/* Main area */
+.c-main{flex:1;display:grid;grid-template-columns:1fr 340px;overflow:hidden;position:relative}
+
+/* Reel area */
+.c-reel-area{overflow:hidden;display:flex;flex-direction:column;position:relative}
+.c-reel-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(177,76,255,.05) 0%,transparent 70%)}
+.c-reel-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,162,39,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,39,.03) 1px,transparent 1px);background-size:40px 40px}
+.c-reel-frame{position:absolute;inset:12px;border:1px solid rgba(201,162,39,.15);border-radius:8px;pointer-events:none;box-shadow:inset 0 0 40px rgba(201,162,39,.03),0 0 40px rgba(0,0,0,.5)}
+.c-reel-frame::before,.c-reel-frame::after{content:'';position:absolute;width:20px;height:20px;border-color:var(--g300);border-style:solid;opacity:.6}
+.c-reel-frame::before{top:8px;left:8px;border-width:2px 0 0 2px}
+.c-reel-frame::after{bottom:8px;right:8px;border-width:0 2px 2px 0}
+
+.c-reel-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:28px 24px 12px;flex:1;align-items:start}
+.c-reel-col{display:flex;flex-direction:column;gap:2px}
+.c-reel-cell{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:6px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:72px;transition:all .4s ease;cursor:pointer;position:relative;overflow:hidden}
+.c-reel-cell::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--cell-color,.0) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+.c-reel-cell:hover::before{opacity:.12}
+.c-reel-cell:hover{border-color:var(--cell-color,rgba(201,162,39,.4));transform:scale(1.02)}
+.c-reel-cell.selected{background:rgba(201,162,39,.08);border-color:var(--g300);box-shadow:0 0 16px rgba(201,162,39,.15)}
+.c-cell-ico{font-size:20px}
+.c-cell-name{font-family:var(--font-h);font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.6);text-align:center;line-height:1.2}
+.c-cell-sub{font-family:var(--font-m);font-size:8px;color:rgba(255,255,255,.25);text-align:center}
+
+/* Column headers */
+.c-reel-headers{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:8px 24px 4px}
+.c-reel-header{text-align:center;font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:var(--g300);text-transform:uppercase;opacity:.6}
+
+/* Payline waveform */
+.c-payline{height:56px;position:relative;flex-shrink:0;padding:0 24px 12px}
+.c-payline-canvas{width:100%;height:100%;border-radius:4px}
+.c-payline-label{position:absolute;right:32px;top:4px;font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:rgba(201,162,39,.4);text-transform:uppercase}
+
+/* Bottom bar */
+.c-bottom{height:64px;background:rgba(5,7,12,.95);border-top:1px solid rgba(201,162,39,.15);display:flex;align-items:center;justify-content:center;gap:40px;padding:0 24px;flex-shrink:0}
+.c-spin-btn{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.2),transparent),var(--g300);color:#000;font-size:18px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;box-shadow:0 0 20px rgba(201,162,39,.4),inset 0 1px 0 rgba(255,255,255,.3)}
+.c-spin-btn:hover{transform:scale(1.1);box-shadow:0 0 30px rgba(201,162,39,.6),inset 0 1px 0 rgba(255,255,255,.3)}
+.c-spin-btn:active{transform:scale(.95)}
+.c-spin-btn.spinning{animation:spin-pulse .5s ease-in-out infinite}
+@keyframes spin-pulse{0%,100%{box-shadow:0 0 20px rgba(201,162,39,.4)}50%{box-shadow:0 0 40px rgba(201,162,39,.8),0 0 60px rgba(201,162,39,.4)}}
+.c-bottom-info{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;text-align:center}
+.c-bottom-info span{color:var(--g300)}
+.c-bottom-keys{font-family:var(--font-m);font-size:9px;color:rgba(255,255,255,.2);letter-spacing:1px}
+.c-bottom-keys kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:3px;padding:2px 5px;font-family:inherit;font-size:9px;color:rgba(255,255,255,.4)}
+
+/* Detail panel */
+.c-detail{border-left:1px solid rgba(255,255,255,.06);overflow-y:auto;display:flex;flex-direction:column;background:rgba(5,7,12,.5)}
+.c-detail-header{padding:24px 24px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.c-detail-head-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.c-detail-ico{font-size:28px}
+.c-detail-info h2{font-family:var(--font-h);font-weight:700;font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#fff}
+.c-detail-info .sub{font-family:var(--font-m);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.c-detail-color-bar{height:2px;border-radius:1px;margin-top:12px}
+.c-detail-body{padding:20px 24px;flex:1}
+.c-detail-section{margin-bottom:24px}
+.c-detail-section h3{font-family:var(--font-m);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.05)}
+.c-detail-section p{font-family:var(--font-m);font-size:11px;color:rgba(255,255,255,.55);line-height:1.7}
+.c-detail-tags{display:flex;flex-wrap:wrap;gap:6px}
+.c-detail-tag{font-family:var(--font-m);font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.35);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:4px 10px;border-radius:3px;text-transform:uppercase}
+.c-detail-scope{display:flex;flex-wrap:wrap;gap:8px}
+.c-detail-scope-item{display:flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.c-detail-scope-item .dot{width:8px;height:8px;border-radius:50%}
+.c-detail-scope-item.on{color:rgba(255,255,255,.6)}
+.c-detail-scope-item.off{color:rgba(255,255,255,.2)}
+.c-detail-scope-item.on .dot{background:var(--g300)}
+.c-detail-scope-item.off .dot{background:rgba(255,255,255,.15)}
+.c-detail-demo-btn{width:100%;padding:12px;background:rgba(201,162,39,.1);border:1px solid rgba(201,162,39,.25);border-radius:6px;color:var(--g300);font-family:var(--font-m);font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.c-detail-demo-btn:hover{background:rgba(201,162,39,.2);border-color:var(--g300)}
+
+/* Spinning reels animation */
+.c-reel-cell.spinning-cell{animation:reel-spin .15s linear infinite}
+@keyframes reel-spin{0%{transform:translateY(-3px);opacity:.7}50%{transform:translateY(3px);opacity:1}100%{transform:translateY(-3px);opacity:.7}}
+.c-reel-cell.landing{animation:reel-land .4s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes reel-land{0%{transform:translateY(-8px)}60%{transform:translateY(3px)}80%{transform:translateY(-1px)}100%{transform:translateY(0)}}
+
+/* Coin particles */
+#coin-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
+
+/* Win overlay */
+.win-overlay{position:fixed;inset:0;z-index:9990;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.win-overlay.show{display:flex;animation:win-appear .4s ease forwards}
+@keyframes win-appear{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.win-card{background:linear-gradient(135deg,rgba(5,7,12,.98),rgba(12,16,32,.98));border:1px solid var(--g300);border-radius:16px;padding:48px 56px;text-align:center;box-shadow:0 0 80px rgba(201,162,39,.3),0 40px 80px rgba(0,0,0,.6);max-width:500px}
+.win-ico{font-size:56px;margin-bottom:16px;animation:win-ico-bounce 1s ease-in-out infinite}
+@keyframes win-ico-bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.win-title{font-family:var(--font-h);font-weight:700;font-size:42px;letter-spacing:6px;text-transform:uppercase;background:linear-gradient(135deg,var(--g300),var(--g200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.win-sub{font-family:var(--font-m);font-size:13px;letter-spacing:2px;color:rgba(255,255,255,.4);margin-bottom:32px}
+.win-close{padding:12px 32px;background:var(--g300);color:#000;font-family:var(--font-m);font-size:11px;letter-spacing:3px;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;transition:all .3s}
+.win-close:hover{background:var(--g200)}
+
+/* Responsive */
+@media(max-width:900px){
+  .q-hero{padding:80px 32px 60px}
+  .q-section{padding:60px 32px}
+  .q-footer{padding:32px}
+  .q-nav{padding:0 24px}
+  .q-nav-links{display:none}
+  .c-main{grid-template-columns:1fr}
+  .c-detail{display:none}
+  .q-contact-card.full{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+
+<!-- COIN PARTICLES CANVAS -->
+<canvas id="coin-canvas"></canvas>
+
+<!-- ═══════════════════════════════════════
+     BOOT SCREEN
+═══════════════════════════════════════ -->
+<div class="screen" id="boot" onclick="bootClick()">
+  <div class="boot-scanlines"></div>
+  <div class="boot-glitch"></div>
+
+  <div class="boot-logo">
+    <svg class="boot-logo-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="56" stroke="#c9a227" stroke-width="1.5" stroke-opacity=".3"/>
+      <circle cx="60" cy="60" r="44" stroke="#c9a227" stroke-width="1" stroke-opacity=".2"/>
+      <!-- VV monogram -->
+      <path d="M28 35L44 85L60 50L76 85L92 35" stroke="#c9a227" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".9"/>
+      <!-- inner accent -->
+      <path d="M44 85L60 50L76 85" stroke="#22e8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
+    </svg>
+    <div class="boot-logo-ring"></div>
+    <div class="boot-logo-ring2"></div>
+  </div>
+
+  <div class="boot-title">VANVINKL STUDIO</div>
+  <div class="boot-subtitle">AUDIO PORTFOLIO SYSTEM v3.0</div>
+
+  <div class="boot-terminal">
+    <div class="t-head">◈ CORTEX ENGINE — INITIALIZING</div>
+    <div class="boot-log" id="boot-log"></div>
+  </div>
+
+  <div class="boot-tap" id="boot-tap" style="display:none">[ TAP ANYWHERE TO ENTER ]</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SPLASH / MODE GATE
+═══════════════════════════════════════ -->
+<div class="screen hidden" id="splash">
+  <div class="splash-bg">
+    <div class="splash-bg-img"></div>
+    <div class="splash-particles" id="splash-particles"></div>
+  </div>
+
+  <div class="splash-center">
+    <div class="splash-over">iGaming · Audio Director · Belgrade, Serbia</div>
+    <div class="splash-name">
+      <div class="splash-name-shadow" aria-hidden="true">BOJAN PETKOVIĆ</div>
+      <div class="splash-name-text">BOJAN PETKOVIĆ</div>
+    </div>
+    <div class="splash-role">Audio Director · <span>iGaming Specialist</span> · 8+ Years</div>
+
+    <div class="splash-modes">
+      <div class="mode-btn mode-quick" onclick="enterQuick()">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-label">Quick View</div>
+        <div class="mode-time">≈ 30 seconds</div>
+        <div class="mode-desc">Recruiter-optimized.<br>Projects, skills, contact. Fast.</div>
+      </div>
+      <div class="mode-btn mode-casino" onclick="enterCasino()">
+        <div class="mode-icon">🎰</div>
+        <div class="mode-label">Casino Mode</div>
+        <div class="mode-time">Full Deep Dive</div>
+        <div class="mode-desc">Interactive slot machine.<br>Explore every detail.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="splash-skip" onclick="enterQuick()">Skip → Quick View</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     QUICK MODE
+═══════════════════════════════════════ -->
+<div id="quick">
+  <!-- NAV -->
+  <nav class="q-nav">
+    <div class="q-nav-logo">
+      <svg class="q-nav-vv" viewBox="0 0 28 28" fill="none">
+        <path d="M4 6L10 22L14 12L18 22L24 6" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 22L14 12L18 22" stroke="#22e8ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      </svg>
+      <div class="q-nav-name">BOJAN PETKOVIĆ</div>
+    </div>
+    <div class="q-nav-links">
+      <span class="q-nav-link" onclick="scrollTo('#projects')">Projects</span>
+      <span class="q-nav-link" onclick="scrollTo('#skills')">Skills</span>
+      <span class="q-nav-link" onclick="scrollTo('#career')">Career</span>
+      <span class="q-nav-link" onclick="scrollTo('#contact')">Contact</span>
+    </div>
+    <div class="q-nav-cta">
+      <button class="q-nav-casino" onclick="enterCasino()">🎰 Casino Mode</button>
+      <button class="q-nav-book" onclick="bookCall()">Book a Call</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="q-hero">
+    <div class="q-hero-bg">
+      <div class="q-hero-bg-grad"></div>
+      <div class="q-hero-grid"></div>
+      <div class="q-hero-slots" id="hero-slots-bg"></div>
+    </div>
+    <div class="q-hero-content">
+      <div class="q-hero-badge">
+        <div class="q-hero-badge-dot"></div>
+        <div class="q-hero-badge-text">Open to Work · Remote Worldwide</div>
+      </div>
+      <h1 class="q-hero-name">
+        <span class="q-hero-name-line1">BOJAN</span>
+        <span class="q-hero-name-line2">PETKOVIĆ</span>
+      </h1>
+      <div class="q-hero-role">Audio Director · iGaming Specialist</div>
+      <div class="q-hero-sub">Belgrade, Serbia · Full Pipeline · Zero Defects</div>
+      <div class="q-hero-stats">
+        <div class="q-stat">
+          <div class="q-stat-num" data-count="50" data-suffix="+">0</div>
+          <div class="q-stat-label">Certified Titles</div>
+        </div>
+        <div class="q-stat">
+          <div class="q-stat-num" data-count="8" data-suffix="yr">0</div>
+          <div class="q-stat-label">iGaming Focus</div>
+        </div>
+        <div class="q-stat">
+          <div class="q-stat-num" data-count="200" data-suffix="+">0</div>
+          <div class="q-stat-label">SFX Per Title</div>
+        </div>
+        <div class="q-stat" style="--border-color:var(--ng)">
+          <div class="q-stat-num" style="color:var(--ng);font-size:20px;padding-top:6px">● OPEN</div>
+          <div class="q-stat-label">Available Now</div>
+        </div>
+      </div>
+      <div class="q-hero-btns">
+        <button class="q-btn-primary" onclick="scrollTo('#projects')">View Projects ↓</button>
+        <button class="q-btn-secondary" onclick="scrollTo('#contact')">Get in Touch</button>
+        <button class="q-btn-secondary" onclick="enterCasino()">🎰 Casino Mode</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="q-ticker">
+    <div class="q-ticker-label">LATEST</div>
+    <div class="q-ticker-inner" id="ticker-content"></div>
+  </div>
+
+  <!-- PROJECTS -->
+  <section class="q-section" id="projects">
+    <div class="q-section-header">
+      <span class="q-section-num">01</span>
+      <h2 class="q-section-title">Projects</h2>
+      <div class="q-section-line"></div>
+    </div>
+    <div class="q-projects-grid" id="projects-grid"></div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="q-section" id="skills" style="background:rgba(0,0,0,.3)">
+    <div class="q-section-header">
+      <span class="q-section-num">02</span>
+      <h2 class="q-section-title">Skills</h2>
+      <div class="q-section-line"></div>
+    </div>
+    <div class="q-skills-grid" id="skills-grid"></div>
+  </section>
+
+  <!-- CAREER -->
+  <section class="q-section" id="career">
+    <div class="q-section-header">
+      <span class="q-section-num">03</span>
+      <h2 class="q-section-title">Career</h2>
+      <div class="q-section-line"></div>
+    </div>
+    <div class="q-career-timeline" id="career-timeline"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="q-section" id="contact" style="background:rgba(0,0,0,.3)">
+    <div class="q-section-header">
+      <span class="q-section-num">04</span>
+      <h2 class="q-section-title">Contact</h2>
+      <div class="q-section-line"></div>
+    </div>
+    <div class="q-contact-grid" id="contact-grid"></div>
+    <div style="margin-top:24px">
+      <div class="q-book-card">
+        <div class="q-book-text">
+          <h3>Ready to collaborate?</h3>
+          <p>Full pipeline audio delivery — composition, SFX, integration, QA. Remote worldwide. Immediate start available for the right project.</p>
+        </div>
+        <button class="q-book-btn" onclick="bookCall()">Book a Discovery Call →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="q-footer">
+    <div class="q-footer-left">© 2025 <span>VanVinkl Studio</span> · bojan@vanvinkl.com</div>
+    <div class="q-footer-right">
+      <button class="q-footer-btn" onclick="enterCasino()">🎰 Full Casino Mode</button>
+      <button class="q-footer-btn" onclick="window.open('https://linkedin.com/in/vanvinkl','_blank')">LinkedIn ↗</button>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CASINO MODE
+═══════════════════════════════════════ -->
+<div id="casino">
+  <!-- TOPBAR -->
+  <div class="c-topbar">
+    <div class="c-topbar-left">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M3 5L8 19L12 9L16 19L21 5" stroke="#c9a227" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 19L12 9L16 19" stroke="#22e8ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      </svg>
+      <div class="c-topbar-logo">BOJAN PETKOVIĆ</div>
+      <div class="c-topbar-sep"></div>
+      <div class="c-topbar-title">Audio Portfolio · Casino Mode</div>
+    </div>
+    <div class="c-topbar-right">
+      <div class="c-topbar-credits">
+        <div class="c-topbar-credits-label">Credits</div>
+        <div class="c-topbar-credits-val" id="credits-val">777</div>
+      </div>
+      <div class="c-jackpot-badge" id="jackpot-val">JACKPOT: 13,370</div>
+      <button class="c-quick-btn" onclick="exitCasino()">⚡ Quick View</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="c-tabs" id="c-tabs"></div>
+
+  <!-- MAIN -->
+  <div class="c-main">
+    <!-- REEL AREA -->
+    <div class="c-reel-area" id="reel-area">
+      <div class="c-reel-bg"></div>
+      <div class="c-reel-bg-grid"></div>
+      <div class="c-reel-frame"></div>
+      <div class="c-reel-headers" id="reel-headers"></div>
+      <div class="c-reel-grid" id="reel-grid"></div>
+      <div class="c-payline">
+        <canvas class="c-payline-canvas" id="payline-canvas"></canvas>
+        <div class="c-payline-label">PAYLINE</div>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="c-detail" id="detail-panel">
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="c-bottom">
+    <div class="c-bottom-info">
+      <span id="section-label">PROJECTS</span> · Item <span id="item-label">1</span>
+    </div>
+    <button class="c-spin-btn" id="spin-btn" onclick="spinReels()" title="SPIN">↻</button>
+    <div class="c-bottom-keys">
+      <kbd>SPACE</kbd> Spin &nbsp;
+      <kbd>←</kbd><kbd>→</kbd> Navigate &nbsp;
+      <kbd>1-5</kbd> Section
+    </div>
+  </div>
+</div>
+
+<!-- WIN OVERLAY -->
+<div class="win-overlay" id="win-overlay">
+  <div class="win-card">
+    <div class="win-ico" id="win-ico">🏆</div>
+    <div class="win-title">WINNER!</div>
+    <div class="win-sub" id="win-sub">Full Pipeline Complete</div>
+    <button class="win-close" onclick="closeWin()">COLLECT →</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   DATA
+═══════════════════════════════════ */
+const DATA = {
+  projects: [
+    { ico:'🐷', name:'PIGGY PLUNGER', studio:'Playnetic · 2025', color:'#ff69b4',
+      work:'Bouncy ragtime score, 4 adaptive layers. 200+ custom SFX — reel hits, coin cascades, plunger mechanics.',
+      tools:['Logic Pro','iZotope RX','Howler.js','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:true}, demo:'video' },
+    { ico:'⚡', name:'SMASH FACTORY', studio:'Playnetic · 2025', color:'#ff8c00',
+      work:'Industrial metal theme — tension/euphoria transitions. Hydraulic SFX palette: metal impacts, sparks, electricity.',
+      tools:['Logic Pro','Reaper','Howler.js','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:false}, demo:'video' },
+    { ico:'✨', name:'STARLIGHT TRAVELERS', studio:'Playnetic · 2025', color:'#6a5acd',
+      work:'Ethereal cosmic soundscape — shimmering synths, crystalline wins, nebula ambience, stardust audio.',
+      tools:['Logic Pro','iZotope','Howler.js','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:true}, demo:'video' },
+    { ico:'⚔️', name:'VALKYRIES', studio:'Playnetic · 2025', color:'#dc143c',
+      work:'Nordic war theme — epic choir, war drums, dynamic free spin escalation. Shield clashes, battle ambience.',
+      tools:['Logic Pro','FMOD','Reaper','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:false}, demo:'audio' },
+    { ico:'🐲', name:'ZHULONGS', studio:'IGT · 2023', color:'#00c853',
+      work:'Pentatonic orchestral — Chinese classical meets casino energy. Dragon roars, gong hits, mystical effects.',
+      tools:['Logic Pro','Pro Tools','iZotope','Unity'],
+      scope:{music:true,sfx:true,integration:false,qa:true}, demo:'audio' },
+    { ico:'🌙', name:'MIDNIGHT GOLD', studio:'VanVinkl · 2024', color:'#1e90ff',
+      work:'Dark jazz lounge with gold-rush anticipation builds. Velvet UI sounds, sax stingers, coin rain FX.',
+      tools:['Logic Pro','Reaper','Howler.js','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:true}, demo:'audio' },
+    { ico:'🔥', name:"BLAZIN'S HOT", studio:'IGT · 2022', color:'#ff4500',
+      work:'Upbeat Mediterranean melody — tension ramp for free spins. Fire crackles, sizzling wins, pepper explosions.',
+      tools:['Pro Tools','Logic Pro','iZotope','Unity'],
+      scope:{music:true,sfx:true,integration:false,qa:true}, demo:'audio' },
+    { ico:'🏺', name:'MUMMY RICHES', studio:'Playnetic · 2024', color:'#daa520',
+      work:'Egyptian mystery — haunting flutes, sandy winds, tomb ambience. Scarab beetles, sand cascades, ancient SFX.',
+      tools:['Logic Pro','iZotope RX','Howler.js','Phaser 3'],
+      scope:{music:true,sfx:true,integration:true,qa:false}, demo:'audio' },
+  ],
+  skills: [
+    { ico:'🎵', name:'MUSIC PRODUCTION', desc:'Adaptive layered compositions — base game loops, free spin escalation, jackpot fanfares. Seamless state transitions timed to volatility and player engagement.', tools:['Logic Pro','Reaper','Kontakt','Spitfire'], color:'#ffd700', level:'EXPERT', domain:'COMPOSITION', pct:97 },
+    { ico:'🔊', name:'SOUND DESIGN', desc:'200+ custom SFX per title — reel mechanics, coin physics, win escalation, UI feedback, ambience layers. Every asset purpose-built from scratch.', tools:['iZotope RX','Logic Pro','Reaper','Krotos'], color:'#00e5ff', level:'EXPERT', domain:'SOUND ART', pct:96 },
+    { ico:'⚙️', name:'AUDIO INTEGRATION', desc:'Event-driven playback systems wired directly into game engines. Trigger maps, state machines, volume ducking, spatial positioning.', tools:['Howler.js','Phaser 3','Unity','PixiJS'], color:'#00ff88', level:'ADVANCED', domain:'ENGINEERING', pct:84 },
+    { ico:'🎛️', name:'AUDIO DIRECTION', desc:'Creative leadership across full titles — defining sonic identity, setting quality standards, supervising mix, final sign-off on every game state.', tools:['Confluence','Figma','JIRA','Slack'], color:'#ff00aa', level:'ADVANCED', domain:'LEADERSHIP', pct:88 },
+    { ico:'🧪', name:'AUDIO QA', desc:'Systematic trigger verification across every game state — base, free spins, bonus, jackpot. Zero audio defects at launch across 50+ certified titles.', tools:['TestRail','JIRA','Custom Scripts'], color:'#9944ff', level:'EXPERT', domain:'QA SYSTEMS', pct:95 },
+    { ico:'🎰', name:'SLOT SPECIALIZATION', desc:'Deep domain expertise in real-money slot audio. Regulatory compliance (EU, UK, AUS), player psychology, session fatigue management, volatility-aware audio design.', tools:['FMOD','Wwise','Howler.js','Tone.js'], color:'#ff6600', level:'EXPERT', domain:'iGAMING', pct:98 },
+  ],
+  career: [
+    { ico:'🌐', name:'VANVINKL', period:'2024 → Present', desc:'Founder & Audio Director — full-service iGaming audio production studio. End-to-end audio delivery for slot developers worldwide. Creative direction, project management, client relations, and quality assurance across every title.', highlights:['FOUNDER','FULL-SERVICE','REMOTE WW','CLIENT DIRECT'], color:'#00e5ff' },
+    { ico:'🎮', name:'PLAYNETIC', period:'2024 → 2026', desc:'Audio Producer & Lead Sound Designer — 10+ parallel slot titles in simultaneous production. Managed full audio pipeline: composition, SFX, integration, QA. Delivered under tight release cycles with zero audio defects at launch.', highlights:['10+ TITLES','LEAD SOUND','ZERO DEFECTS','PARALLEL PROD.'], color:'#ffd700' },
+    { ico:'🏛️', name:'IGT', period:'2020 → 2024', desc:'Senior Sound Designer & Audio Lead — managed team of 3 in EU-regulated market. Responsible for audio standards, compliance review, team mentoring, and creative direction across multiple concurrent slot releases for global distribution.', highlights:['SENIOR LEAD','3-PERSON TEAM','EU REGULATED','GLOBAL DIST.'], color:'#ff00aa' },
+    { ico:'🎰', name:'FREELANCE', period:'2018 → 2020', desc:'Independent audio contractor for emerging iGaming studios. Built custom SFX libraries, composed adaptive music systems, and established the production workflow that became the foundation for VanVinkl studio methodology.', highlights:['INDEPENDENT','CUSTOM LIBS','ADAPTIVE MUSIC','WORKFLOW DEV'], color:'#ff6600' },
+  ],
+  contact: [
+    { ico:'📧', name:'EMAIL', type:'PROFESSIONAL', value:'bojan@vanvinkl.com', note:'FASTEST RESPONSE', color:'#ffd700' },
+    { ico:'💼', name:'LINKEDIN', type:'PROFESSIONAL', value:'linkedin.com/in/vanvinkl', note:'PORTFOLIO LINK', color:'#0077b5' },
+    { ico:'✅', name:'AVAILABLE', type:'STATUS', value:'Remote Worldwide', note:'IMMEDIATE START', color:'#00ff88' },
+  ]
+};
+
+/* SECTIONS CONFIG */
+const SECTIONS_CFG = [
+  { id:'projects', label:'PROJECTS', icon:'◈', headers:['GAME','SCOPE','WORK','TOOLS','DEMO'] },
+  { id:'skills',   label:'SKILLS',   icon:'◉', headers:['SKILL','LEVEL','DETAILS','TOOLS','DOMAIN'] },
+  { id:'about',    label:'ABOUT',    icon:'◎', headers:['PROFILE','CONTEXT','STORY','FACTS','FOCUS'] },
+  { id:'career',   label:'CAREER',   icon:'◆', headers:['COMPANY','PERIOD','ROLE','SCOPE','IMPACT'] },
+  { id:'contact',  label:'CONTACT',  icon:'▶', headers:['CHANNEL','TYPE','VALUE','STATUS','NOTE'] },
+];
+
+/* ═══════════════════════════════════
+   AUDIO
+═══════════════════════════════════ */
+let ctx = null;
+function getCtx() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+function playNote(freq, dur=.12, vol=.2, type='triangle') {
+  try {
+    const ac = getCtx();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + dur);
+    o.start(); o.stop(ac.currentTime + dur);
+  } catch(e) {}
+}
+function playOath() {
+  const notes = [{f:392,t:.0},{f:523,t:.13},{f:659,t:.26}];
+  notes.forEach(n => setTimeout(() => playNote(n.f,.22,.15,'sine'), n.t*1000));
+}
+function playSpin() {
+  playNote(220,.1,.1,'sawtooth');
+  setTimeout(()=>playNote(277,.1,.08,'sawtooth'),60);
+  setTimeout(()=>playNote(330,.1,.08,'sawtooth'),120);
+}
+function playWin() {
+  const seq=[523,659,784,1047];
+  seq.forEach((f,i)=>setTimeout(()=>playNote(f,.2,.15,'sine'),i*100));
+}
+function playTick() { playNote(880,.05,.04,'square'); }
+function playDemo(color) {
+  const f = colorToFreq(color);
+  playOath();
+}
+function colorToFreq(c) {
+  const h = parseInt(c.slice(1),16);
+  return 200 + (h % 400);
+}
+
+/* ═══════════════════════════════════
+   BOOT SEQUENCE
+═══════════════════════════════════ */
+const bootLines = [
+  { text:'<span class="dim">◈ CORTEX ENGINE........</span> <span class="gold">ONLINE</span>', delay:400 },
+  { text:'<span class="dim">◈ AUDIO SUBSYSTEM......</span> <span class="cyan">LOADED</span>', delay:750 },
+  { text:'<span class="dim">◈ PORTFOLIO DATA....... </span><span class="gold">8 PROJECTS FOUND</span>', delay:1100 },
+  { text:'<span class="dim">◈ SKILL MATRIX.........</span> <span class="gold">6 SPECIALIZATIONS</span>', delay:1450 },
+  { text:'<span class="dim">◈ CAREER TIMELINE......</span> <span class="gold">8+ YEARS · IGT · PLAYNETIC</span>', delay:1800 },
+  { text:'<span class="dim">◈ IGAMING COMPLIANCE...</span> <span class="pink">EU · UK · AUS VERIFIED</span>', delay:2150 },
+  { text:'<span class="dim">◈ AUDIO ENGINE.........</span> <span class="gold">WEB AUDIO API READY</span>', delay:2500 },
+  { text:'<span class="dim">◈ STATUS...............</span> <span class="cyan">OPEN TO WORK · REMOTE WW</span>', delay:2850 },
+];
+
+let bootDone = false;
+function runBoot() {
+  const log = document.getElementById('boot-log');
+  bootLines.forEach(({text,delay},i) => {
+    setTimeout(() => {
+      const span = document.createElement('span');
+      span.innerHTML = text + (i < bootLines.length-1 ? '\n' : '');
+      span.style.display = 'block';
+      span.style.animationDelay = '0ms';
+      log.appendChild(span);
+    }, delay);
+  });
+  setTimeout(() => {
+    bootDone = true;
+    document.getElementById('boot-tap').style.display = 'block';
+    playOath();
+  }, 3200);
+}
+
+function bootClick() {
+  if (!bootDone) return;
+  const boot = document.getElementById('boot');
+  boot.style.opacity = '0';
+  boot.style.transform = 'scale(1.05)';
+  boot.style.transition = 'opacity .6s ease, transform .6s ease';
+  setTimeout(() => {
+    boot.classList.add('gone');
+    showSplash();
+  }, 600);
+}
+
+/* ═══════════════════════════════════
+   SPLASH
+═══════════════════════════════════ */
+function showSplash() {
+  const splash = document.getElementById('splash');
+  splash.classList.remove('hidden');
+  buildParticles();
+}
+
+function buildParticles() {
+  const c = document.getElementById('splash-particles');
+  const colors = ['#c9a227','#22e8ff','#b14cff','#ff2bd6','#00ff88'];
+  for (let i=0; i<40; i++) {
+    const p = document.createElement('div');
+    p.className = 's-particle';
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      bottom:-10px;
+      background:${color};
+      --dx:${(Math.random()-0.5)*200}px;
+      --s:${0.6+Math.random()*1.2};
+      animation-delay:${Math.random()*8}s;
+      animation-duration:${6+Math.random()*6}s;
+      box-shadow:0 0 6px ${color};
+      opacity:.8;
+    `;
+    c.appendChild(p);
+  }
+}
+
+/* ═══════════════════════════════════
+   QUICK MODE
+═══════════════════════════════════ */
+function enterQuick() {
+  document.getElementById('splash').classList.add('hidden');
+  const q = document.getElementById('quick');
+  q.classList.remove('gone');
+  q.style.display = 'block';
+  setTimeout(() => q.classList.add('active'), 50);
+  buildQuick();
+  playOath();
+}
+
+function scrollTo(sel) {
+  const el = document.querySelector(sel);
+  if (el) el.scrollIntoView({ behavior:'smooth' });
+}
+function scrollToSec(sel) { scrollTo(sel); }
+
+function buildQuick() {
+  buildTicker();
+  buildProjects();
+  buildSkills();
+  buildCareer();
+  buildContact();
+  animateCounters();
+  setTimeout(animateSkillBars, 600);
+}
+
+function buildTicker() {
+  const items = [
+    '🐷 PIGGY PLUNGER · <span>Playnetic 2025</span>',
+    '⚡ SMASH FACTORY · <span>Playnetic 2025</span>',
+    '✨ STARLIGHT TRAVELERS · <span>Playnetic 2025</span>',
+    '⚔️ VALKYRIES · <span>Playnetic 2025</span>',
+    '🐲 ZHULONGS · <span>IGT 2023</span>',
+    '🌙 MIDNIGHT GOLD · <span>VanVinkl 2024</span>',
+    "🔥 BLAZIN'S HOT · <span>IGT 2022</span>",
+    '🏺 MUMMY RICHES · <span>Playnetic 2024</span>',
+    '✅ OPEN TO WORK · <span>REMOTE WORLDWIDE</span>',
+    '🏆 ZERO DEFECTS AT LAUNCH · <span>50+ TITLES CERTIFIED</span>',
+  ];
+  const el = document.getElementById('ticker-content');
+  const doubled = [...items,...items];
+  el.innerHTML = doubled.map(i=>`<div class="q-ticker-item">${i}</div>`).join('');
+}
+
+function buildProjects() {
+  const g = document.getElementById('projects-grid');
+  g.innerHTML = DATA.projects.map(p => `
+    <div class="q-project-card" style="--card-color:${p.color}" onclick="playDemo('${p.color}')">
+      <div class="q-card-top">
+        <div class="q-card-header">
+          <div class="q-card-ico">${p.ico}</div>
+          <div class="q-card-studio">${p.studio}</div>
+        </div>
+        <div class="q-card-name">${p.name}</div>
+        <div class="q-card-desc">${p.work}</div>
+      </div>
+      <div class="q-card-tags">
+        ${p.tools.map(t=>`<div class="q-card-tag">${t}</div>`).join('')}
+      </div>
+      <div class="q-card-footer">
+        <div class="q-card-scope">
+          ${p.scope.music?'<div class="q-scope-badge active">Music</div>':'<div class="q-scope-badge">Music</div>'}
+          ${p.scope.sfx?'<div class="q-scope-badge active">SFX</div>':'<div class="q-scope-badge">SFX</div>'}
+          ${p.scope.integration?'<div class="q-scope-badge active">Dev</div>':'<div class="q-scope-badge">Dev</div>'}
+          ${p.scope.qa?'<div class="q-scope-badge active">QA</div>':'<div class="q-scope-badge">QA</div>'}
+        </div>
+        <div class="q-card-play">
+          <div class="q-card-play-ico">▶</div>
+          ${p.demo.toUpperCase()}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildSkills() {
+  const g = document.getElementById('skills-grid');
+  g.innerHTML = DATA.skills.map(s => `
+    <div class="q-skill-card" style="--skill-color:${s.color}">
+      <div class="q-skill-head">
+        <div class="q-skill-icon">${s.ico}</div>
+        <div class="q-skill-level ${s.level.toLowerCase()}">${s.level}</div>
+      </div>
+      <div class="q-skill-name">${s.name}</div>
+      <div class="q-skill-domain">${s.domain}</div>
+      <div class="q-skill-bar"><div class="q-skill-bar-fill" data-pct="${s.pct}" style="background:${s.color}"></div></div>
+      <div class="q-skill-desc">${s.desc}</div>
+      <div class="q-skill-tools">${s.tools.map(t=>`<div class="q-skill-tool">${t}</div>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function buildCareer() {
+  const t = document.getElementById('career-timeline');
+  t.innerHTML = DATA.career.map(c => `
+    <div class="q-career-item" style="--career-color:${c.color}">
+      <div class="q-career-dot">${c.ico}</div>
+      <div class="q-career-period">${c.period}</div>
+      <div class="q-career-company">${c.name}</div>
+      <div class="q-career-desc">${c.desc}</div>
+      <div class="q-career-tags">${c.highlights.map(h=>`<div class="q-career-tag">${h}</div>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function buildContact() {
+  const g = document.getElementById('contact-grid');
+  g.innerHTML = DATA.contact.map(c => `
+    <div class="q-contact-card" style="--contact-color:${c.color}">
+      <div class="q-contact-ico">${c.ico}</div>
+      <div class="q-contact-type">${c.type}</div>
+      <div class="q-contact-value">${c.value}</div>
+      <div class="q-contact-note">${c.note}</div>
+      <button class="q-contact-copy" onclick="copyText('${c.value}',this)">Copy ↗</button>
+    </div>
+  `).join('');
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>btn.textContent='Copy ↗', 2000);
+  });
+}
+
+function bookCall() {
+  alert('📅 Book a call: bojan@vanvinkl.com\n\nOr connect on LinkedIn: linkedin.com/in/vanvinkl');
+}
+
+function animateCounters() {
+  const els = document.querySelectorAll('[data-count]');
+  els.forEach(el => {
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    let start = null;
+    const duration = 1500;
+    function step(ts) {
+      if (!start) start = ts;
+      const progress = Math.min((ts-start)/duration, 1);
+      const eased = 1 - Math.pow(1-progress, 3);
+      el.textContent = Math.floor(eased*target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function animateSkillBars() {
+  document.querySelectorAll('.q-skill-bar-fill').forEach(el => {
+    el.style.width = el.dataset.pct + '%';
+  });
+}
+
+/* ═══════════════════════════════════
+   CASINO MODE
+═══════════════════════════════════ */
+let casinoState = {
+  section: 0,
+  item: 0,
+  spinning: false,
+  credits: 777,
+  jackpot: 13370,
+};
+
+function enterCasino() {
+  document.getElementById('splash').classList.add('hidden');
+  const q = document.getElementById('quick');
+  q.classList.remove('active');
+  const casino = document.getElementById('casino');
+  casino.classList.add('active');
+  casino.style.display = 'flex';
+  buildCasino();
+  startPaylineCanvas();
+  startJackpotTicker();
+  playOath();
+}
+
+function exitCasino() {
+  document.getElementById('casino').classList.remove('active');
+  document.getElementById('casino').style.display = 'none';
+  const q = document.getElementById('quick');
+  if (q.classList.contains('active')) {
+    // already built
+  } else {
+    enterQuick();
+  }
+}
+
+function buildCasino() {
+  buildCasinoTabs();
+  renderSection();
+}
+
+function buildCasinoTabs() {
+  const tabsEl = document.getElementById('c-tabs');
+  tabsEl.innerHTML = SECTIONS_CFG.map((s,i) => `
+    <div class="c-tab ${i===casinoState.section?'active':''}" onclick="setSection(${i})">
+      <span class="c-tab-icon">${s.icon}</span>${s.label}
+    </div>
+  `).join('') + `<div class="c-tab" onclick="bookCall()" style="margin-left:auto;color:var(--g300)">📅 BOOK</div>`;
+}
+
+function setSection(idx) {
+  casinoState.section = idx;
+  casinoState.item = 0;
+  buildCasinoTabs();
+  renderSection();
+  playSpin();
+}
+
+function getSectionData() {
+  const s = SECTIONS_CFG[casinoState.section].id;
+  return DATA[s] || [];
+}
+
+function renderSection() {
+  const sec = SECTIONS_CFG[casinoState.section];
+  const items = getSectionData();
+  const headers = sec.headers;
+
+  // Update reel headers
+  document.getElementById('reel-headers').innerHTML = headers.map(h=>`<div class="c-reel-header">${h}</div>`).join('');
+
+  // Update section/item labels
+  document.getElementById('section-label').textContent = sec.label;
+  document.getElementById('item-label').textContent = `${casinoState.item+1}/${items.length}`;
+
+  // Build reel grid — 5 cols, show up to 4 items per col
+  const grid = document.getElementById('reel-grid');
+  const gridItems = items.slice(0, Math.min(items.length, 8));
+
+  // Distribute into 5 columns
+  grid.innerHTML = '';
+  for (let col=0; col<5; col++) {
+    const colEl = document.createElement('div');
+    colEl.className = 'c-reel-col';
+    // Show 3 cells per column with different items
+    for (let row=0; row<3; row++) {
+      const idx = (col + row*5) % (gridItems.length || 1);
+      const item = gridItems[idx] || items[0];
+      if (!item) continue;
+      const isSelected = col===0 && row===1 && idx===casinoState.item;
+      colEl.innerHTML += renderCell(item, isSelected, sec.id);
+    }
+    grid.appendChild(colEl);
+  }
+
+  // Show first col, middle row as selected for current item
+  updateSelectedCell();
+  updateDetailPanel();
+}
+
+function renderCell(item, selected, secId) {
+  const color = item.color || '#c9a227';
+  const name = item.name || item.ico || '?';
+  const sub = item.studio || item.period || item.domain || '';
+  return `<div class="c-reel-cell ${selected?'selected':''}" style="--cell-color:${color}" onclick="selectItem(this)">
+    <div class="c-cell-ico">${item.ico || '◈'}</div>
+    <div class="c-cell-name">${name.substring(0,14)}</div>
+    ${sub?`<div class="c-cell-sub">${sub}</div>`:''}
+  </div>`;
+}
+
+function updateSelectedCell() {
+  document.querySelectorAll('.c-reel-cell').forEach((el,i)=>{
+    el.classList.toggle('selected', i===casinoState.item);
+  });
+}
+
+function selectItem(el) {
+  const cells = Array.from(document.querySelectorAll('.c-reel-cell'));
+  casinoState.item = cells.indexOf(el);
+  updateSelectedCell();
+  updateDetailPanel();
+  playTick();
+}
+
+function updateDetailPanel() {
+  const items = getSectionData();
+  if (!items.length) return;
+  const item = items[casinoState.item % items.length];
+  const sec = SECTIONS_CFG[casinoState.section].id;
+
+  let bodyHTML = '';
+
+  if (sec === 'projects') {
+    bodyHTML = `
+      <div class="c-detail-section">
+        <h3>Description</h3>
+        <p>${item.work}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Scope</h3>
+        <div class="c-detail-scope">
+          ${Object.entries(item.scope).map(([k,v])=>`<div class="c-detail-scope-item ${v?'on':'off'}"><div class="dot"></div>${k.toUpperCase()}</div>`).join('')}
+        </div>
+      </div>
+      <div class="c-detail-section">
+        <h3>Tools</h3>
+        <div class="c-detail-tags">${item.tools.map(t=>`<div class="c-detail-tag">${t}</div>`).join('')}</div>
+      </div>
+      <div class="c-detail-section">
+        <button class="c-detail-demo-btn" onclick="playDemo('${item.color}')">▶ Play Demo Audio</button>
+      </div>
+    `;
+  } else if (sec === 'skills') {
+    bodyHTML = `
+      <div class="c-detail-section">
+        <h3>Level</h3>
+        <p style="color:${item.color}">${item.level} · ${item.domain}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Description</h3>
+        <p>${item.desc}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Tools & Tech</h3>
+        <div class="c-detail-tags">${item.tools.map(t=>`<div class="c-detail-tag">${t}</div>`).join('')}</div>
+      </div>
+    `;
+  } else if (sec === 'career') {
+    bodyHTML = `
+      <div class="c-detail-section">
+        <h3>Period</h3>
+        <p style="color:${item.color}">${item.period}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Overview</h3>
+        <p>${item.desc}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Highlights</h3>
+        <div class="c-detail-tags">${item.highlights.map(h=>`<div class="c-detail-tag">${h}</div>`).join('')}</div>
+      </div>
+    `;
+  } else if (sec === 'contact') {
+    bodyHTML = `
+      <div class="c-detail-section">
+        <h3>Channel</h3>
+        <p style="color:${item.color};font-size:16px">${item.value}</p>
+      </div>
+      <div class="c-detail-section">
+        <h3>Status</h3>
+        <p>${item.note}</p>
+      </div>
+      <button class="c-detail-demo-btn" onclick="copyText('${item.value}',this)" style="margin-top:auto">Copy Contact →</button>
+    `;
+  } else {
+    bodyHTML = `<div class="c-detail-section"><p>${item.desc||item.name}</p></div>`;
+  }
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="c-detail-header">
+      <div class="c-detail-head-row">
+        <div class="c-detail-ico">${item.ico||'◈'}</div>
+        <div class="c-detail-info">
+          <h2>${item.name}</h2>
+          <div class="sub">${item.studio||item.period||item.domain||''}</div>
+        </div>
+      </div>
+      <div class="c-detail-color-bar" style="background:${item.color||'#c9a227'}"></div>
+    </div>
+    <div class="c-detail-body">${bodyHTML}</div>
+  `;
+}
+
+/* SPIN */
+let spinTimeout = null;
+function spinReels() {
+  if (casinoState.spinning) return;
+  casinoState.spinning = true;
+  casinoState.credits -= 10;
+  document.getElementById('credits-val').textContent = casinoState.credits;
+  document.getElementById('spin-btn').classList.add('spinning');
+
+  playSpin();
+
+  const cells = document.querySelectorAll('.c-reel-cell');
+  cells.forEach(c => c.classList.add('spinning-cell'));
+
+  // Staggered landing per column
+  const cols = document.querySelectorAll('.c-reel-col');
+  cols.forEach((col, i) => {
+    setTimeout(() => {
+      col.querySelectorAll('.c-reel-cell').forEach(c => {
+        c.classList.remove('spinning-cell');
+        c.classList.add('landing');
+        playTick();
+      });
+      setTimeout(() => {
+        col.querySelectorAll('.c-reel-cell').forEach(c => c.classList.remove('landing'));
+      }, 500);
+    }, 300 + i*120);
+  });
+
+  setTimeout(() => {
+    casinoState.spinning = false;
+    document.getElementById('spin-btn').classList.remove('spinning');
+    // Randomize section item
+    const items = getSectionData();
+    casinoState.item = Math.floor(Math.random()*items.length);
+    updateSelectedCell();
+    updateDetailPanel();
+
+    // Random win
+    if (Math.random() < .25) triggerWin();
+  }, 300 + 4*120 + 500);
+}
+
+function triggerWin() {
+  const items = getSectionData();
+  const item = items[casinoState.item % items.length];
+  playWin();
+  spawnCoins();
+  document.getElementById('win-ico').textContent = item.ico || '🏆';
+  document.getElementById('win-sub').textContent = item.name;
+  document.getElementById('win-overlay').classList.add('show');
+  casinoState.credits += 50;
+  document.getElementById('credits-val').textContent = casinoState.credits;
+}
+
+function closeWin() {
+  document.getElementById('win-overlay').classList.remove('show');
+}
+
+/* COINS */
+function spawnCoins() {
+  const canvas = document.getElementById('coin-canvas');
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx2 = canvas.getContext('2d');
+
+  const coins = Array.from({length:60},()=>({
+    x: window.innerWidth/2 + (Math.random()-0.5)*200,
+    y: window.innerHeight/2,
+    vx: (Math.random()-0.5)*12,
+    vy: -8 - Math.random()*12,
+    vy2: 0,
+    r: 6 + Math.random()*8,
+    color: Math.random() > .5 ? '#c9a227' : '#ffd700',
+    alpha: 1,
+    rot: Math.random()*Math.PI*2,
+    rotv: (Math.random()-.5)*.3,
+  }));
+
+  let frame = 0;
+  function draw() {
+    frame++;
+    ctx2.clearRect(0,0,canvas.width,canvas.height);
+    let alive = 0;
+    coins.forEach(c => {
+      c.vy += .4;
+      c.x += c.vx;
+      c.y += c.vy;
+      c.rot += c.rotv;
+      c.alpha = Math.max(0, 1 - frame/80);
+      if (c.alpha > 0) {
+        alive++;
+        ctx2.save();
+        ctx2.globalAlpha = c.alpha;
+        ctx2.translate(c.x,c.y);
+        ctx2.rotate(c.rot);
+        ctx2.beginPath();
+        ctx2.ellipse(0,0,c.r,c.r*Math.abs(Math.cos(c.rot*2))+2,0,0,Math.PI*2);
+        ctx2.fillStyle = c.color;
+        ctx2.shadowColor = c.color;
+        ctx2.shadowBlur = 8;
+        ctx2.fill();
+        ctx2.restore();
+      }
+    });
+    if (alive > 0) requestAnimationFrame(draw);
+    else canvas.style.display = 'none';
+  }
+  requestAnimationFrame(draw);
+}
+
+/* PAYLINE CANVAS */
+let paylineAnim = null;
+function startPaylineCanvas() {
+  const canvas = document.getElementById('payline-canvas');
+  if (!canvas) return;
+  const ctx2 = canvas.getContext('2d');
+  let t = 0;
+
+  function draw() {
+    const w = canvas.offsetWidth * window.devicePixelRatio;
+    const h = canvas.offsetHeight * window.devicePixelRatio;
+    canvas.width = w; canvas.height = h;
+    ctx2.clearRect(0,0,w,h);
+
+    // Background
+    ctx2.fillStyle = 'rgba(5,7,12,0.4)';
+    ctx2.fillRect(0,0,w,h);
+
+    // Waveform
+    const baseY = h/2;
+    const cols = ['#c9a227','#22e8ff','#b14cff'];
+    cols.forEach((color, ci) => {
+      ctx2.beginPath();
+      ctx2.strokeStyle = color;
+      ctx2.lineWidth = 1.5;
+      ctx2.globalAlpha = .4 - ci*.1;
+      for (let x=0; x<w; x++) {
+        const freq = 3 + ci;
+        const amp = h*.25 * (1-ci*.2);
+        const phase = t * (1+ci*.5) + ci * Math.PI/3;
+        const y = baseY + Math.sin((x/w)*Math.PI*2*freq + phase) * amp
+                       + Math.sin((x/w)*Math.PI*2*(freq*1.7) + phase*1.3) * amp * .3;
+        if (x===0) ctx2.moveTo(x,y);
+        else ctx2.lineTo(x,y);
+      }
+      ctx2.stroke();
+    });
+    ctx2.globalAlpha = 1;
+
+    // Center line
+    ctx2.beginPath();
+    ctx2.strokeStyle = 'rgba(201,162,39,.15)';
+    ctx2.lineWidth = 1;
+    ctx2.setLineDash([4,8]);
+    ctx2.moveTo(0,baseY); ctx2.lineTo(w,baseY);
+    ctx2.stroke();
+    ctx2.setLineDash([]);
+
+    t += 0.02;
+    paylineAnim = requestAnimationFrame(draw);
+  }
+
+  draw();
+}
+
+/* JACKPOT TICKER */
+function startJackpotTicker() {
+  setInterval(() => {
+    casinoState.jackpot += Math.floor(Math.random()*7);
+    document.getElementById('jackpot-val').textContent =
+      'JACKPOT: ' + casinoState.jackpot.toLocaleString();
+  }, 200);
+}
+
+/* KEYBOARD */
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && document.getElementById('casino').classList.contains('active')) {
+    e.preventDefault();
+    spinReels();
+  }
+  if (e.code === 'ArrowRight' && document.getElementById('casino').classList.contains('active')) {
+    const items = getSectionData();
+    casinoState.item = (casinoState.item + 1) % items.length;
+    updateSelectedCell();
+    updateDetailPanel();
+    playTick();
+  }
+  if (e.code === 'ArrowLeft' && document.getElementById('casino').classList.contains('active')) {
+    const items = getSectionData();
+    casinoState.item = (casinoState.item - 1 + items.length) % items.length;
+    updateSelectedCell();
+    updateDetailPanel();
+    playTick();
+  }
+  if (e.key >= '1' && e.key <= '5' && document.getElementById('casino').classList.contains('active')) {
+    setSection(parseInt(e.key)-1);
+  }
+});
+
+/* ═══════════════════════════════════
+   INIT
+═══════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  runBoot();
+});
+</script>
+</body>
+</html>
