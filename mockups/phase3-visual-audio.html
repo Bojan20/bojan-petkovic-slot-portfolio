@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHASE 3 — Visual & Audio Flex Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#05070c;--bg1:#0b0f16;
+    --chr-hi:#bcc8e0;--chr-mid:#60709a;
+    --g100:#f0d878;--g200:#dbb840;--g300:#c9a227;--g400:#b08a18;
+    --g500:#8b6914;--g-text:#ffe6a8;
+    --neon-violet:#b14cff;--neon-cyan:#22e8ff;--neon-magenta:#ff2bd6;
+    --neon-amber:#ffb300;--neon-lime:#4ade80;
+    --f-ui:'Rajdhani',sans-serif;--f-mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#05070c;font-family:var(--f-ui);color:var(--chr-hi);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .phase-badge{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:8px;align-items:center;background:rgba(11,15,22,0.9);border:1px solid rgba(255,43,214,0.4);padding:6px 20px;border-radius:100px;backdrop-filter:blur(12px)}
+  .phase-dot{width:8px;height:8px;border-radius:50%;background:var(--neon-magenta);animation:pulse 1.5s infinite}
+  .phase-label{font-size:11px;letter-spacing:3px;color:var(--neon-magenta);font-family:var(--f-mono);text-transform:uppercase}
+
+  section{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 40px}
+  section:nth-child(even){background:rgba(8,6,16,0.6)}
+  .section-num{position:absolute;top:40px;left:50px;font-family:var(--f-mono);font-size:11px;letter-spacing:3px;color:var(--neon-magenta);opacity:0.5;text-transform:uppercase}
+  .section-title{font-size:clamp(28px,4vw,48px);font-weight:700;margin-bottom:12px}
+  .section-sub{font-size:14px;color:var(--chr-mid);letter-spacing:2px;font-family:var(--f-mono);text-transform:uppercase;margin-bottom:40px}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,43,214,0.2),transparent);margin:0 40px}
+
+  /* ── WAVEFORM RIBBON ── */
+  .slot-machine-demo{max-width:900px;width:100%;background:rgba(11,15,22,0.9);border:1px solid rgba(201,162,39,0.3);border-radius:16px;overflow:hidden;position:relative}
+  .slot-title-bar{background:rgba(8,6,16,0.8);padding:12px 20px;border-bottom:1px solid rgba(201,162,39,0.15);display:flex;align-items:center;justify-content:space-between}
+  .slot-title-text{font-family:var(--f-mono);font-size:12px;letter-spacing:3px;color:var(--g300);text-transform:uppercase}
+  .reels-area{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:20px}
+  .reel-col{background:rgba(5,7,12,0.8);border:1px solid rgba(201,162,39,0.2);border-radius:8px;overflow:hidden;position:relative}
+  .reel-sym{height:80px;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;border-bottom:1px solid rgba(201,162,39,0.1)}
+  .reel-sym:last-child{border-bottom:none}
+  .reel-sym.win{background:radial-gradient(circle,rgba(201,162,39,0.15),transparent)}
+  .waveform-overlay{position:relative;height:48px;background:rgba(5,7,12,0.9);border-top:1px solid rgba(201,162,39,0.2);overflow:hidden}
+  .waveform-overlay::after{content:'PAYLINE WAVEFORM — LIVE OSCILLOSCOPE';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:rgba(201,162,39,0.3)}
+  canvas#waveform-canvas{width:100%;height:100%}
+  .win-line{position:absolute;top:50%;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g300),var(--neon-cyan),var(--g300),transparent);transform:translateY(-50%);opacity:0;animation:none}
+  .win-line.active{opacity:1;animation:shimmer-line 2s infinite}
+  @keyframes shimmer-line{0%,100%{opacity:0.6}50%{opacity:1;box-shadow:0 0 12px var(--g300)}}
+
+  /* ── VARIABLE FONT VOX ── */
+  .vfont-demo{max-width:900px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}
+  .vfont-card{background:rgba(11,15,22,0.8);border:1px solid rgba(96,112,154,0.2);border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:16px}
+  .vfont-card.active{border-color:rgba(177,76,255,0.4)}
+  .vfont-headline{font-size:clamp(32px,5vw,64px);font-weight:var(--w, 400);line-height:1;transition:font-weight 0.1s;color:var(--g-text);font-family:'Rajdhani',sans-serif}
+  .vfont-headline.thin{font-weight:300}
+  .vfont-headline.bold{font-weight:700}
+  .freq-bars{display:flex;align-items:flex-end;gap:3px;height:48px}
+  .freq-bar{width:8px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--neon-violet),rgba(177,76,255,0.2));transition:height 0.08s}
+  .weight-slider-wrap{display:flex;align-items:center;gap:12px}
+  .weight-label{font-family:var(--f-mono);font-size:11px;color:var(--chr-mid);letter-spacing:2px;min-width:60px}
+  input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:rgba(177,76,255,0.3);border-radius:2px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--neon-violet);cursor:pointer;box-shadow:0 0 8px rgba(177,76,255,0.5)}
+  .weight-val{font-family:var(--f-mono);font-size:14px;color:var(--neon-violet);min-width:36px;text-align:right}
+
+  /* ── HRTF BINAURAL ── */
+  .hrtf-stage{max-width:700px;width:100%;position:relative}
+  .hrtf-field{width:100%;aspect-ratio:1.5;background:radial-gradient(ellipse at 50% 50%,rgba(34,232,255,0.05),rgba(5,7,12,0.95));border:1px solid rgba(34,232,255,0.15);border-radius:20px;position:relative;overflow:hidden;cursor:crosshair}
+  .hrtf-field::before{content:'HRTF BINAURAL SOUND FIELD';position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:rgba(34,232,255,0.3);text-transform:uppercase}
+  .hrtf-grid{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 0%,transparent 30%,rgba(34,232,255,0.03) 30%,rgba(34,232,255,0.03) 31%,transparent 31%,transparent 60%,rgba(34,232,255,0.03) 60%,rgba(34,232,255,0.03) 61%,transparent 61%)}
+  .hrtf-grid-lines{position:absolute;inset:0;background:linear-gradient(rgba(34,232,255,0.03) 1px,transparent 1px) 0 0/100% 20%,linear-gradient(90deg,rgba(34,232,255,0.03) 1px,transparent 1px) 0 0/20% 100%}
+  .listener-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;text-align:center}
+  .listener-icon .head{font-size:32px;filter:drop-shadow(0 0 12px rgba(34,232,255,0.6))}
+  .listener-icon .label{font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:var(--neon-cyan);margin-top:4px}
+  .sound-source{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all 0.3s;z-index:5}
+  .sound-source::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid;opacity:0.3;animation:ping 2s infinite}
+  .sound-source::after{content:'';position:absolute;inset:-16px;border-radius:50%;border:1px solid;opacity:0.15;animation:ping 2s infinite 0.5s}
+  @keyframes ping{0%{transform:scale(1);opacity:0.4}100%{transform:scale(1.5);opacity:0}}
+  .src-reel1{background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.5);top:20%;left:10%}
+  .src-reel1::before,.src-reel1::after{border-color:var(--g300)}
+  .src-reel2{background:rgba(34,232,255,0.1);border:1px solid rgba(34,232,255,0.4);top:25%;left:25%}
+  .src-reel2::before,.src-reel2::after{border-color:var(--neon-cyan)}
+  .src-reel3{background:rgba(177,76,255,0.1);border:1px solid rgba(177,76,255,0.4);top:20%;left:40%}
+  .src-reel3::before,.src-reel3::after{border-color:var(--neon-violet)}
+  .src-reel4{background:rgba(255,43,214,0.1);border:1px solid rgba(255,43,214,0.4);top:25%;right:25%}
+  .src-reel4::before,.src-reel4::after{border-color:var(--neon-magenta)}
+  .src-reel5{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.4);top:20%;right:10%}
+  .src-reel5::before,.src-reel5::after{border-color:var(--neon-lime)}
+  .hrtf-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px}
+  .hrtf-legend-item{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:10px;color:var(--chr-mid)}
+  .legend-dot{width:8px;height:8px;border-radius:50%}
+
+  /* SPECTRAL JACKPOT PREVIEW */
+  .spectral-preview{max-width:900px;width:100%;aspect-ratio:2;background:#000;border:1px solid rgba(177,76,255,0.3);border-radius:16px;overflow:hidden;position:relative;cursor:pointer}
+  .spectral-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(177,76,255,0.4) 0%,rgba(34,232,255,0.2) 30%,rgba(5,7,12,0.95) 70%)}
+  .spectral-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:5}
+  .spectral-title{font-size:clamp(28px,5vw,64px);font-weight:700;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-violet),var(--neon-magenta));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 20px rgba(177,76,255,0.8));animation:float 3s ease-in-out infinite}
+  .spectral-sub{font-family:var(--f-mono);font-size:11px;letter-spacing:4px;color:rgba(34,232,255,0.6);text-transform:uppercase;margin-top:8px}
+  canvas#spectral-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:3}
+  .crt-overlay{position:absolute;inset:0;z-index:10;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 3px)}
+  .chromatic-split{position:absolute;inset:0;z-index:9;pointer-events:none;mix-blend-mode:screen;background:transparent;animation:chromatic 6s ease-in-out infinite}
+  @keyframes chromatic{0%,90%,100%{opacity:0}93%{opacity:1}96%{opacity:0.5}99%{opacity:1}}
+  .click-hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;letter-spacing:3px;color:rgba(177,76,255,0.5);animation:pulse 2s infinite}
+
+  .nav-pills{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:100;background:rgba(11,15,22,0.9);padding:8px;border-radius:100px;border:1px solid rgba(96,112,154,0.2);backdrop-filter:blur(12px)}
+  .nav-pill{padding:8px 20px;border-radius:100px;font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;display:inline-block;color:var(--chr-mid);background:transparent}
+  .nav-pill.active{color:var(--bg);background:var(--neon-magenta)}
+  .nav-pill:hover:not(.active){color:var(--neon-magenta);background:rgba(255,43,214,0.1)}
+</style>
+</head>
+<body>
+
+<div class="phase-badge">
+  <div class="phase-dot"></div>
+  <span class="phase-label">Phase 3 — Visual & Audio Flex</span>
+</div>
+
+<!-- ── SECTION 1: PAYLINE WAVEFORM RIBBON ── -->
+<section id="waveform-ribbon">
+  <span class="section-num">07 — PAYLINE WAVEFORM RIBBON</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px;width:100%;max-width:900px">
+    <div style="text-align:center">
+      <div class="section-title">Payline nije neon.<br><span style="background:linear-gradient(90deg,var(--g100),var(--neon-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">To je live oscilloscope.</span></div>
+      <div class="section-sub">FFT → payline → reels · Twitter-shareable za 2 sek</div>
+    </div>
+
+    <div class="slot-machine-demo">
+      <div class="slot-title-bar">
+        <span class="slot-title-text">⚡ Age of Caesar — Win State</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--neon-lime);animation:pulse 0.8s infinite"></div>
+          <span style="font-family:var(--f-mono);font-size:10px;color:var(--neon-lime)">LIVE FFT</span>
+        </div>
+      </div>
+      <div class="reels-area">
+        <div class="reel-col">
+          <div class="reel-sym win">🏛️</div>
+          <div class="reel-sym">⚡</div>
+          <div class="reel-sym">🪙</div>
+        </div>
+        <div class="reel-col">
+          <div class="reel-sym win">🏛️</div>
+          <div class="reel-sym">🎯</div>
+          <div class="reel-sym">🎲</div>
+        </div>
+        <div class="reel-col">
+          <div class="reel-sym win">🏛️</div>
+          <div class="reel-sym">💎</div>
+          <div class="reel-sym">⚡</div>
+        </div>
+        <div class="reel-col">
+          <div class="reel-sym win">🏛️</div>
+          <div class="reel-sym">🪙</div>
+          <div class="reel-sym">🎯</div>
+        </div>
+        <div class="reel-col">
+          <div class="reel-sym win">🏛️</div>
+          <div class="reel-sym">🎲</div>
+          <div class="reel-sym">💎</div>
+        </div>
+      </div>
+      <div class="waveform-overlay">
+        <canvas id="waveform-canvas"></canvas>
+      </div>
+      <div style="padding:8px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(5,7,12,0.6);border-top:1px solid rgba(201,162,39,0.1)">
+        <span style="font-family:var(--f-mono);font-size:10px;color:var(--g300)">♪ caesar_win_jingle.wav · 261Hz C4 root</span>
+        <button onclick="triggerWin()" style="padding:6px 16px;background:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.3);border-radius:6px;font-family:var(--f-mono);font-size:10px;color:var(--g300);cursor:pointer;letter-spacing:2px">▶ PLAY WIN</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%">
+      <div style="padding:20px;background:rgba(11,15,22,0.8);border:1px solid rgba(201,162,39,0.15);border-radius:10px">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--chr-mid);margin-bottom:8px">HOW IT WORKS</div>
+        <div style="font-size:13px;color:var(--chr-hi);line-height:1.6">AudioContext AnalyserNode → FFT → canvas line per symbol column → animationFrame sync</div>
+      </div>
+      <div style="padding:20px;background:rgba(11,15,22,0.8);border:1px solid rgba(34,232,255,0.15);border-radius:10px">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--chr-mid);margin-bottom:8px">WIN STATE</div>
+        <div style="font-size:13px;color:var(--chr-hi);line-height:1.6">Payline glow pulses u sync sa amplitude envelope — gold wave = big win</div>
+      </div>
+      <div style="padding:20px;background:rgba(11,15,22,0.8);border:1px solid rgba(255,43,214,0.15);border-radius:10px">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--chr-mid);margin-bottom:8px">TWITTER HOOK</div>
+        <div style="font-size:13px;color:var(--chr-hi);line-height:1.6">"Audio design that visualizes itself" — screen recording = viral clip</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SECTION 2: VARIABLE FONT VOX ── -->
+<section id="vfont">
+  <span class="section-num">08 — VARIABLE-FONT VOX</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px;width:100%;max-width:900px">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">Tipografija <span style="color:var(--neon-violet)">diše</span><br>uz muziku.</div>
+      <div class="section-sub">font-weight 300→900 synced sa loudness envelope</div>
+    </div>
+
+    <div class="vfont-demo">
+      <div class="vfont-card">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--chr-mid)">STATIC — BEFORE</div>
+        <div class="vfont-headline thin">WHERE<br>REELS MEET<br>THE SCORE.</div>
+        <div style="font-size:12px;color:rgba(96,112,154,0.5);font-family:var(--f-mono)">font-weight: 400 · static · boring</div>
+      </div>
+      <div class="vfont-card active">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--neon-violet)">ANIMATED — AFTER ✓</div>
+        <div class="vfont-headline" id="vfont-live">WHERE<br>REELS MEET<br>THE SCORE.</div>
+        <div class="freq-bars" id="freq-bars">
+          <!-- bars injected by JS -->
+        </div>
+        <div class="weight-slider-wrap">
+          <span class="weight-label">WEIGHT</span>
+          <input type="range" id="weight-slider" min="300" max="900" value="500" oninput="setWeight(this.value)">
+          <span class="weight-val" id="weight-display">500</span>
+        </div>
+        <div style="font-size:12px;color:var(--neon-violet);font-family:var(--f-mono)">font-weight: <span id="fw-live">500</span> · synced · alive</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SECTION 3: HRTF BINAURAL ── -->
+<section id="hrtf">
+  <span class="section-num">09 — HRTF BINAURAL SYMBOL TELEMETRY</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px;width:100%;max-width:700px">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">Svaki simbol = 3D pozicion<br><span style="color:var(--neon-cyan)">PannerNode HRTF</span></div>
+      <div class="section-sub">reel 1→5 = left→right · row 1→3 = near→far · slušalice = pravi binaural</div>
+    </div>
+
+    <div class="hrtf-stage">
+      <div class="hrtf-field" onclick="playHrtfDemo()">
+        <div class="hrtf-grid"></div>
+        <div class="hrtf-grid-lines"></div>
+        <div class="sound-source src-reel1">🏛️</div>
+        <div class="sound-source src-reel2">💎</div>
+        <div class="sound-source src-reel3">⚡</div>
+        <div class="sound-source src-reel4">🪙</div>
+        <div class="sound-source src-reel5">🎯</div>
+        <div class="listener-icon">
+          <div class="head" id="listener-head">🎧</div>
+          <div class="label">LISTENER</div>
+        </div>
+      </div>
+
+      <div class="hrtf-legend">
+        <div class="hrtf-legend-item"><div class="legend-dot" style="background:var(--g300)"></div>Reel 1 · Left −1.0</div>
+        <div class="hrtf-legend-item"><div class="legend-dot" style="background:var(--neon-cyan)"></div>Reel 2 · −0.5</div>
+        <div class="hrtf-legend-item"><div class="legend-dot" style="background:var(--neon-violet)"></div>Reel 3 · Center 0</div>
+        <div class="hrtf-legend-item"><div class="legend-dot" style="background:var(--neon-magenta)"></div>Reel 4 · +0.5</div>
+        <div class="hrtf-legend-item"><div class="legend-dot" style="background:var(--neon-lime)"></div>Reel 5 · Right +1.0</div>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;font-family:var(--f-mono);font-size:11px;color:rgba(96,112,154,0.5);letter-spacing:2px">
+        🎧 Klikni na sound field da čuješ binaural demo
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SECTION 4: SPECTRAL JACKPOT ── -->
+<section id="spectral">
+  <span class="section-num">10 — SPECTRAL JACKPOT PREVIEW</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px;width:100%;max-width:900px">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">Jackpot = <span style="background:linear-gradient(90deg,var(--neon-cyan),var(--neon-violet),var(--neon-magenta));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">FULLSCREEN GLSL</span></div>
+      <div class="section-sub">FFT waterfall + CRT phosphor + chromatic split · Twitter viral hook</div>
+    </div>
+
+    <div class="spectral-preview" id="spectral-preview" onclick="triggerJackpot()">
+      <div class="spectral-bg"></div>
+      <canvas id="spectral-canvas"></canvas>
+      <div class="spectral-label">
+        <div class="spectral-title">JACKPOT</div>
+        <div class="spectral-sub">Spectral impact · Full-screen shader</div>
+      </div>
+      <div class="crt-overlay"></div>
+      <div class="chromatic-split"></div>
+      <div class="click-hint">▶ KLIKNI ZA DEMO</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%">
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(34,232,255,0.15);border-radius:10px;text-align:center">
+        <div style="font-size:11px;font-family:var(--f-mono);letter-spacing:2px;color:var(--neon-cyan);margin-bottom:6px">EFFECT</div>
+        <div style="font-size:13px;color:var(--chr-hi)">FFT Waterfall</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(177,76,255,0.15);border-radius:10px;text-align:center">
+        <div style="font-size:11px;font-family:var(--f-mono);letter-spacing:2px;color:var(--neon-violet);margin-bottom:6px">EFFECT</div>
+        <div style="font-size:13px;color:var(--chr-hi)">CRT Phosphor</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(255,43,214,0.15);border-radius:10px;text-align:center">
+        <div style="font-size:11px;font-family:var(--f-mono);letter-spacing:2px;color:var(--neon-magenta);margin-bottom:6px">EFFECT</div>
+        <div style="font-size:13px;color:var(--chr-hi)">Chromatic Split</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(74,222,128,0.15);border-radius:10px;text-align:center">
+        <div style="font-size:11px;font-family:var(--f-mono);letter-spacing:2px;color:var(--neon-lime);margin-bottom:6px">TECH</div>
+        <div style="font-size:13px;color:var(--chr-hi)">WebGL GLSL</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="nav-pills">
+  <a class="nav-pill" href="phase1-brand-foundation.html">Phase 1</a>
+  <a class="nav-pill" href="phase2-recruiter-funnel.html">Phase 2</a>
+  <a class="nav-pill active" href="phase3-visual-audio.html">Phase 3</a>
+</div>
+
+<script>
+// ── Web Audio ──
+let audioCtx;
+function getAC() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+// ── WAVEFORM CANVAS ──
+const wc = document.getElementById('waveform-canvas');
+const wCtx = wc ? wc.getContext('2d') : null;
+let wPhase = 0;
+let winActive = false;
+
+function drawWaveform() {
+  if (!wc || !wCtx) return;
+  wc.width = wc.offsetWidth;
+  wc.height = wc.offsetHeight;
+  const w = wc.width, h = wc.height;
+  wCtx.clearRect(0,0,w,h);
+  const mid = h/2;
+  const amp = winActive ? h*0.42 : h*0.15;
+  const freq = winActive ? 4 : 1.5;
+  const grad = wCtx.createLinearGradient(0,0,w,0);
+  if (winActive) {
+    grad.addColorStop(0,'transparent');
+    grad.addColorStop(0.2,'#f0d878');
+    grad.addColorStop(0.5,'#22e8ff');
+    grad.addColorStop(0.8,'#b14cff');
+    grad.addColorStop(1,'transparent');
+  } else {
+    grad.addColorStop(0,'transparent');
+    grad.addColorStop(0.2,'rgba(201,162,39,0.4)');
+    grad.addColorStop(0.8,'rgba(201,162,39,0.4)');
+    grad.addColorStop(1,'transparent');
+  }
+  wCtx.strokeStyle = grad;
+  wCtx.lineWidth = winActive ? 2.5 : 1.5;
+  wCtx.shadowColor = winActive ? '#22e8ff' : '#c9a227';
+  wCtx.shadowBlur = winActive ? 12 : 4;
+  wCtx.beginPath();
+  for (let x=0;x<w;x++) {
+    const t = x/w;
+    const env = Math.sin(t*Math.PI);
+    const y = mid + Math.sin(t*Math.PI*2*freq + wPhase)*amp*env;
+    x===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y);
+  }
+  wCtx.stroke();
+  wPhase += winActive ? 0.15 : 0.04;
+  requestAnimationFrame(drawWaveform);
+}
+if (wc) drawWaveform();
+
+function triggerWin() {
+  const ac = getAC();
+  const freqs = [261.6, 329.6, 392, 523.2];
+  freqs.forEach((f, i) => {
+    const osc = ac.createOscillator();
+    const g = ac.createGain();
+    const t = ac.currentTime + i*0.06;
+    osc.frequency.value = f;
+    osc.type = 'sine';
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.25,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+    osc.connect(g); g.connect(ac.destination);
+    osc.start(t); osc.stop(t+0.6);
+  });
+  winActive = true;
+  setTimeout(()=>{winActive=false;},2000);
+}
+
+// ── VARIABLE FONT ──
+const fbContainer = document.getElementById('freq-bars');
+if (fbContainer) {
+  for (let i=0;i<20;i++) {
+    const b = document.createElement('div');
+    b.className='freq-bar';
+    b.style.height='20px';
+    fbContainer.appendChild(b);
+  }
+}
+function setWeight(v) {
+  const el = document.getElementById('vfont-live');
+  const disp = document.getElementById('weight-display');
+  const fwl = document.getElementById('fw-live');
+  if (el) el.style.fontWeight = v;
+  if (disp) disp.textContent = v;
+  if (fwl) fwl.textContent = v;
+  const bars = document.querySelectorAll('.freq-bar');
+  bars.forEach((b,i) => {
+    const norm = (v-300)/600;
+    const h = 4 + norm*44 + Math.sin(i*0.8+norm*3)*norm*12;
+    b.style.height = Math.max(4,h)+'px';
+    const alpha = 0.3 + norm*0.7;
+    b.style.background = `linear-gradient(180deg,rgba(177,76,255,${alpha}),rgba(177,76,255,0.1))`;
+  });
+}
+// auto animate
+let vfPhase = 0;
+function animateVF() {
+  const slider = document.getElementById('weight-slider');
+  if (slider && !slider.matches(':active') && !slider.matches(':focus')) {
+    vfPhase += 0.015;
+    const w = Math.round(300 + (Math.sin(vfPhase)*0.5+0.5)*600);
+    slider.value = w;
+    setWeight(w);
+  }
+  requestAnimationFrame(animateVF);
+}
+animateVF();
+
+// ── HRTF BINAURAL ──
+function playHrtfDemo() {
+  const ac = getAC();
+  const listener = ac.listener;
+  if (listener.positionX) {
+    listener.positionX.value = 0;
+    listener.positionY.value = 0;
+    listener.positionZ.value = 0;
+  }
+  const reels = [
+    { x:-1.0, note:196, sym:'src-reel1' },
+    { x:-0.5, note:220, sym:'src-reel2' },
+    { x: 0.0, note:261.6, sym:'src-reel3' },
+    { x: 0.5, note:293.7, sym:'src-reel4' },
+    { x: 1.0, note:329.6, sym:'src-reel5' },
+  ];
+  reels.forEach((r, i) => {
+    setTimeout(() => {
+      const osc = ac.createOscillator();
+      const panner = ac.createPanner();
+      const g = ac.createGain();
+      panner.panningModel = 'HRTF';
+      panner.distanceModel = 'inverse';
+      if (panner.positionX) {
+        panner.positionX.value = r.x * 3;
+        panner.positionY.value = 0;
+        panner.positionZ.value = -1;
+      } else {
+        panner.setPosition(r.x*3, 0, -1);
+      }
+      osc.frequency.value = r.note;
+      osc.type = 'triangle';
+      g.gain.setValueAtTime(0, ac.currentTime);
+      g.gain.linearRampToValueAtTime(0.3, ac.currentTime+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.4);
+      osc.connect(g); g.connect(panner); panner.connect(ac.destination);
+      osc.start(ac.currentTime); osc.stop(ac.currentTime+0.45);
+      const el = document.querySelector('.'+r.sym);
+      if (el) { el.style.transform='scale(1.4)'; setTimeout(()=>{el.style.transform='scale(1)';},300); }
+    }, i*100);
+  });
+  const head = document.getElementById('listener-head');
+  if (head) { head.style.filter='drop-shadow(0 0 20px #22e8ff)'; setTimeout(()=>{head.style.filter='';},600); }
+}
+
+// ── SPECTRAL JACKPOT ──
+const sc = document.getElementById('spectral-canvas');
+const sCtx = sc ? sc.getContext('2d') : null;
+let jackpotActive = false;
+let spectralPhase = 0;
+
+function drawSpectral() {
+  if (!sc || !sCtx) return;
+  sc.width = sc.offsetWidth;
+  sc.height = sc.offsetHeight;
+  const w = sc.width, h = sc.height;
+  sCtx.clearRect(0,0,w,h);
+  if (!jackpotActive) {
+    // idle: subtle FFT lines
+    sCtx.globalAlpha = 0.15;
+    for (let i=0; i<8; i++) {
+      const y = h - (i/8)*h*0.4;
+      sCtx.strokeStyle = `hsl(${180+i*20},80%,60%)`;
+      sCtx.lineWidth = 1;
+      sCtx.beginPath();
+      for (let x=0;x<w;x++) {
+        const t = x/w;
+        const v = Math.sin(t*Math.PI*4+spectralPhase+i*0.5)*0.5*h*0.03;
+        x===0?sCtx.moveTo(x,y+v):sCtx.lineTo(x,y+v);
+      }
+      sCtx.stroke();
+    }
+    sCtx.globalAlpha = 1;
+  } else {
+    // jackpot: full FFT waterfall
+    const rows = 20;
+    for (let i=0; i<rows; i++) {
+      const y = h - (i/rows)*h;
+      const alpha = (i/rows)*0.8;
+      const hue = (spectralPhase*30 + i*15) % 360;
+      sCtx.globalAlpha = alpha;
+      sCtx.strokeStyle = `hsl(${hue},100%,60%)`;
+      sCtx.lineWidth = h/rows*0.8;
+      sCtx.shadowColor = `hsl(${hue},100%,60%)`;
+      sCtx.shadowBlur = 8;
+      sCtx.beginPath();
+      for (let x=0;x<w;x++) {
+        const t = x/w;
+        const v = Math.sin(t*Math.PI*8+spectralPhase*2+i*0.7)*alpha*(h/rows*0.5);
+        x===0?sCtx.moveTo(x,y+v):sCtx.lineTo(x,y+v);
+      }
+      sCtx.stroke();
+    }
+    sCtx.globalAlpha = 1;
+    sCtx.shadowBlur = 0;
+  }
+  spectralPhase += 0.04;
+  requestAnimationFrame(drawSpectral);
+}
+if (sc) drawSpectral();
+
+function triggerJackpot() {
+  const ac = getAC();
+  jackpotActive = true;
+  const freqs = [130.8, 196, 261.6, 329.6, 392, 523.2, 659.3];
+  freqs.forEach((f,i) => {
+    const osc = ac.createOscillator();
+    const g = ac.createGain();
+    const t = ac.currentTime + i*0.08;
+    osc.frequency.value = f;
+    osc.type = i<3?'sawtooth':'sine';
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.15,t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.001,t+1.2);
+    osc.connect(g); g.connect(ac.destination);
+    osc.start(t); osc.stop(t+1.3);
+  });
+  document.getElementById('spectral-preview').style.transform='scale(1.02)';
+  setTimeout(()=>{
+    document.getElementById('spectral-preview').style.transform='';
+    jackpotActive=false;
+  }, 3000);
+}
+</script>
+</body>
+</html>

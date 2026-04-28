@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHASE 2 — Recruiter Funnel Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#05070c;--bg1:#0b0f16;--bg-deep:#080610;
+    --chr-hi:#bcc8e0;--chr-mid:#60709a;--chr-lo:#161c36;
+    --g100:#f0d878;--g200:#dbb840;--g300:#c9a227;--g400:#b08a18;
+    --g500:#8b6914;--g-text:#ffe6a8;
+    --ice:#38bdf8;--neon-violet:#b14cff;--neon-cyan:#22e8ff;--neon-magenta:#ff2bd6;
+    --red:#cc1133;--cyan:#00ffcc;
+    --f-ui:'Rajdhani',sans-serif;--f-mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#05070c;font-family:var(--f-ui);color:var(--chr-hi);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+  @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+  @keyframes coinDrop{0%{transform:translateY(-40px) scale(0.8);opacity:0}60%{transform:translateY(4px) scale(1.05);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes slideUp{0%{transform:translateY(30px);opacity:0}100%{transform:translateY(0);opacity:1}}
+
+  .phase-badge{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:8px;align-items:center;background:rgba(11,15,22,0.9);border:1px solid rgba(34,232,255,0.4);padding:6px 20px;border-radius:100px;backdrop-filter:blur(12px)}
+  .phase-dot{width:8px;height:8px;border-radius:50%;background:var(--neon-cyan);animation:pulse 1.5s infinite}
+  .phase-label{font-size:11px;letter-spacing:3px;color:var(--neon-cyan);font-family:var(--f-mono);text-transform:uppercase}
+
+  section{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 40px}
+  section:nth-child(even){background:rgba(8,6,16,0.6)}
+  .section-num{position:absolute;top:40px;left:50px;font-family:var(--f-mono);font-size:11px;letter-spacing:3px;color:var(--neon-cyan);opacity:0.5;text-transform:uppercase}
+  .section-title{font-size:clamp(28px,4vw,48px);font-weight:700;letter-spacing:-1px;margin-bottom:12px}
+  .section-sub{font-size:14px;color:var(--chr-mid);letter-spacing:2px;font-family:var(--f-mono);text-transform:uppercase;margin-bottom:48px}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(34,232,255,0.2),transparent);margin:0 40px}
+
+  /* ── RECRUITER FAST-LANE ── */
+  .browser-chrome{background:rgba(16,20,32,0.9);border:1px solid rgba(96,112,154,0.3);border-radius:12px;overflow:hidden;max-width:900px;width:100%}
+  .browser-bar{background:rgba(8,10,18,0.9);padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(96,112,154,0.15)}
+  .browser-dots{display:flex;gap:6px}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .url-bar{flex:1;background:rgba(22,28,54,0.8);border:1px solid rgba(96,112,154,0.2);border-radius:6px;padding:6px 12px;font-family:var(--f-mono);font-size:12px;color:var(--chr-mid);display:flex;align-items:center;gap:6px}
+  .url-highlight{color:var(--neon-cyan)}
+  .url-param{color:var(--g300)}
+
+  .site-header{padding:24px 32px 0;border-bottom:1px solid rgba(201,162,39,0.15)}
+  .dynamic-banner{background:linear-gradient(135deg,rgba(201,162,39,0.08),rgba(177,76,255,0.06));border:1px solid rgba(201,162,39,0.3);border-radius:10px;padding:16px 20px;margin:20px 0;display:flex;align-items:center;gap:16px}
+  .banner-icon{font-size:28px}
+  .banner-text strong{display:block;color:var(--g-text);font-size:18px;font-weight:700}
+  .banner-text span{font-size:12px;color:var(--chr-mid);font-family:var(--f-mono)}
+
+  .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 32px}
+  .project-card{background:rgba(11,15,22,0.8);border:1px solid rgba(96,112,154,0.2);border-radius:10px;padding:16px;transition:all 0.2s;cursor:pointer}
+  .project-card:hover{border-color:rgba(201,162,39,0.4);transform:translateY(-2px)}
+  .project-card.featured{border-color:rgba(201,162,39,0.4);background:rgba(201,162,39,0.05)}
+  .project-card.featured::before{content:'★ FEATURED';font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--g300);display:block;margin-bottom:8px}
+  .project-card.dimmed{opacity:0.3}
+  .proj-thumb{height:60px;border-radius:6px;background:linear-gradient(135deg,rgba(177,76,255,0.2),rgba(34,232,255,0.1));margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .proj-name{font-size:14px;font-weight:600;color:var(--chr-hi)}
+  .proj-tag{font-size:10px;color:var(--chr-mid);font-family:var(--f-mono);margin-top:4px}
+
+  /* ── BOOK SPIN MODAL ── */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(2,3,8,0.85);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;animation:none}
+  .modal-card{background:radial-gradient(ellipse at 50% 0%,rgba(201,162,39,0.08),rgba(11,15,22,0.98));border:1px solid rgba(201,162,39,0.4);border-radius:20px;padding:40px;max-width:480px;width:90%;position:relative;animation:coinDrop 0.5s ease forwards}
+  .coin-drop{font-size:48px;text-align:center;margin-bottom:8px;animation:coinDrop 0.4s ease 0.1s both}
+  .modal-title{text-align:center;font-size:clamp(22px,4vw,32px);font-weight:700;color:var(--g-text);margin-bottom:6px}
+  .modal-sub{text-align:center;font-size:13px;font-family:var(--f-mono);letter-spacing:2px;color:var(--chr-mid);margin-bottom:32px;text-transform:uppercase}
+  .cal-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px}
+  .cal-slot{padding:12px 16px;background:rgba(201,162,39,0.05);border:1px solid rgba(201,162,39,0.2);border-radius:8px;text-align:center;cursor:pointer;transition:all 0.2s;font-family:var(--f-mono);font-size:12px;color:var(--chr-mid)}
+  .cal-slot:hover,.cal-slot.selected{background:rgba(201,162,39,0.15);border-color:var(--g300);color:var(--g-text)}
+  .cal-slot .slot-time{font-size:16px;font-weight:700;color:var(--g200);display:block;margin-bottom:2px}
+  .book-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--g300),var(--g500));border:none;border-radius:10px;font-family:var(--f-ui);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--bg);cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s}
+  .book-btn::after{content:'';position:absolute;top:0;left:0;width:60px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite}
+  .book-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,162,39,0.3)}
+  .modal-dismiss{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--chr-mid);cursor:pointer;font-size:20px}
+
+  /* ── LOGO WALL ── */
+  .logo-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:900px;width:100%}
+  .logo-tile{background:rgba(11,15,22,0.8);border:1px solid rgba(96,112,154,0.15);border-radius:12px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:default;transition:all 0.3s;position:relative;overflow:hidden}
+  .logo-tile:hover{border-color:rgba(201,162,39,0.5);background:rgba(201,162,39,0.04);transform:translateY(-3px)}
+  .logo-tile:hover .logo-text{color:var(--g200)}
+  .logo-tile::before{content:'';position:absolute;bottom:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,39,0),transparent);transition:background 0.3s}
+  .logo-tile:hover::before{background:linear-gradient(90deg,transparent,rgba(201,162,39,0.5),transparent)}
+  .logo-icon{font-size:36px;filter:grayscale(1);transition:filter 0.3s;opacity:0.6}
+  .logo-tile:hover .logo-icon{filter:grayscale(0);opacity:1}
+  .logo-text{font-size:15px;font-weight:700;color:var(--chr-mid);transition:color 0.3s;font-family:var(--f-mono)}
+  .logo-role{font-size:10px;color:rgba(96,112,154,0.5);letter-spacing:2px;text-transform:uppercase}
+  .logo-years{font-size:11px;color:var(--g500);font-family:var(--f-mono)}
+
+  /* COMPARISON TABLE */
+  .compare-table{max-width:860px;width:100%;border:1px solid rgba(96,112,154,0.2);border-radius:16px;overflow:hidden}
+  .compare-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:rgba(8,6,16,0.9);border-bottom:1px solid rgba(96,112,154,0.2)}
+  .compare-col{padding:16px 20px;font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+  .compare-col.you{color:var(--g300);background:rgba(201,162,39,0.05);border-left:1px solid rgba(201,162,39,0.2)}
+  .compare-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border-bottom:1px solid rgba(96,112,154,0.08)}
+  .compare-row:last-child{border-bottom:none}
+  .compare-cell{padding:14px 20px;font-size:14px}
+  .compare-cell.feature{color:var(--chr-hi);font-size:13px}
+  .compare-cell.you{background:rgba(201,162,39,0.04);border-left:1px solid rgba(201,162,39,0.1)}
+  .check{color:var(--neon-cyan)}
+  .cross{color:rgba(204,17,51,0.6)}
+  .partial{color:var(--g400)}
+
+  .nav-pills{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:100;background:rgba(11,15,22,0.9);padding:8px;border-radius:100px;border:1px solid rgba(96,112,154,0.2);backdrop-filter:blur(12px)}
+  .nav-pill{padding:8px 20px;border-radius:100px;font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;display:inline-block;color:var(--chr-mid);background:transparent}
+  .nav-pill.active{color:var(--bg);background:var(--neon-cyan)}
+  .nav-pill:hover:not(.active){color:var(--neon-cyan);background:rgba(34,232,255,0.1)}
+</style>
+</head>
+<body>
+
+<div class="phase-badge">
+  <div class="phase-dot"></div>
+  <span class="phase-label">Phase 2 — Recruiter Funnel</span>
+</div>
+
+<!-- ── SECTION 1: RECRUITER FAST-LANE ── -->
+<section id="fastlane">
+  <span class="section-num">04 — RECRUITER FAST-LANE</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px;width:100%;max-width:900px">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">URL param → <span style="color:var(--neon-cyan)">personalizovana</span> landing</div>
+      <div class="section-sub">bojan.portfolio?utm=playtika · auto-greet + filtered projects</div>
+    </div>
+
+    <div class="browser-chrome">
+      <div class="browser-bar">
+        <div class="browser-dots">
+          <div class="dot" style="background:#ff5f57"></div>
+          <div class="dot" style="background:#febc2e"></div>
+          <div class="dot" style="background:#28c840"></div>
+        </div>
+        <div class="url-bar">
+          <span style="color:rgba(96,112,154,0.5)">🔒</span>
+          <span class="url-highlight">bojanpetkovic.com</span>
+          <span style="color:rgba(96,112,154,0.4)">/?</span>
+          <span class="url-param">utm=playtika</span>
+          <span style="color:rgba(96,112,154,0.4)">&amp;ref=linkedin</span>
+        </div>
+      </div>
+      <div class="site-header">
+        <div class="dynamic-banner">
+          <div class="banner-icon">🎰</div>
+          <div class="banner-text">
+            <strong>Hi Playtika — this one's built for you.</strong>
+            <span>Showing: Playtika-relevant titles only · 12 slot projects · 3 BGM suites</span>
+          </div>
+        </div>
+      </div>
+      <div class="projects-grid">
+        <div class="project-card featured">
+          <div class="proj-thumb">🎲</div>
+          <div class="proj-name">Age of Caesar</div>
+          <div class="proj-tag">HIGH VOLATILITY · SFX + BGM</div>
+        </div>
+        <div class="project-card featured">
+          <div class="proj-thumb">👑</div>
+          <div class="proj-name">King of Spades</div>
+          <div class="proj-tag">BRANDED SLOT · FULL AUDIO</div>
+        </div>
+        <div class="project-card featured">
+          <div class="proj-thumb">🔱</div>
+          <div class="proj-name">Neptune's Vault</div>
+          <div class="proj-tag">JACKPOT AUDIO · HRTF</div>
+        </div>
+        <div class="project-card dimmed">
+          <div class="proj-thumb">📱</div>
+          <div class="proj-name">Mobile UX Sound</div>
+          <div class="proj-tag">FILTERED OUT</div>
+        </div>
+        <div class="project-card dimmed">
+          <div class="proj-thumb">🎵</div>
+          <div class="proj-name">Podcast Audio</div>
+          <div class="proj-tag">FILTERED OUT</div>
+        </div>
+        <div class="project-card dimmed">
+          <div class="proj-thumb">🎬</div>
+          <div class="proj-name">Film Scoring</div>
+          <div class="proj-tag">FILTERED OUT</div>
+        </div>
+      </div>
+      <div style="padding:12px 32px 20px;font-family:var(--f-mono);font-size:11px;color:var(--chr-mid)">
+        💡 <span style="color:var(--neon-cyan)">3 projects matched</span> · 3 filtered · Auto-personalized via ?utm=playtika
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:900px">
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(34,232,255,0.2);border-radius:10px;text-align:center">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--neon-cyan);margin-bottom:8px">?utm=playtika</div>
+        <div style="font-size:13px;color:var(--chr-hi)">Playtika</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(201,162,39,0.2);border-radius:10px;text-align:center">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--g300);margin-bottom:8px">?utm=igt</div>
+        <div style="font-size:13px;color:var(--chr-hi)">IGT</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(177,76,255,0.2);border-radius:10px;text-align:center">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--neon-violet);margin-bottom:8px">?utm=gaming</div>
+        <div style="font-size:13px;color:var(--chr-hi)">iGaming</div>
+      </div>
+      <div style="padding:16px;background:rgba(11,15,22,0.8);border:1px solid rgba(96,112,154,0.2);border-radius:10px;text-align:center">
+        <div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--chr-mid);margin-bottom:8px">?utm=audio</div>
+        <div style="font-size:13px;color:var(--chr-hi)">Audio Dir.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SECTION 2: BOOK SPIN MODAL ── -->
+<section id="book-modal">
+  <span class="section-num">05 — BOOK SPIN MODAL</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:40px;width:100%;max-width:900px">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">30s on page → <span style="color:var(--g-text)">coin-drop CTA</span></div>
+      <div class="section-sub">cal.com embed · slot-themed · converts curiosity to calls</div>
+    </div>
+
+    <div style="position:relative;width:100%;max-width:520px">
+      <!-- background page hint -->
+      <div style="background:rgba(11,15,22,0.3);border:1px solid rgba(96,112,154,0.1);border-radius:12px;padding:40px;filter:blur(2px);opacity:0.4">
+        <div style="height:20px;background:rgba(96,112,154,0.1);border-radius:4px;margin-bottom:12px"></div>
+        <div style="height:14px;background:rgba(96,112,154,0.08);border-radius:4px;width:70%"></div>
+      </div>
+
+      <!-- actual modal -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div class="modal-card">
+          <button class="modal-dismiss" onclick="this.closest('.modal-card').style.opacity='0.3'">✕</button>
+          <div class="coin-drop">🪙</div>
+          <div class="modal-title">Book 15-min Audio Teardown</div>
+          <div class="modal-sub">Free · No pitch · Just sound talk</div>
+          <div class="cal-slots">
+            <div class="cal-slot selected">
+              <span class="slot-time">Pon 10:00</span>
+              <span style="font-size:10px">30 Apr</span>
+            </div>
+            <div class="cal-slot">
+              <span class="slot-time">Pon 14:00</span>
+              <span style="font-size:10px">30 Apr</span>
+            </div>
+            <div class="cal-slot">
+              <span class="slot-time">Uto 11:00</span>
+              <span style="font-size:10px">1 Maj</span>
+            </div>
+            <div class="cal-slot">
+              <span class="slot-time">Sri 09:00</span>
+              <span style="font-size:10px">2 Maj</span>
+            </div>
+          </div>
+          <button class="book-btn">🎰 SPIN — Book the Call</button>
+          <div style="text-align:center;font-family:var(--f-mono);font-size:10px;color:rgba(96,112,154,0.4);margin-top:12px">Powered by Cal.com · 15 min · Google Meet</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;max-width:520px">
+      <div style="text-align:center;padding:16px;background:rgba(201,162,39,0.05);border:1px solid rgba(201,162,39,0.15);border-radius:10px">
+        <div style="font-size:22px;font-weight:700;color:var(--g200)">30s</div>
+        <div style="font-size:10px;color:var(--chr-mid);font-family:var(--f-mono);letter-spacing:2px">TRIGGER</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:rgba(34,232,255,0.04);border:1px solid rgba(34,232,255,0.15);border-radius:10px">
+        <div style="font-size:22px;font-weight:700;color:var(--neon-cyan)">15min</div>
+        <div style="font-size:10px;color:var(--chr-mid);font-family:var(--f-mono);letter-spacing:2px">SESSION</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:rgba(177,76,255,0.04);border:1px solid rgba(177,76,255,0.15);border-radius:10px">
+        <div style="font-size:22px;font-weight:700;color:var(--neon-violet)">Free</div>
+        <div style="font-size:10px;color:var(--chr-mid);font-family:var(--f-mono);letter-spacing:2px">COST</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SECTION 3: LOGO WALL ── -->
+<section id="logo-wall">
+  <span class="section-num">06 — TRUSTED BY</span>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:48px;width:100%">
+    <div style="text-align:center">
+      <div class="section-title" style="color:var(--chr-hi)">Social proof.<br><span style="color:var(--g-text)">Grayscale → color on hover.</span></div>
+      <div class="section-sub">8 godina · major studios · proven track</div>
+    </div>
+
+    <div class="logo-wall" style="max-width:900px">
+      <div class="logo-tile">
+        <div class="logo-icon">🎮</div>
+        <div class="logo-text">IGT</div>
+        <div class="logo-role">Senior Audio</div>
+        <div class="logo-years">2018 – 2023</div>
+      </div>
+      <div class="logo-tile">
+        <div class="logo-icon">🃏</div>
+        <div class="logo-text">Playnetic</div>
+        <div class="logo-role">Audio Lead</div>
+        <div class="logo-years">2023 – present</div>
+      </div>
+      <div class="logo-tile">
+        <div class="logo-icon">🎲</div>
+        <div class="logo-text">VanVinkl</div>
+        <div class="logo-role">Founder</div>
+        <div class="logo-years">2016 – present</div>
+      </div>
+      <div class="logo-tile">
+        <div class="logo-icon">🎯</div>
+        <div class="logo-text">NetEnt</div>
+        <div class="logo-role">Contractor</div>
+        <div class="logo-years">2021 – 2022</div>
+      </div>
+    </div>
+
+    <!-- UNFAIR ADVANTAGE TABLE -->
+    <div class="compare-table" style="max-width:900px">
+      <div class="compare-header">
+        <div class="compare-col">Capability</div>
+        <div class="compare-col">Studio Team</div>
+        <div class="compare-col">Freelancer</div>
+        <div class="compare-col you">⚡ Bojan</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature">Slot audio systems</div>
+        <div class="compare-cell"><span class="partial">◑</span></div>
+        <div class="compare-cell"><span class="cross">✗</span></div>
+        <div class="compare-cell you"><span class="check">✓</span> 50+ titles</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature">Volatility-aware audio</div>
+        <div class="compare-cell"><span class="cross">✗</span></div>
+        <div class="compare-cell"><span class="cross">✗</span></div>
+        <div class="compare-cell you"><span class="check">✓</span> patented approach</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature">BGM + SFX + implementation</div>
+        <div class="compare-cell"><span class="partial">◑</span> 3 people</div>
+        <div class="compare-cell"><span class="partial">◑</span> subcontracts</div>
+        <div class="compare-cell you"><span class="check">✓</span> 1 person</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature">0-defect delivery record</div>
+        <div class="compare-cell"><span class="cross">✗</span></div>
+        <div class="compare-cell"><span class="cross">✗</span></div>
+        <div class="compare-cell you"><span class="check">✓</span> 8 years</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature">Wwise / FMOD + code</div>
+        <div class="compare-cell"><span class="partial">◑</span></div>
+        <div class="compare-cell"><span class="partial">◑</span></div>
+        <div class="compare-cell you"><span class="check">✓</span> full stack</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell feature" style="border-bottom:none">Belgrade / EU timezone</div>
+        <div class="compare-cell"><span class="partial">◑</span></div>
+        <div class="compare-cell"><span class="partial">◑</span></div>
+        <div class="compare-cell you"><span class="check">✓</span> +1 CET overlap</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="nav-pills">
+  <a class="nav-pill" href="phase1-brand-foundation.html">Phase 1</a>
+  <a class="nav-pill active" href="phase2-recruiter-funnel.html">Phase 2</a>
+  <a class="nav-pill" href="phase3-visual-audio.html">Phase 3</a>
+</div>
+
+<script>
+document.querySelectorAll('.cal-slot').forEach(s => {
+  s.addEventListener('click', () => {
+    document.querySelectorAll('.cal-slot').forEach(x => x.classList.remove('selected'));
+    s.classList.add('selected');
+  });
+});
+</script>
+</body>
+</html>

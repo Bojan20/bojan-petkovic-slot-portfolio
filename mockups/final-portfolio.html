@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bojan Petković — Audio Director · iGaming</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════
+   TOKENS
+   ════════════════════════════════════════════════ */
+:root {
+  --bg:       #05070c;
+  --bg1:      #0b0f16;
+  --bg2:      #0d1120;
+  --bg-deep:  #030508;
+  --chr-hi:   #bcc8e0;
+  --chr-mid:  #60709a;
+  --chr-lo:   #1e2540;
+  --g100: #f0d878; --g200: #dbb840; --g300: #c9a227;
+  --g400: #b08a18; --g500: #8b6914; --g600: #6d520f;
+  --g-text: #ffe6a8;
+  --g-glow: rgba(201,162,39,0.35);
+  --ice: #38bdf8;
+  --neon-v: #b14cff;  --neon-v-glow: rgba(177,76,255,.45);
+  --neon-c: #22e8ff;  --neon-c-glow: rgba(34,232,255,.45);
+  --neon-m: #ff2bd6;
+  --neon-g: #4ade80;
+  --f-ui:   'Rajdhani', sans-serif;
+  --f-mono: 'JetBrains Mono', monospace;
+  --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+}
+
+/* ════════ RESET ════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  font-family:var(--f-ui);
+  color:var(--chr-hi);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* scanlines */
+body::after{
+  content:'';position:fixed;inset:0;z-index:999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.035) 3px,rgba(0,0,0,.035) 4px);
+}
+/* vignette */
+body::before{
+  content:'';position:fixed;inset:0;z-index:998;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 46%,transparent 30%,rgba(0,0,0,.7) 100%);
+}
+
+/* ════════ KEYFRAMES ════════ */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+@keyframes glow-flicker{0%,100%{opacity:.9}40%{opacity:.6}70%{opacity:1}}
+@keyframes slide-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+@keyframes waveform{0%{d:path("M0,24 Q20,8 40,24 Q60,40 80,24 Q100,8 120,24 Q140,40 160,24 Q180,8 200,24")}50%{d:path("M0,24 Q20,36 40,24 Q60,12 80,24 Q100,36 120,24 Q140,12 160,24 Q180,36 200,24")}100%{d:path("M0,24 Q20,8 40,24 Q60,40 80,24 Q100,8 120,24 Q140,40 160,24 Q180,8 200,24")}}
+
+/* ════════ LAYOUT ════════ */
+.wrapper{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ════════════════════════════════════════
+   HERO
+   ════════════════════════════════════════ */
+.hero{
+  position:relative;z-index:1;
+  padding:60px 0 40px;
+  text-align:center;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(201,162,39,.08) 0%,transparent 60%),
+    radial-gradient(ellipse at 20% 50%,rgba(177,76,255,.05) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 50%,rgba(34,232,255,.04) 0%,transparent 50%);
+}
+
+/* monogram */
+.monogram-ring{
+  width:88px;height:88px;margin:0 auto 20px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.monogram-ring::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(201,162,39,.2);
+  animation:spin-slow 12s linear infinite;
+  background:conic-gradient(from 0deg,transparent 70%,rgba(201,162,39,.5) 80%,transparent 90%);
+}
+.monogram-ring svg{width:52px;height:52px;position:relative;z-index:1;
+  filter:drop-shadow(0 0 10px rgba(201,162,39,.5));}
+
+.hero-eyebrow{
+  font-family:var(--f-mono);font-size:11px;letter-spacing:4px;
+  color:var(--neon-c);text-transform:uppercase;margin-bottom:10px;
+}
+.hero-name{
+  font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-2px;
+  line-height:1;margin-bottom:8px;
+  background:linear-gradient(180deg,var(--g100) 0%,var(--g300) 60%,var(--g500) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(201,162,39,.3));
+}
+.hero-title{
+  font-size:clamp(16px,2.5vw,22px);font-weight:500;
+  color:var(--chr-mid);letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.hero-tagline{
+  font-size:clamp(18px,2.8vw,28px);font-weight:600;
+  color:var(--chr-hi);margin-bottom:32px;letter-spacing:.5px;
+}
+.hero-tagline em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--neon-c),var(--neon-v));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* metric strip */
+.metric-strip{
+  display:flex;justify-content:center;gap:1px;
+  background:rgba(201,162,39,.2);border-radius:10px;overflow:hidden;
+  border:1px solid rgba(201,162,39,.25);
+  margin-bottom:24px;max-width:780px;margin-left:auto;margin-right:auto;
+  box-shadow:0 0 40px rgba(201,162,39,.06);
+}
+.metric-cell{
+  flex:1;background:var(--bg1);padding:18px 12px;text-align:center;
+  position:relative;min-width:0;
+}
+.metric-cell::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--g300),transparent);
+}
+.metric-val{
+  font-size:clamp(22px,3vw,36px);font-weight:700;line-height:1;
+  background:linear-gradient(180deg,var(--g100),var(--g300));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.metric-lbl{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:3px;
+  color:var(--chr-mid);margin-top:5px;text-transform:uppercase;
+}
+.metric-live-wrap{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-top:4px;
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--neon-c);animation:pulse 1s infinite}
+
+/* ticker bar */
+.ticker-wrap{
+  overflow:hidden;background:rgba(201,162,39,.04);
+  border-top:1px solid rgba(201,162,39,.12);
+  border-bottom:1px solid rgba(201,162,39,.12);
+  padding:7px 0;margin-bottom:0;
+}
+.ticker{
+  display:inline-flex;gap:0;white-space:nowrap;
+  animation:ticker 28s linear infinite;
+}
+.ticker span{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:2px;
+  color:var(--g400);padding:0 24px;text-transform:uppercase;
+}
+.ticker span.sep{color:rgba(201,162,39,.3)}
+
+/* ════════════════════════════════════════
+   TAB BAR
+   ════════════════════════════════════════ */
+.tab-bar{
+  display:flex;justify-content:center;gap:0;
+  background:rgba(8,6,16,.9);
+  border-bottom:1px solid rgba(201,162,39,.2);
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(16px);
+}
+.tab{
+  display:flex;align-items:center;gap:8px;
+  padding:14px 28px;cursor:pointer;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--chr-mid);
+  border-bottom:2px solid transparent;
+  transition:all .2s;user-select:none;border:none;background:none;
+}
+.tab:hover{color:var(--g200);background:rgba(201,162,39,.04)}
+.tab.active{
+  color:var(--g-text);border-bottom:2px solid var(--g300);
+  background:rgba(201,162,39,.06);
+}
+.tab-icon{font-size:14px}
+
+/* ════════════════════════════════════════
+   SECTION PANELS
+   ════════════════════════════════════════ */
+.panel{display:none;position:relative;z-index:1;animation:slide-in .25s ease}
+.panel.active{display:block}
+
+.panel-inner{padding:40px 0 80px}
+
+/* column headers */
+.col-headers{
+  display:grid;gap:1px;
+  background:rgba(201,162,39,.15);
+  border:1px solid rgba(201,162,39,.2);
+  border-radius:8px 8px 0 0;overflow:hidden;
+  margin-bottom:1px;
+}
+.col-h{
+  background:rgba(8,6,16,.95);padding:10px 16px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--chr-mid);
+  display:flex;align-items:center;gap:6px;
+}
+.col-h-icon{color:var(--g300);font-size:12px}
+
+/* row grid */
+.data-grid{display:flex;flex-direction:column;gap:1px;background:rgba(96,112,154,.1)}
+
+/* ─── PROJECTS ─── */
+.proj-row{
+  display:grid;
+  grid-template-columns:220px 130px 1fr 160px 80px;
+  gap:1px;background:rgba(96,112,154,.1);
+  transition:background .2s;cursor:default;
+}
+.proj-row:hover .cell{background:rgba(14,10,28,.98)}
+
+.cell{
+  background:var(--bg1);padding:16px;
+  display:flex;flex-direction:column;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.cell::before{
+  content:'';position:absolute;left:0;top:15%;bottom:15%;
+  width:1px;background:rgba(201,162,39,.06);
+}
+.cell:first-child::before{display:none}
+
+/* game cell */
+.game-ico{font-size:28px;margin-bottom:6px;animation:float 3s ease-in-out infinite}
+.game-name{
+  font-size:15px;font-weight:700;color:var(--g-text);
+  letter-spacing:1px;line-height:1.1;
+}
+.game-studio{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  color:var(--chr-mid);margin-top:4px;text-transform:uppercase;
+}
+.game-glow{
+  position:absolute;inset:0;opacity:.06;
+  background:radial-gradient(ellipse at 30% 50%,var(--accent),transparent 70%);
+  pointer-events:none;
+}
+
+/* scope cell */
+.scope-badges{display:flex;flex-direction:column;gap:4px}
+.scope-b{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:1px;
+  padding:3px 7px;border-radius:4px;
+}
+.scope-b.on{color:var(--neon-c);background:rgba(34,232,255,.07);border:1px solid rgba(34,232,255,.2)}
+.scope-b.off{color:rgba(96,112,154,.35);background:rgba(96,112,154,.04);border:1px solid rgba(96,112,154,.1);text-decoration:line-through}
+
+/* work cell */
+.work-text{font-size:12.5px;line-height:1.6;color:var(--chr-hi)}
+
+/* tools cell */
+.tools-list{display:flex;flex-wrap:wrap;gap:4px}
+.tool-tag{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:1px;
+  padding:3px 8px;border-radius:4px;
+  background:rgba(201,162,39,.06);border:1px solid rgba(201,162,39,.18);
+  color:var(--g400);text-transform:uppercase;
+}
+
+/* demo cell */
+.demo-btn{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(201,162,39,.3);
+  background:rgba(201,162,39,.06);
+  font-size:16px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.demo-btn::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.demo-btn:hover{
+  background:rgba(201,162,39,.15);
+  border-color:var(--g300);
+  box-shadow:0 0 16px rgba(201,162,39,.3);
+}
+.demo-btn:hover::after{opacity:1}
+.demo-null{
+  font-family:var(--f-mono);font-size:9px;
+  color:rgba(96,112,154,.3);letter-spacing:1px;
+}
+
+/* ─── SKILLS ─── */
+.skill-row{
+  display:grid;
+  grid-template-columns:200px 110px 1fr 180px 120px;
+  gap:1px;background:rgba(96,112,154,.1);
+  transition:background .2s;
+}
+.skill-row:hover .cell{background:rgba(12,8,24,.98)}
+.skill-ico{font-size:26px;margin-bottom:5px}
+.skill-name{font-size:14px;font-weight:700;color:var(--chr-hi);letter-spacing:.5px}
+.level-badge{
+  display:inline-block;padding:4px 10px;border-radius:4px;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:2px;
+  font-weight:700;text-transform:uppercase;
+}
+.level-expert{color:#ffd700;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25)}
+.level-advanced{color:var(--neon-c);background:rgba(34,232,255,.06);border:1px solid rgba(34,232,255,.2)}
+
+/* star bars */
+.stars{display:flex;gap:3px;margin-top:8px}
+.star-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--g300);
+  box-shadow:0 0 4px var(--g-glow);
+}
+.star-dot.off{background:rgba(96,112,154,.2);box-shadow:none}
+
+.domain-badge{
+  display:inline-block;padding:5px 12px;border-radius:100px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  border:1px solid;text-transform:uppercase;
+}
+
+/* ─── ABOUT / CAREER / CONTACT ─── */
+.simple-row{
+  display:grid;
+  grid-template-columns:200px 180px 1fr 1fr 140px;
+  gap:1px;background:rgba(96,112,154,.1);
+  transition:background .2s;
+}
+.simple-row:hover .cell{background:rgba(12,8,24,.98)}
+.simple-ico{font-size:26px;margin-bottom:5px}
+.simple-name{font-size:14px;font-weight:700;color:var(--chr-hi);letter-spacing:.5px}
+.simple-period{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  color:var(--g400);margin-top:3px;text-transform:uppercase;
+}
+.simple-desc{font-size:12.5px;line-height:1.65;color:var(--chr-mid)}
+.highlight-list{display:flex;flex-wrap:wrap;gap:4px}
+.hl{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:1px;
+  padding:3px 8px;border-radius:4px;
+  border:1px solid rgba(96,112,154,.2);
+  color:var(--chr-mid);background:rgba(96,112,154,.05);
+  text-transform:uppercase;
+}
+.note-cell{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;
+}
+
+/* career accent line */
+.career-row{
+  display:grid;
+  grid-template-columns:180px 140px 1fr 1fr 1fr;
+  gap:1px;background:rgba(96,112,154,.1);
+  transition:background .2s;position:relative;
+}
+.career-row:hover .cell{background:rgba(12,8,24,.98)}
+.career-row::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--acc,transparent);
+  box-shadow:0 0 8px var(--acc,transparent);
+}
+
+/* contact */
+.contact-row{
+  display:grid;
+  grid-template-columns:160px 140px 1fr 120px 1fr;
+  gap:1px;background:rgba(96,112,154,.1);
+  transition:background .2s;
+}
+.contact-row:hover .cell{background:rgba(12,8,24,.98)}
+.contact-val{
+  font-family:var(--f-mono);font-size:13px;font-weight:700;
+  color:var(--g-text);word-break:break-all;
+}
+.status-dot{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;
+}
+.status-on{color:var(--neon-g)}
+.status-on::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neon-g);animation:pulse 1s infinite}
+
+/* ════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════ */
+footer{
+  position:relative;z-index:1;
+  background:rgba(5,7,12,.9);
+  border-top:1px solid rgba(201,162,39,.12);
+  padding:24px 0;text-align:center;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:2px;
+  color:rgba(96,112,154,.5);text-transform:uppercase;
+}
+footer strong{color:var(--g400)}
+
+/* ════════════════════════════════════════
+   AUDIO WAVE decoration
+   ════════════════════════════════════════ */
+.wave-bar{
+  height:48px;
+  background:var(--bg);
+  border-top:1px solid rgba(201,162,39,.08);
+  border-bottom:1px solid rgba(201,162,39,.08);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;gap:2px;
+}
+.wave-bar-col{
+  width:3px;border-radius:2px;
+  background:linear-gradient(180deg,var(--g300),var(--g500));
+  opacity:.5;
+  animation:wv 1s ease-in-out infinite alternate;
+}
+@keyframes wv{from{height:8px;opacity:.3}to{height:var(--h,28px);opacity:.7}}
+</style>
+</head>
+<body>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero">
+  <div class="wrapper">
+
+    <!-- MONOGRAM -->
+    <div class="monogram-ring">
+      <svg viewBox="0 0 52 52" fill="none">
+        <path d="M6 42 L16 8 L26 42" stroke="url(#g1)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M26 42 L36 8 L46 42" stroke="url(#g2)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="26" cy="26" r="2" fill="#f0d878" opacity=".8"/>
+        <defs>
+          <linearGradient id="g1" x1="6" y1="8" x2="26" y2="42" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#f0d878"/><stop offset="1" stop-color="#8b6914"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="26" y1="8" x2="46" y2="42" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#b14cff"/><stop offset="1" stop-color="#22e8ff"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="hero-eyebrow">Audio Director &amp; iGaming Specialist</div>
+    <h1 class="hero-name">BOJAN PETKOVIĆ</h1>
+    <div class="hero-title">Sound Design · Music Production · Audio Engineering · Belgrade, RS</div>
+    <div class="hero-tagline">Where The <em>Reels</em> Meet The <em>Score.</em></div>
+
+    <!-- METRICS -->
+    <div class="metric-strip">
+      <div class="metric-cell">
+        <div class="metric-val">50<sup style="font-size:.5em;color:var(--g400)">+</sup></div>
+        <div class="metric-lbl">Titles</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-val">200<sup style="font-size:.5em;color:var(--g400)">+</sup></div>
+        <div class="metric-lbl">SFX/Title</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-val">0</div>
+        <div class="metric-lbl">Defects</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-val">8<span style="font-size:.45em;color:var(--g400)"> YRS</span></div>
+        <div class="metric-lbl">Experience</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-val" style="font-size:clamp(14px,1.8vw,22px)">LIVE</div>
+        <div class="metric-live-wrap">
+          <div class="live-dot"></div>
+          <div class="metric-lbl" style="margin-top:0" id="ts-live">UPDATED NOW</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <span>🐷 Piggy Plunger</span><span class="sep">·</span>
+      <span>⚡ Smash Factory</span><span class="sep">·</span>
+      <span>✨ Starlight Travelers</span><span class="sep">·</span>
+      <span>⚔️ Valkyries</span><span class="sep">·</span>
+      <span>🐲 Zhulongs</span><span class="sep">·</span>
+      <span>🌙 Midnight Gold</span><span class="sep">·</span>
+      <span>🔥 Blazin's Hot</span><span class="sep">·</span>
+      <span>🏺 Mummy Riches</span><span class="sep">·</span>
+      <!-- duplicate for seamless loop -->
+      <span>🐷 Piggy Plunger</span><span class="sep">·</span>
+      <span>⚡ Smash Factory</span><span class="sep">·</span>
+      <span>✨ Starlight Travelers</span><span class="sep">·</span>
+      <span>⚔️ Valkyries</span><span class="sep">·</span>
+      <span>🐲 Zhulongs</span><span class="sep">·</span>
+      <span>🌙 Midnight Gold</span><span class="sep">·</span>
+      <span>🔥 Blazin's Hot</span><span class="sep">·</span>
+      <span>🏺 Mummy Riches</span><span class="sep">·</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ WAVEFORM DIVIDER ════════ -->
+<div class="wave-bar" id="wave-bar"></div>
+
+<!-- ════════ TAB BAR ════════ -->
+<nav class="tab-bar" id="tabs">
+  <button class="tab active" data-panel="projects"><span class="tab-icon">◈</span>PROJECTS</button>
+  <button class="tab" data-panel="skills"><span class="tab-icon">◉</span>SKILLS</button>
+  <button class="tab" data-panel="about"><span class="tab-icon">◎</span>ABOUT</button>
+  <button class="tab" data-panel="career"><span class="tab-icon">◆</span>CAREER</button>
+  <button class="tab" data-panel="contact"><span class="tab-icon">▶</span>CONTACT</button>
+</nav>
+
+<!-- ════════════════════════════════════════
+     PANEL: PROJECTS
+     ════════════════════════════════════════ -->
+<div class="panel active" id="panel-projects">
+  <div class="wrapper panel-inner">
+
+    <div class="col-headers" style="grid-template-columns:220px 130px 1fr 160px 80px">
+      <div class="col-h"><span class="col-h-icon">⬡</span>GAME</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>SCOPE</div>
+      <div class="col-h"><span class="col-h-icon">✦</span>WORK</div>
+      <div class="col-h"><span class="col-h-icon">⚙</span>TOOLS</div>
+      <div class="col-h"><span class="col-h-icon">▶</span>DEMO</div>
+    </div>
+
+    <div class="data-grid">
+
+      <!-- PIGGY PLUNGER -->
+      <div class="proj-row">
+        <div class="cell" style="--accent:#ff69b4">
+          <div class="game-glow" style="--accent:#ff69b4"></div>
+          <div class="game-ico">🐷</div>
+          <div class="game-name">PIGGY PLUNGER</div>
+          <div class="game-studio">Playnetic · 2025</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b on">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Bouncy ragtime score, 4 adaptive layers. 200+ custom SFX — reel hits, coin cascades, plunger mechanics.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">iZotope RX</span>
+            <span class="tool-tag">Howler.js</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(261.6,'#ff69b4')" title="Play demo">▶</div>
+        </div>
+      </div>
+
+      <!-- SMASH FACTORY -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#ff8c00"></div>
+          <div class="game-ico">⚡</div>
+          <div class="game-name">SMASH FACTORY</div>
+          <div class="game-studio">Playnetic · 2025</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b off">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Industrial metal theme — tension/euphoria transitions. Hydraulic SFX palette: metal impacts, sparks, electricity.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">Reaper</span>
+            <span class="tool-tag">Howler.js</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(196,'#ff8c00')" title="Play demo">▶</div>
+        </div>
+      </div>
+
+      <!-- STARLIGHT TRAVELERS -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#6a5acd"></div>
+          <div class="game-ico">✨</div>
+          <div class="game-name">STARLIGHT TRAVELERS</div>
+          <div class="game-studio">Playnetic · 2025</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b on">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Ethereal cosmic soundscape — shimmering synths, crystalline wins, nebula ambience, stardust audio.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">iZotope</span>
+            <span class="tool-tag">Howler.js</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(329.6,'#6a5acd')" title="Play demo">▶</div>
+        </div>
+      </div>
+
+      <!-- VALKYRIES -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#dc143c"></div>
+          <div class="game-ico">⚔️</div>
+          <div class="game-name">VALKYRIES</div>
+          <div class="game-studio">Playnetic · 2025</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b off">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Nordic war theme — epic choir, war drums, dynamic free spin escalation. Shield clashes, battle ambience.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">FMOD</span>
+            <span class="tool-tag">Reaper</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(146.8,'#dc143c')" title="Play demo">🔊</div>
+        </div>
+      </div>
+
+      <!-- ZHULONGS -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#00c853"></div>
+          <div class="game-ico">🐲</div>
+          <div class="game-name">ZHULONGS</div>
+          <div class="game-studio">IGT · 2023</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b off">⚙ INTEGRATION</div>
+            <div class="scope-b on">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Pentatonic orchestral — Chinese classical meets casino energy. Dragon roars, gong hits, mystical effects.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">Pro Tools</span>
+            <span class="tool-tag">iZotope</span>
+            <span class="tool-tag">Unity</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(220,'#00c853')" title="Play demo">🔊</div>
+        </div>
+      </div>
+
+      <!-- MIDNIGHT GOLD -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#1e90ff"></div>
+          <div class="game-ico">🌙</div>
+          <div class="game-name">MIDNIGHT GOLD</div>
+          <div class="game-studio">VanVinkl · 2024</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b on">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Dark jazz lounge with gold-rush anticipation builds. Velvet UI sounds, sax stingers, coin rain FX.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">Reaper</span>
+            <span class="tool-tag">Howler.js</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(174.6,'#1e90ff')" title="Play demo">🔊</div>
+        </div>
+      </div>
+
+      <!-- BLAZIN'S HOT -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#ff4500"></div>
+          <div class="game-ico">🔥</div>
+          <div class="game-name">BLAZIN'S HOT</div>
+          <div class="game-studio">IGT · 2022</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b off">⚙ INTEGRATION</div>
+            <div class="scope-b on">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Upbeat Mediterranean melody — tension ramp for free spins. Fire crackles, sizzling wins, pepper explosions.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Pro Tools</span>
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">iZotope</span>
+            <span class="tool-tag">Unity</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(261.6,'#ff4500')" title="Play demo">🔊</div>
+        </div>
+      </div>
+
+      <!-- MUMMY RICHES -->
+      <div class="proj-row">
+        <div class="cell">
+          <div class="game-glow" style="--accent:#daa520"></div>
+          <div class="game-ico">🏺</div>
+          <div class="game-name">MUMMY RICHES</div>
+          <div class="game-studio">Playnetic · 2024</div>
+        </div>
+        <div class="cell">
+          <div class="scope-badges">
+            <div class="scope-b on">♪ MUSIC</div>
+            <div class="scope-b on">🔊 SFX</div>
+            <div class="scope-b on">⚙ INTEGRATION</div>
+            <div class="scope-b off">✓ QA</div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Egyptian mystery — haunting flutes, sandy winds, tomb ambience. Scarab beetles, sand cascades, ancient SFX.</div></div>
+        <div class="cell">
+          <div class="tools-list">
+            <span class="tool-tag">Logic Pro</span>
+            <span class="tool-tag">iZotope RX</span>
+            <span class="tool-tag">Howler.js</span>
+            <span class="tool-tag">Phaser 3</span>
+          </div>
+        </div>
+        <div class="cell" style="align-items:center">
+          <div class="demo-btn" onclick="playDemo(220,'#daa520')" title="Play demo">🔊</div>
+        </div>
+      </div>
+
+    </div><!-- /data-grid -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANEL: SKILLS
+     ════════════════════════════════════════ -->
+<div class="panel" id="panel-skills">
+  <div class="wrapper panel-inner">
+
+    <div class="col-headers" style="grid-template-columns:200px 110px 1fr 180px 120px">
+      <div class="col-h"><span class="col-h-icon">◈</span>SKILL</div>
+      <div class="col-h"><span class="col-h-icon">★</span>LEVEL</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>DETAILS</div>
+      <div class="col-h"><span class="col-h-icon">⚙</span>TOOLS</div>
+      <div class="col-h"><span class="col-h-icon">◆</span>DOMAIN</div>
+    </div>
+
+    <div class="data-grid">
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">🎵</div><div class="skill-name">MUSIC PRODUCTION</div></div>
+        <div class="cell">
+          <div class="level-badge level-expert">EXPERT</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Adaptive layered compositions — base game loops, free spin escalation, jackpot fanfares. Seamless state transitions timed to volatility and player engagement.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">Logic Pro</span><span class="tool-tag">Reaper</span><span class="tool-tag">Kontakt</span><span class="tool-tag">Spitfire</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:#ffd700;border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.05)">COMPOSITION</div></div>
+      </div>
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">🔊</div><div class="skill-name">SOUND DESIGN</div></div>
+        <div class="cell">
+          <div class="level-badge level-expert">EXPERT</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">200+ custom SFX per title — reel mechanics, coin physics, win escalation, UI feedback, ambience layers. Every asset purpose-built from scratch.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">iZotope RX</span><span class="tool-tag">Logic Pro</span><span class="tool-tag">Reaper</span><span class="tool-tag">Krotos</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:var(--neon-c);border-color:rgba(34,232,255,.3);background:rgba(34,232,255,.04)">SOUND ART</div></div>
+      </div>
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">⚙️</div><div class="skill-name">AUDIO INTEGRATION</div></div>
+        <div class="cell">
+          <div class="level-badge level-advanced">ADVANCED</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot off"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Event-driven playback systems wired directly into game engines. Trigger maps, state machines, volume ducking, spatial positioning.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">Howler.js</span><span class="tool-tag">Phaser 3</span><span class="tool-tag">Unity</span><span class="tool-tag">PixiJS</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:#00ff88;border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.04)">ENGINEERING</div></div>
+      </div>
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">🎛️</div><div class="skill-name">AUDIO DIRECTION</div></div>
+        <div class="cell">
+          <div class="level-badge level-advanced">ADVANCED</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot off"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Creative leadership across full titles — defining sonic identity, setting quality standards, supervising mix, final sign-off on every game state.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">Confluence</span><span class="tool-tag">Figma</span><span class="tool-tag">JIRA</span><span class="tool-tag">Slack</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:#ff00aa;border-color:rgba(255,0,170,.3);background:rgba(255,0,170,.04)">LEADERSHIP</div></div>
+      </div>
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">🧪</div><div class="skill-name">AUDIO QA</div></div>
+        <div class="cell">
+          <div class="level-badge level-expert">EXPERT</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Systematic trigger verification across every game state — base, free spins, bonus, jackpot. Zero audio defects at launch across 50+ certified titles.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">TestRail</span><span class="tool-tag">JIRA</span><span class="tool-tag">Custom Scripts</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:#9944ff;border-color:rgba(153,68,255,.3);background:rgba(153,68,255,.04)">QA SYSTEMS</div></div>
+      </div>
+
+      <div class="skill-row">
+        <div class="cell"><div class="skill-ico">🎰</div><div class="skill-name">SLOT SPECIALIZATION</div></div>
+        <div class="cell">
+          <div class="level-badge level-expert">EXPERT</div>
+          <div class="stars">
+            <div class="star-dot"></div><div class="star-dot"></div><div class="star-dot"></div>
+            <div class="star-dot"></div><div class="star-dot"></div>
+          </div>
+        </div>
+        <div class="cell"><div class="work-text">Deep domain expertise in real-money slot audio. Regulatory compliance (EU, UK, AUS), player psychology, session fatigue management, volatility-aware audio design.</div></div>
+        <div class="cell"><div class="tools-list"><span class="tool-tag">FMOD</span><span class="tool-tag">Wwise</span><span class="tool-tag">Howler.js</span><span class="tool-tag">Tone.js</span></div></div>
+        <div class="cell"><div class="domain-badge" style="color:#ff6600;border-color:rgba(255,102,0,.3);background:rgba(255,102,0,.04)">iGAMING</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANEL: ABOUT
+     ════════════════════════════════════════ -->
+<div class="panel" id="panel-about">
+  <div class="wrapper panel-inner">
+
+    <div class="col-headers" style="grid-template-columns:200px 180px 1fr 1fr 160px">
+      <div class="col-h"><span class="col-h-icon">◈</span>PROFILE</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>CONTEXT</div>
+      <div class="col-h"><span class="col-h-icon">✦</span>STORY</div>
+      <div class="col-h"><span class="col-h-icon">◆</span>FACTS</div>
+      <div class="col-h"><span class="col-h-icon">●</span>FOCUS</div>
+    </div>
+
+    <div class="data-grid">
+
+      <div class="simple-row">
+        <div class="cell"><div class="simple-ico">👤</div><div class="simple-name">WHO I AM</div><div class="simple-period">Belgrade, Serbia</div></div>
+        <div class="cell"><div class="simple-desc" style="color:var(--g400);font-family:var(--f-mono);font-size:11px;letter-spacing:1px">Senior Audio Professional<br>iGaming Specialist<br>Classically Trained</div></div>
+        <div class="cell"><div class="simple-desc">Senior audio professional from Belgrade, Serbia. 8+ years specializing in iGaming and slot audio production. Classically trained musician turned game audio expert — every score and sound effect carries musical intent and technical precision.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">BELGRADE, RS</span><span class="hl">8+ YEARS</span><span class="hl">IGAMING SPECIALIST</span><span class="hl">MUSICIAN</span></div></div>
+        <div class="cell"><div class="note-cell" style="color:var(--g300)">Belgrade Pioneer · EU Timezone</div></div>
+      </div>
+
+      <div class="simple-row">
+        <div class="cell"><div class="simple-ico">🎯</div><div class="simple-name">MY PHILOSOPHY</div><div class="simple-period">Zero-Defect · Full Pipeline</div></div>
+        <div class="cell"><div class="simple-desc" style="color:var(--neon-c);font-family:var(--f-mono);font-size:11px;letter-spacing:1px">Concept → Certified<br>Full Ownership<br>Zero Defects</div></div>
+        <div class="cell"><div class="simple-desc">Full pipeline ownership from concept to certified release. Every asset purpose-built, every trigger QA-verified, every mix balanced for long casino sessions. Audio is not decoration — it drives player engagement and brand identity.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">FULL OWNERSHIP</span><span class="hl">ZERO DEFECTS</span><span class="hl">PURPOSE-BUILT</span><span class="hl">BRAND IDENTITY</span></div></div>
+        <div class="cell"><div class="note-cell" style="color:var(--neon-c)">Audio = Engagement Driver</div></div>
+      </div>
+
+      <div class="simple-row">
+        <div class="cell"><div class="simple-ico">🌍</div><div class="simple-name">WORK STYLE</div><div class="simple-period">Remote Worldwide</div></div>
+        <div class="cell"><div class="simple-desc" style="color:var(--neon-v);font-family:var(--f-mono);font-size:11px;letter-spacing:1px">EU · UK · US · AUS<br>10+ Parallel Titles<br>On-time Always</div></div>
+        <div class="cell"><div class="simple-desc">Remote delivery to studios across EU, UK, North America, and Australia. Comfortable managing 10+ parallel titles under tight release cycles. Clear communication, structured milestones, predictable delivery — every single time.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">REMOTE WW</span><span class="hl">10+ PARALLEL</span><span class="hl">EU · UK · US · AUS</span><span class="hl">ON-TIME ALWAYS</span></div></div>
+        <div class="cell"><div class="note-cell" style="color:var(--neon-v)">Async-First · Self-Managed</div></div>
+      </div>
+
+      <div class="simple-row">
+        <div class="cell"><div class="simple-ico">🎓</div><div class="simple-name">EDUCATION</div><div class="simple-period">SAE · Faculty of Music</div></div>
+        <div class="cell"><div class="simple-desc" style="color:#ff00aa;font-family:var(--f-mono);font-size:11px;letter-spacing:1px">SAE Institute Belgrade<br>BA Music Performance<br>Classical + Modern</div></div>
+        <div class="cell"><div class="simple-desc">SAE Institute Belgrade — Audio Production Diploma (studio recording, mixing, post-production, interactive media). Faculty of Music Belgrade — BA in Accordion &amp; Piano Performance. Classical harmony, orchestration, and live performance training.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">SAE DIPLOMA</span><span class="hl">BA MUSIC PERF.</span><span class="hl">AUDIO PRODUCTION</span><span class="hl">CLASSICAL</span></div></div>
+        <div class="cell"><div class="note-cell" style="color:#ff00aa">Classical Foundation</div></div>
+      </div>
+
+      <div class="simple-row">
+        <div class="cell"><div class="simple-ico">⚡</div><div class="simple-name">INNOVATION</div><div class="simple-period">AI · Modern Workflow</div></div>
+        <div class="cell"><div class="simple-desc" style="color:#00ffcc;font-family:var(--f-mono);font-size:11px;letter-spacing:1px">AI Workflow<br>Custom Toolchains<br>Tech-Forward</div></div>
+        <div class="cell"><div class="simple-desc">AI-assisted production for faster iteration without quality loss. Custom toolchains built around Logic Pro, Reaper, iZotope RX, and Howler.js. Always exploring new tech to push slot audio quality forward.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">AI WORKFLOW</span><span class="hl">CUSTOM TOOLS</span><span class="hl">FAST ITERATION</span><span class="hl">TECH-FORWARD</span></div></div>
+        <div class="cell"><div class="note-cell" style="color:#00ffcc">Faster Without Compromise</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANEL: CAREER
+     ════════════════════════════════════════ -->
+<div class="panel" id="panel-career">
+  <div class="wrapper panel-inner">
+
+    <div class="col-headers" style="grid-template-columns:180px 140px 1fr 1fr 1fr">
+      <div class="col-h"><span class="col-h-icon">◆</span>COMPANY</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>PERIOD</div>
+      <div class="col-h"><span class="col-h-icon">✦</span>ROLE</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>SCOPE</div>
+      <div class="col-h"><span class="col-h-icon">★</span>IMPACT</div>
+    </div>
+
+    <div class="data-grid">
+
+      <div class="career-row" style="--acc:#00e5ff">
+        <div class="cell"><div class="simple-ico">🌐</div><div class="simple-name">VANVINKL</div><div class="simple-period" style="color:var(--neon-c)">FOUNDER</div></div>
+        <div class="cell"><div class="simple-desc" style="font-size:13px;font-weight:700;color:var(--g-text)">2024 → Present</div></div>
+        <div class="cell"><div class="simple-desc">Founder &amp; Audio Director — full-service iGaming audio production studio. End-to-end audio delivery for slot developers worldwide. Creative direction, project management, client relations, QA across every title.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">FOUNDER</span><span class="hl">FULL-SERVICE</span><span class="hl">REMOTE WW</span><span class="hl">CLIENT DIRECT</span></div></div>
+        <div class="cell"><div class="simple-desc" style="color:var(--neon-c);font-weight:600">Own studio, own methodology, global reach from Day 1.</div></div>
+      </div>
+
+      <div class="career-row" style="--acc:#ffd700">
+        <div class="cell"><div class="simple-ico">🎮</div><div class="simple-name">PLAYNETIC</div><div class="simple-period" style="color:var(--g300)">AUDIO LEAD</div></div>
+        <div class="cell"><div class="simple-desc" style="font-size:13px;font-weight:700;color:var(--g-text)">2024 → 2026</div></div>
+        <div class="cell"><div class="simple-desc">Audio Producer &amp; Lead Sound Designer — 10+ parallel slot titles in simultaneous production. Managed full audio pipeline: composition, SFX, integration, QA. Delivered under tight release cycles with zero audio defects at launch.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">10+ TITLES</span><span class="hl">LEAD SOUND</span><span class="hl">ZERO DEFECTS</span><span class="hl">PARALLEL PROD.</span></div></div>
+        <div class="cell"><div class="simple-desc" style="color:var(--g300);font-weight:600">10+ simultaneous titles, zero audio defects at any launch.</div></div>
+      </div>
+
+      <div class="career-row" style="--acc:#ff00aa">
+        <div class="cell"><div class="simple-ico">🏛️</div><div class="simple-name">IGT</div><div class="simple-period" style="color:#ff00aa">SENIOR LEAD</div></div>
+        <div class="cell"><div class="simple-desc" style="font-size:13px;font-weight:700;color:var(--g-text)">2020 → 2024</div></div>
+        <div class="cell"><div class="simple-desc">Senior Sound Designer &amp; Audio Lead — managed team of 3 in EU-regulated market. Responsible for audio standards, compliance review, team mentoring, and creative direction across multiple concurrent slot releases for global distribution.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">SENIOR LEAD</span><span class="hl">3-PERSON TEAM</span><span class="hl">EU REGULATED</span><span class="hl">GLOBAL DIST.</span></div></div>
+        <div class="cell"><div class="simple-desc" style="color:#ff00aa;font-weight:600">Led 3-person audio team · EU compliance · global distribution.</div></div>
+      </div>
+
+      <div class="career-row" style="--acc:#ff6600">
+        <div class="cell"><div class="simple-ico">🎰</div><div class="simple-name">FREELANCE</div><div class="simple-period" style="color:#ff6600">CONTRACTOR</div></div>
+        <div class="cell"><div class="simple-desc" style="font-size:13px;font-weight:700;color:var(--g-text)">2018 → 2020</div></div>
+        <div class="cell"><div class="simple-desc">Independent audio contractor for emerging iGaming studios. Built custom SFX libraries, composed adaptive music systems, and established the production workflow that became the foundation for VanVinkl studio methodology.</div></div>
+        <div class="cell"><div class="highlight-list"><span class="hl">INDEPENDENT</span><span class="hl">CUSTOM LIBS</span><span class="hl">ADAPTIVE MUSIC</span><span class="hl">WORKFLOW DEV</span></div></div>
+        <div class="cell"><div class="simple-desc" style="color:#ff6600;font-weight:600">Built the workflow methodology that powers VanVinkl today.</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANEL: CONTACT
+     ════════════════════════════════════════ -->
+<div class="panel" id="panel-contact">
+  <div class="wrapper panel-inner">
+
+    <div class="col-headers" style="grid-template-columns:160px 140px 1fr 120px 1fr">
+      <div class="col-h"><span class="col-h-icon">▶</span>CHANNEL</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>TYPE</div>
+      <div class="col-h"><span class="col-h-icon">◆</span>VALUE</div>
+      <div class="col-h"><span class="col-h-icon">✓</span>STATUS</div>
+      <div class="col-h"><span class="col-h-icon">◎</span>NOTE</div>
+    </div>
+
+    <div class="data-grid">
+
+      <div class="contact-row">
+        <div class="cell"><div class="simple-ico">📧</div><div class="simple-name">EMAIL</div></div>
+        <div class="cell"><div class="simple-desc" style="font-family:var(--f-mono);font-size:11px;letter-spacing:2px;color:var(--g400)">PROFESSIONAL</div><div class="highlight-list" style="margin-top:8px"><span class="hl">DIRECT</span><span class="hl">PREFERRED</span></div></div>
+        <div class="cell">
+          <div class="contact-val">
+            <a href="mailto:bojan@vanvinkl.com" style="color:var(--g-text);text-decoration:none;transition:color .2s"
+               onmouseover="this.style.color='#f0d878'" onmouseout="this.style.color='var(--g-text)'">
+              bojan@vanvinkl.com
+            </a>
+          </div>
+        </div>
+        <div class="cell">
+          <div class="status-dot status-on">ACTIVE</div>
+        </div>
+        <div class="cell"><div class="note-cell" style="color:var(--g300)">FASTEST RESPONSE<br><span style="color:var(--chr-mid);font-size:9px">Response within 24h</span></div></div>
+      </div>
+
+      <div class="contact-row">
+        <div class="cell"><div class="simple-ico">💼</div><div class="simple-name">LINKEDIN</div></div>
+        <div class="cell"><div class="simple-desc" style="font-family:var(--f-mono);font-size:11px;letter-spacing:2px;color:var(--ice)">PROFESSIONAL</div><div class="highlight-list" style="margin-top:8px"><span class="hl">ACTIVE</span><span class="hl">VERIFIED</span></div></div>
+        <div class="cell">
+          <div class="contact-val">
+            <a href="https://linkedin.com/in/vanvinkl" target="_blank" style="color:var(--ice);text-decoration:none">
+              linkedin.com/in/vanvinkl
+            </a>
+          </div>
+        </div>
+        <div class="cell">
+          <div class="status-dot status-on">ACTIVE</div>
+        </div>
+        <div class="cell"><div class="note-cell" style="color:var(--ice)">PORTFOLIO LINK<br><span style="color:var(--chr-mid);font-size:9px">Full work history + endorsements</span></div></div>
+      </div>
+
+      <div class="contact-row">
+        <div class="cell"><div class="simple-ico">✅</div><div class="simple-name">AVAILABILITY</div></div>
+        <div class="cell"><div class="simple-desc" style="font-family:var(--f-mono);font-size:11px;letter-spacing:2px;color:var(--neon-g)">STATUS</div><div class="highlight-list" style="margin-top:8px"><span class="hl">OPEN TO WORK</span><span class="hl">REMOTE WW</span></div></div>
+        <div class="cell">
+          <div class="contact-val" style="color:var(--neon-g)">Freelance · Contract · Full-time</div>
+          <div class="work-text" style="margin-top:8px;font-size:12px">Remote worldwide. Immediate start available.</div>
+        </div>
+        <div class="cell">
+          <div class="status-dot status-on" style="color:var(--neon-g)">OPEN</div>
+        </div>
+        <div class="cell"><div class="note-cell" style="color:var(--neon-g)">IMMEDIATE START<br><span style="color:var(--chr-mid);font-size:9px">EU · UK · US · AUS</span></div></div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top:48px;text-align:center;padding:48px;background:radial-gradient(ellipse at 50% 0%,rgba(201,162,39,.07),transparent 70%);border:1px solid rgba(201,162,39,.15);border-radius:16px">
+      <div style="font-family:var(--f-mono);font-size:11px;letter-spacing:4px;color:var(--chr-mid);text-transform:uppercase;margin-bottom:12px">Ready to ship your next title?</div>
+      <div style="font-size:clamp(24px,4vw,40px);font-weight:700;color:var(--g-text);margin-bottom:20px">Let's build something<br><span style="background:linear-gradient(90deg,var(--neon-c),var(--neon-v));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">unforgettable.</span></div>
+      <a href="mailto:bojan@vanvinkl.com" style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,rgba(201,162,39,.15),rgba(177,76,255,.08));border:1px solid rgba(201,162,39,.4);border-radius:8px;color:var(--g-text);text-decoration:none;font-family:var(--f-ui);font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;transition:all .2s;position:relative;overflow:hidden"
+         onmouseover="this.style.boxShadow='0 0 40px rgba(201,162,39,.2)';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.boxShadow='none';this.style.transform='none'">
+        📧 bojan@vanvinkl.com
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <div class="wrapper">
+    <strong>BOJAN PETKOVIĆ</strong> · Audio Director · iGaming Specialist · Belgrade, Serbia
+    <br style="margin-bottom:4px">
+    <span style="opacity:.4">vanvinkl.com · bojan@vanvinkl.com · linkedin.com/in/vanvinkl</span>
+  </div>
+</footer>
+
+<!-- ════════ JS ════════ -->
+<script>
+// ── TIMESTAMP ──
+function tick(){
+  const el=document.getElementById('ts-live');
+  if(el) el.textContent='UPDATED '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick,60000);
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.panel).classList.add('active');
+    // scroll to tab bar
+    document.getElementById('tabs').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// ── WAVE BAR ──
+const wb=document.getElementById('wave-bar');
+if(wb){
+  const heights=[4,8,14,20,28,36,30,22,16,10,6,10,18,26,34,28,20,14,8,5,
+                 6,12,20,30,38,32,24,16,10,6,8,16,24,32,36,26,18,12,8,4,
+                 5,10,18,26,34,28,20,14,8,4];
+  heights.forEach((h,i)=>{
+    const d=document.createElement('div');
+    d.className='wave-bar-col';
+    d.style.setProperty('--h',h+'px');
+    d.style.animationDelay=(i*0.04)+'s';
+    d.style.animationDuration=(0.6+Math.random()*0.6)+'s';
+    wb.appendChild(d);
+  });
+}
+
+// ── AUDIO DEMO ──
+let ac;
+function getAC(){
+  if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)();
+  return ac;
+}
+
+function playDemo(baseFreq, color){
+  const a=getAC();
+  const notes=[baseFreq, baseFreq*1.25, baseFreq*1.5, baseFreq*2];
+  notes.forEach((f,i)=>{
+    const osc=a.createOscillator();
+    const g=a.createGain();
+    const pan=a.createStereoPanner();
+    const t=a.currentTime+i*0.08;
+    osc.frequency.value=f;
+    osc.type=i===0?'sawtooth':'sine';
+    pan.pan.value=(i-1.5)*0.4;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.2,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+    osc.connect(g);g.connect(pan);pan.connect(a.destination);
+    osc.start(t);osc.stop(t+0.6);
+  });
+  // shimmer
+  const sh=a.createOscillator();
+  const sg=a.createGain();
+  sh.frequency.value=baseFreq*4;sh.type='triangle';
+  sg.gain.setValueAtTime(0,a.currentTime);
+  sg.gain.linearRampToValueAtTime(0.06,a.currentTime+0.01);
+  sg.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.4);
+  sh.connect(sg);sg.connect(a.destination);
+  sh.start(a.currentTime);sh.stop(a.currentTime+0.45);
+}
+
+// ── STAGGER GAME ICO ANIMATIONS ──
+document.querySelectorAll('.game-ico').forEach((el,i)=>{
+  el.style.animationDelay=(i*0.4)+'s';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOJAN PETKOVIĆ — Audio Director</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════════════════ */
+:root{
+  --bg:#020408; --bg1:#070b12; --bg2:#0c1020;
+  --screen:#030609; --frame:#0a0e1c;
+  --g50:#fff8dc; --g100:#f0d878; --g200:#dbb840; --g300:#c9a227;
+  --g400:#b08a18; --g500:#8b6914; --g600:#6d520f;
+  --g-glow:rgba(201,162,39,.4); --g-text:#ffe6a8;
+  --chr-hi:#bcc8e0; --chr-mid:#60709a; --chr-lo:#1e2540;
+  --neon-c:#22e8ff; --neon-v:#b14cff; --neon-m:#ff2bd6; --neon-g:#4ade80;
+  --neon-c-glow:rgba(34,232,255,.4); --neon-v-glow:rgba(177,76,255,.4);
+  --red:#cc1133;
+  --f-ui:'Rajdhani',sans-serif; --f-mono:'JetBrains Mono',monospace;
+  --chrome-hi:#d4c8f0; --chrome-mid:#5060a0; --chrome-lo:#1a1e36;
+  --pillar-w:22px;
+  --cell-h:96px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--f-ui);color:var(--chr-hi)}
+
+/* ══ SCANLINES / VIGNETTE ══ */
+#scanlines{position:fixed;inset:0;z-index:9000;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.045) 3px,rgba(0,0,0,.045) 4px)}
+#vignette{position:fixed;inset:0;z-index:8999;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 35%,rgba(0,0,0,.82) 100%)}
+
+/* ══════════════════════════════════════════════════════
+   PHASE 0 — BOOT SCREEN
+══════════════════════════════════════════════════════ */
+#boot{
+  position:fixed;inset:0;z-index:5000;
+  background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+  transition:opacity .6s ease;
+}
+#boot.hide{opacity:0;pointer-events:none}
+
+.boot-logo{
+  font-family:var(--f-mono);font-size:13px;letter-spacing:6px;
+  color:var(--neon-c);text-transform:uppercase;
+  animation:flicker 3s infinite;
+}
+@keyframes flicker{0%,100%{opacity:1}48%{opacity:1}50%{opacity:.7}52%{opacity:1}70%{opacity:1}72%{opacity:.5}74%{opacity:1}}
+
+#boot-log{
+  width:420px;height:180px;overflow:hidden;
+  font-family:var(--f-mono);font-size:11px;line-height:1.7;color:#3fa;
+  border:1px solid rgba(63,255,100,.12);padding:12px;
+  background:rgba(0,0,0,.6);
+}
+.boot-line{opacity:0;animation:bootLine .15s forwards}
+.boot-line.err{color:#f55}
+.boot-line.ok{color:#3fa}
+.boot-line.warn{color:#fa0}
+@keyframes bootLine{to{opacity:1}}
+
+.boot-bar-wrap{width:420px}
+.boot-bar-lbl{font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:#3fa;margin-bottom:6px;opacity:.6}
+.boot-bar-track{height:2px;background:rgba(63,255,100,.1);border-radius:2px}
+.boot-bar-fill{height:100%;width:0;background:var(--neon-c);border-radius:2px;transition:width .08s}
+
+/* ══════════════════════════════════════════════════════
+   PHASE 1 — SPLASH
+══════════════════════════════════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:4000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(177,76,255,.12) 0%,rgba(2,4,8,.96) 60%,#000 100%);
+  opacity:0;pointer-events:none;transition:opacity .4s;
+}
+#splash.show{opacity:1;pointer-events:all}
+#splash.hide{opacity:0;pointer-events:none}
+
+.splash-eyebrow{
+  font-family:var(--f-mono);font-size:11px;letter-spacing:5px;
+  color:var(--neon-c);text-transform:uppercase;
+  opacity:0;transform:translateY(12px);transition:all .6s .2s;
+  margin-bottom:12px;
+}
+.splash-name{
+  font-size:clamp(48px,8vw,96px);font-weight:700;
+  letter-spacing:-3px;line-height:1;
+  background:linear-gradient(180deg,var(--g50) 0%,var(--g100) 25%,var(--g300) 60%,var(--g500) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(201,162,39,.5)) drop-shadow(0 0 80px rgba(201,162,39,.2));
+  opacity:0;transform:translateY(20px);transition:all .7s .5s;
+}
+.splash-tagline{
+  font-size:clamp(16px,2.4vw,22px);font-weight:500;
+  color:var(--chr-mid);letter-spacing:4px;text-transform:uppercase;
+  margin-top:10px;
+  opacity:0;transform:translateY(12px);transition:all .6s .9s;
+}
+.splash-sub{
+  font-family:var(--f-mono);font-size:13px;letter-spacing:1px;
+  margin-top:16px;color:rgba(96,112,154,.7);
+  opacity:0;transition:all .5s 1.2s;
+}
+.splash-sub em{font-style:normal;color:var(--neon-c)}
+#splash.show .splash-eyebrow,
+#splash.show .splash-name,
+#splash.show .splash-tagline,
+#splash.show .splash-sub{opacity:1;transform:none}
+
+.press-enter{
+  margin-top:56px;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:4px;
+  color:var(--g300);text-transform:uppercase;
+  animation:blink 1.4s ease-in-out infinite;
+  opacity:0;transition:opacity .4s 1.8s;
+  cursor:pointer;padding:12px 24px;
+  border:1px solid rgba(201,162,39,.25);border-radius:6px;
+  background:rgba(201,162,39,.04);
+}
+#splash.show .press-enter{opacity:1}
+@keyframes blink{0%,100%{opacity:.9}50%{opacity:.3}}
+
+/* splash particles */
+.splash-particle{
+  position:absolute;width:2px;height:2px;border-radius:50%;
+  background:var(--g300);pointer-events:none;
+  animation:sparkle var(--d,2s) var(--del,0s) infinite ease-out;
+  opacity:0;
+}
+@keyframes sparkle{
+  0%{opacity:0;transform:translate(0,0) scale(1)}
+  20%{opacity:.8}
+  100%{opacity:0;transform:translate(var(--tx,30px),var(--ty,-60px)) scale(0)}
+}
+
+/* ══════════════════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════════════════ */
+#app{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity .5s;
+}
+#app.show{opacity:1;pointer-events:all}
+
+/* ══ TOP BAR ══ */
+#topbar{
+  flex-shrink:0;
+  height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  background:rgba(7,11,18,.95);
+  border-bottom:1px solid rgba(201,162,39,.18);
+  position:relative;z-index:100;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo svg{width:32px;height:32px;filter:drop-shadow(0 0 6px rgba(201,162,39,.4))}
+.topbar-name{font-size:18px;font-weight:700;color:var(--g-text);letter-spacing:2px}
+.topbar-title{font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--chr-mid);text-transform:uppercase;margin-left:4px;margin-top:2px}
+
+.topbar-metrics{display:flex;gap:1px}
+.tb-metric{
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 14px;border-right:1px solid rgba(201,162,39,.1);
+}
+.tb-metric:last-child{border-right:none}
+.tb-val{font-size:17px;font-weight:700;color:var(--g100);line-height:1}
+.tb-lbl{font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:var(--chr-mid);text-transform:uppercase;margin-top:1px}
+
+.topbar-right{display:flex;align-items:center;gap:12px}
+.live-badge{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--neon-c);
+  padding:4px 10px;border:1px solid rgba(34,232,255,.2);border-radius:100px;
+  background:rgba(34,232,255,.04);
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--neon-c);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ══ TICKER ══ */
+#ticker{
+  flex-shrink:0;height:28px;
+  overflow:hidden;background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(201,162,39,.1);
+  display:flex;align-items:center;
+}
+.ticker-inner{
+  display:flex;white-space:nowrap;gap:0;
+  animation:ticker 30s linear infinite;
+}
+.ticker-item{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  color:var(--g500);padding:0 20px;text-transform:uppercase;
+  border-right:1px solid rgba(201,162,39,.08);
+}
+.ticker-item b{color:var(--g300)}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ══ SLOT BODY ══ */
+#slot-body{
+  flex:1;min-height:0;
+  display:flex;
+  padding:12px 16px 0;
+  gap:12px;
+}
+
+/* ══ LEFT SIDEBAR — TAB PANEL ══ */
+#tab-panel{
+  flex-shrink:0;width:136px;
+  display:flex;flex-direction:column;gap:6px;
+  padding-top:4px;
+}
+.tab-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 12px;border-radius:8px;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;
+  border:1px solid rgba(96,112,154,.15);
+  background:rgba(7,11,18,.8);color:var(--chr-mid);
+  transition:all .18s;position:relative;overflow:hidden;
+  user-select:none;
+}
+.tab-btn::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--tab-color,var(--g300));opacity:0;transition:opacity .2s;
+  box-shadow:0 0 8px var(--tab-color,var(--g300));
+}
+.tab-btn:hover{color:var(--chr-hi);border-color:rgba(201,162,39,.2);background:rgba(14,10,28,.9)}
+.tab-btn.active{
+  color:var(--g-text);border-color:rgba(201,162,39,.35);
+  background:rgba(201,162,39,.06);
+}
+.tab-btn.active::after{opacity:1}
+.tab-ico{font-size:16px;flex-shrink:0}
+.tab-count{
+  margin-left:auto;font-size:9px;padding:2px 5px;
+  border-radius:4px;background:rgba(201,162,39,.1);
+  color:var(--g400);
+}
+
+/* ══ SLOT MACHINE CENTER ══ */
+#slot-center{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;gap:0;
+}
+
+/* frame outer */
+#slot-frame{
+  flex:1;min-height:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(201,162,39,.07) 0%,transparent 60%),
+    var(--bg1);
+  border:1px solid rgba(201,162,39,.3);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.8),
+    0 0 40px rgba(201,162,39,.06),
+    inset 0 1px 0 rgba(201,162,39,.1);
+  position:relative;
+}
+
+/* frame top chrome */
+.frame-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;
+  background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(201,162,39,.12);
+  flex-shrink:0;
+}
+.frame-top-left{display:flex;align-items:center;gap:10px}
+.section-title{
+  font-size:16px;font-weight:700;letter-spacing:2px;color:var(--g-text);
+}
+.section-sub{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  color:var(--chr-mid);text-transform:uppercase;
+}
+.frame-top-right{display:flex;gap:6px}
+.ft-badge{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  padding:3px 8px;border-radius:100px;border:1px solid;
+}
+
+/* column headers */
+.col-headers-row{
+  display:grid;gap:1px;
+  background:rgba(201,162,39,.12);
+  border-bottom:1px solid rgba(201,162,39,.12);
+  flex-shrink:0;
+}
+.col-h{
+  background:rgba(5,7,12,.9);padding:7px 14px;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--chr-mid);
+  display:flex;align-items:center;gap:5px;
+}
+.ch-icon{color:var(--g400);font-size:11px}
+
+/* reel area */
+#reel-area{
+  flex:1;min-height:0;overflow:hidden;position:relative;
+}
+/* payline */
+#payline{
+  position:absolute;left:0;right:0;top:50%;
+  height:2px;z-index:20;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(201,162,39,.6),rgba(34,232,255,.4),rgba(201,162,39,.6),transparent);
+  transform:translateY(-50%);
+  box-shadow:0 0 12px rgba(201,162,39,.3);
+}
+#payline-canvas{
+  position:absolute;left:0;right:0;
+  height:40px;top:50%;transform:translateY(-50%);
+  z-index:21;pointer-events:none;
+  opacity:.7;
+}
+
+/* reel columns */
+#reel-grid{
+  width:100%;height:100%;
+  display:grid;gap:1px;
+  background:rgba(201,162,39,.08);
+}
+.reel-col{
+  overflow:hidden;position:relative;
+  background:var(--screen);
+}
+.reel-col::after{/* top gradient mask */
+  content:'';position:absolute;top:0;left:0;right:0;height:20%;z-index:5;
+  background:linear-gradient(180deg,rgba(3,5,9,.95),transparent);pointer-events:none;
+}
+.reel-col::before{/* bottom gradient mask */
+  content:'';position:absolute;bottom:0;left:0;right:0;height:20%;z-index:5;
+  background:linear-gradient(0deg,rgba(3,5,9,.95),transparent);pointer-events:none;
+}
+
+.reel-strip{
+  position:absolute;top:0;left:0;right:0;
+  transition:transform .6s cubic-bezier(.16,1,.3,1);
+}
+.reel-strip.spinning{
+  transition:transform .08s linear;
+}
+
+.reel-cell{
+  height:var(--cell-h);padding:10px 14px;
+  display:flex;flex-direction:column;justify-content:center;
+  border-bottom:1px solid rgba(201,162,39,.06);
+  position:relative;overflow:hidden;
+  cursor:pointer;transition:background .2s;
+}
+.reel-cell:hover{background:rgba(201,162,39,.04)}
+.reel-cell.center-row{
+  background:rgba(201,162,39,.03);
+  border-top:1px solid rgba(201,162,39,.08);
+  border-bottom:1px solid rgba(201,162,39,.08);
+}
+.reel-cell.win{
+  animation:win-flash .4s ease 3;
+}
+@keyframes win-flash{0%,100%{background:transparent}50%{background:rgba(201,162,39,.2)}}
+
+/* cell types */
+.cell-game .c-ico{font-size:24px;margin-bottom:3px;display:block}
+.cell-game .c-name{font-size:13px;font-weight:700;color:var(--g-text);letter-spacing:.5px;line-height:1.1}
+.cell-game .c-studio{font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:var(--chr-mid);margin-top:3px;text-transform:uppercase}
+
+.cell-scope .scope-list{display:flex;flex-direction:column;gap:2px}
+.sc{
+  display:flex;align-items:center;gap:4px;
+  font-family:var(--f-mono);font-size:8px;letter-spacing:1px;
+  padding:2px 5px;border-radius:3px;
+}
+.sc.on{color:var(--neon-c);background:rgba(34,232,255,.06);border:1px solid rgba(34,232,255,.15)}
+.sc.off{color:rgba(96,112,154,.25);background:transparent;border:1px solid rgba(96,112,154,.06);text-decoration:line-through}
+
+.cell-work .c-text{font-size:11px;line-height:1.55;color:var(--chr-mid)}
+.cell-work .c-text b{color:var(--chr-hi)}
+
+.cell-tools .tools-wrap{display:flex;flex-wrap:wrap;gap:3px}
+.tool{
+  font-family:var(--f-mono);font-size:8px;letter-spacing:.5px;
+  padding:2px 6px;border-radius:3px;
+  background:rgba(201,162,39,.05);border:1px solid rgba(201,162,39,.15);
+  color:var(--g400);text-transform:uppercase;
+}
+
+.cell-demo{display:flex;align-items:center;justify-content:center}
+.demo-play{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(201,162,39,.3);background:rgba(201,162,39,.06);
+  font-size:14px;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.demo-play::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 60%,rgba(201,162,39,.3) 70%,transparent 80%);
+  animation:spin-slow 3s linear infinite;
+}
+.demo-play:hover{
+  background:rgba(201,162,39,.15);border-color:var(--g300);
+  box-shadow:0 0 16px rgba(201,162,39,.3);
+}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+
+/* skill cells */
+.cell-skill .sk-ico{font-size:20px;margin-bottom:3px}
+.cell-skill .sk-name{font-size:12px;font-weight:700;color:var(--chr-hi)}
+.cell-level .lv-badge{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  padding:4px 8px;border-radius:4px;text-transform:uppercase;font-weight:700;
+  display:inline-block;margin-bottom:6px;
+}
+.lv-expert{color:#ffd700;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.22)}
+.lv-advanced{color:var(--neon-c);background:rgba(34,232,255,.06);border:1px solid rgba(34,232,255,.2)}
+.stars{display:flex;gap:3px;margin-top:4px}
+.st{width:7px;height:7px;border-radius:50%;background:var(--g300);box-shadow:0 0 4px var(--g-glow)}
+.st.off{background:rgba(96,112,154,.18);box-shadow:none}
+
+/* career accent */
+.career-acc{
+  position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--acc,var(--g300));
+  box-shadow:0 0 8px var(--acc,var(--g300));
+}
+
+/* ══ FRAME BOTTOM ══ */
+.frame-bottom{
+  flex-shrink:0;display:flex;align-items:center;
+  padding:6px 12px;gap:8px;
+  background:rgba(0,0,0,.4);border-top:1px solid rgba(201,162,39,.1);
+}
+.fb-label{font-family:var(--f-mono);font-size:8px;letter-spacing:3px;color:var(--chr-mid);text-transform:uppercase}
+.item-nav{display:flex;align-items:center;gap:6px}
+.nav-arr{
+  width:24px;height:24px;border-radius:4px;
+  background:rgba(201,162,39,.06);border:1px solid rgba(201,162,39,.2);
+  color:var(--g300);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.nav-arr:hover{background:rgba(201,162,39,.12);border-color:var(--g300)}
+.nav-pos{font-family:var(--f-mono);font-size:10px;color:var(--chr-mid);min-width:40px;text-align:center}
+
+/* ══ SPIN CONTROLS ══ */
+#controls{
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;
+  background:rgba(0,0,0,.6);
+  border-top:1px solid rgba(201,162,39,.15);
+  gap:12px;
+}
+.ctrl-stat{
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 16px;border-right:1px solid rgba(201,162,39,.1);
+}
+.ctrl-stat:last-of-type{border-right:none;border-left:1px solid rgba(201,162,39,.1)}
+.ctrl-val{font-size:22px;font-weight:700;color:var(--g100);line-height:1;font-family:var(--f-mono)}
+.ctrl-lbl{font-family:var(--f-mono);font-size:8px;letter-spacing:3px;color:var(--chr-mid);text-transform:uppercase;margin-top:2px}
+
+#spin-btn{
+  flex:1;max-width:200px;
+  height:52px;border-radius:100px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--g100),var(--g300),var(--g500));
+  font-family:var(--f-ui);font-size:14px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--bg);
+  position:relative;overflow:hidden;
+  transition:all .2s;
+  box-shadow:0 4px 24px rgba(201,162,39,.3),inset 0 1px 0 rgba(255,255,255,.2);
+}
+#spin-btn::after{
+  content:'';position:absolute;top:-50%;left:-60%;
+  width:40%;height:200%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:rotate(15deg);
+  animation:shine 3s infinite;
+}
+@keyframes shine{0%{left:-60%}60%,100%{left:140%}}
+#spin-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,162,39,.4)}
+#spin-btn:active{transform:translateY(0)}
+#spin-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+/* ══ RIGHT SIDEBAR — DETAIL ══ */
+#detail-panel{
+  flex-shrink:0;width:240px;
+  background:rgba(7,11,18,.9);
+  border:1px solid rgba(96,112,154,.15);
+  border-radius:10px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:all .3s;
+}
+.dp-header{
+  padding:12px 14px;
+  background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(201,162,39,.1);
+  flex-shrink:0;
+}
+.dp-title{font-size:13px;font-weight:700;color:var(--g-text);margin-bottom:2px}
+.dp-sub{font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:var(--chr-mid);text-transform:uppercase}
+
+.dp-body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.dp-body::-webkit-scrollbar{width:3px}
+.dp-body::-webkit-scrollbar-track{background:transparent}
+.dp-body::-webkit-scrollbar-thumb{background:rgba(201,162,39,.2);border-radius:2px}
+
+.dp-section{display:flex;flex-direction:column;gap:5px}
+.dp-sec-label{font-family:var(--f-mono);font-size:8px;letter-spacing:3px;color:var(--chr-mid);text-transform:uppercase;margin-bottom:2px}
+.dp-text{font-size:12px;line-height:1.65;color:var(--chr-mid)}
+.dp-highlight{
+  display:inline-block;padding:2px 7px;border-radius:3px;
+  font-family:var(--f-mono);font-size:8px;letter-spacing:1px;
+  border:1px solid rgba(96,112,154,.2);color:var(--chr-mid);
+  background:rgba(96,112,154,.04);text-transform:uppercase;margin:2px 1px;
+}
+.dp-hl-gold{border-color:rgba(201,162,39,.25);color:var(--g400);background:rgba(201,162,39,.05)}
+
+.dp-cta{
+  flex-shrink:0;padding:12px 14px;
+  border-top:1px solid rgba(201,162,39,.08);
+}
+.dp-cta-btn{
+  width:100%;padding:9px;border-radius:6px;
+  background:linear-gradient(135deg,rgba(201,162,39,.1),rgba(177,76,255,.07));
+  border:1px solid rgba(201,162,39,.25);
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--g-text);cursor:pointer;
+  transition:all .2s;
+}
+.dp-cta-btn:hover{background:rgba(201,162,39,.15);border-color:var(--g300)}
+
+/* ══ COINS ══ */
+.coin{
+  position:fixed;width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,var(--g100),var(--g400));
+  box-shadow:0 0 4px var(--g-glow);
+  pointer-events:none;z-index:8000;
+  animation:coin-fall var(--dur,.8s) var(--del,0s) ease-in forwards;
+}
+@keyframes coin-fall{
+  0%{transform:translate(var(--sx,0),var(--sy,0)) rotate(0deg);opacity:1}
+  100%{transform:translate(var(--ex,0),var(--ey,80px)) rotate(720deg);opacity:0}
+}
+
+/* ══ BOOK MODAL ══ */
+#modal-overlay{
+  position:fixed;inset:0;z-index:7000;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+}
+#modal-overlay.show{display:flex}
+#modal-card{
+  background:radial-gradient(ellipse at 50% 0%,rgba(201,162,39,.1),var(--bg1));
+  border:1px solid rgba(201,162,39,.35);border-radius:20px;
+  padding:40px 36px;width:460px;position:relative;
+  animation:modal-in .35s var(--ease-bounce,cubic-bezier(.34,1.56,.64,1));
+}
+@keyframes modal-in{from{transform:translateY(-30px) scale(.95);opacity:0}to{transform:none;opacity:1}}
+.modal-coin{font-size:48px;text-align:center;display:block;margin-bottom:8px}
+.modal-title{text-align:center;font-size:28px;font-weight:700;color:var(--g-text);margin-bottom:4px}
+.modal-sub{text-align:center;font-family:var(--f-mono);font-size:10px;letter-spacing:3px;color:var(--chr-mid);text-transform:uppercase;margin-bottom:28px}
+.modal-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.modal-slot{
+  padding:12px;border:1px solid rgba(201,162,39,.2);border-radius:8px;
+  text-align:center;cursor:pointer;transition:all .2s;
+  background:rgba(201,162,39,.04);
+}
+.modal-slot:hover,.modal-slot.sel{background:rgba(201,162,39,.12);border-color:var(--g300)}
+.ms-time{font-family:var(--f-mono);font-size:16px;font-weight:700;color:var(--g200);display:block}
+.ms-date{font-family:var(--f-mono);font-size:9px;color:var(--chr-mid);letter-spacing:1px}
+.modal-btn{
+  width:100%;padding:14px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--g200),var(--g400));
+  font-family:var(--f-ui);font-size:15px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--bg);
+  position:relative;overflow:hidden;
+}
+.modal-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shine 2s infinite}
+.modal-close{
+  position:absolute;top:14px;right:16px;
+  background:none;border:none;color:var(--chr-mid);font-size:18px;cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="scanlines"></div>
+<div id="vignette"></div>
+
+<!-- ════════ BOOT ════════ -->
+<div id="boot">
+  <div class="boot-logo">◈ VANVINKL AUDIO SYSTEMS v2.0 ◈</div>
+  <div id="boot-log"></div>
+  <div class="boot-bar-wrap">
+    <div class="boot-bar-lbl">LOADING PORTFOLIO ENGINE</div>
+    <div class="boot-bar-track"><div class="boot-bar-fill" id="boot-fill"></div></div>
+  </div>
+</div>
+
+<!-- ════════ SPLASH ════════ -->
+<div id="splash">
+  <!-- particles -->
+  <div id="splash-particles"></div>
+
+  <div class="splash-eyebrow">Audio Director · iGaming Specialist</div>
+  <div class="splash-name">BOJAN PETKOVIĆ</div>
+  <div class="splash-tagline">Sound Design · Music Production · Belgrade</div>
+  <div class="splash-sub">Where The <em>Reels</em> Meet The Score.</div>
+  <div class="press-enter" id="press-enter" onclick="enterMain()">▶ ENTER PORTFOLIO</div>
+</div>
+
+<!-- ════════ MAIN APP ════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 32 32" fill="none">
+        <path d="M4 26 L11 6 L18 26" stroke="url(#tg1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 26 L25 6 L32 26" stroke="url(#tg2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="tg1" x1="4" y1="6" x2="18" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="#f0d878"/><stop offset="1" stop-color="#8b6914"/></linearGradient>
+          <linearGradient id="tg2" x1="18" y1="6" x2="32" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="#b14cff"/><stop offset="1" stop-color="#22e8ff"/></linearGradient>
+        </defs>
+      </svg>
+      <div>
+        <div class="topbar-name">BOJAN PETKOVIĆ</div>
+        <div class="topbar-title">Audio Director · VanVinkl Studio</div>
+      </div>
+    </div>
+
+    <div class="topbar-metrics">
+      <div class="tb-metric"><div class="tb-val">50<sup style="font-size:.6em">+</sup></div><div class="tb-lbl">Titles</div></div>
+      <div class="tb-metric"><div class="tb-val">200<sup style="font-size:.6em">+</sup></div><div class="tb-lbl">SFX/Title</div></div>
+      <div class="tb-metric"><div class="tb-val" style="color:var(--neon-g)">0</div><div class="tb-lbl">Defects</div></div>
+      <div class="tb-metric"><div class="tb-val">8<span style="font-size:.55em;color:var(--g400)">yr</span></div><div class="tb-lbl">XP</div></div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="live-badge"><div class="live-dot"></div><span id="ts-live">NOW</span></div>
+      <div style="font-family:var(--f-mono);font-size:9px;color:rgba(96,112,154,.4);letter-spacing:2px">bojan@vanvinkl.com</div>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div id="ticker">
+    <div class="ticker-inner" id="ticker-inner">
+      <span class="ticker-item">🐷 <b>Piggy Plunger</b> · Playnetic 2025</span>
+      <span class="ticker-item">⚡ <b>Smash Factory</b> · Playnetic 2025</span>
+      <span class="ticker-item">✨ <b>Starlight Travelers</b> · Playnetic 2025</span>
+      <span class="ticker-item">⚔️ <b>Valkyries</b> · Playnetic 2025</span>
+      <span class="ticker-item">🐲 <b>Zhulongs</b> · IGT 2023</span>
+      <span class="ticker-item">🌙 <b>Midnight Gold</b> · VanVinkl 2024</span>
+      <span class="ticker-item">🔥 <b>Blazin's Hot</b> · IGT 2022</span>
+      <span class="ticker-item">🏺 <b>Mummy Riches</b> · Playnetic 2024</span>
+      <span class="ticker-item">🐷 <b>Piggy Plunger</b> · Playnetic 2025</span>
+      <span class="ticker-item">⚡ <b>Smash Factory</b> · Playnetic 2025</span>
+      <span class="ticker-item">✨ <b>Starlight Travelers</b> · Playnetic 2025</span>
+      <span class="ticker-item">⚔️ <b>Valkyries</b> · Playnetic 2025</span>
+      <span class="ticker-item">🐲 <b>Zhulongs</b> · IGT 2023</span>
+      <span class="ticker-item">🌙 <b>Midnight Gold</b> · VanVinkl 2024</span>
+      <span class="ticker-item">🔥 <b>Blazin's Hot</b> · IGT 2022</span>
+      <span class="ticker-item">🏺 <b>Mummy Riches</b> · Playnetic 2024</span>
+    </div>
+  </div>
+
+  <!-- SLOT BODY -->
+  <div id="slot-body">
+
+    <!-- LEFT: TABS -->
+    <div id="tab-panel">
+      <div class="tab-btn active" data-sec="0" style="--tab-color:#c9a227" onclick="setSection(0)">
+        <span class="tab-ico">◈</span>PROJECTS<span class="tab-count">8</span>
+      </div>
+      <div class="tab-btn" data-sec="1" style="--tab-color:#22e8ff" onclick="setSection(1)">
+        <span class="tab-ico">◉</span>SKILLS<span class="tab-count">6</span>
+      </div>
+      <div class="tab-btn" data-sec="2" style="--tab-color:#b14cff" onclick="setSection(2)">
+        <span class="tab-ico">◎</span>ABOUT<span class="tab-count">5</span>
+      </div>
+      <div class="tab-btn" data-sec="3" style="--tab-color:#ff2bd6" onclick="setSection(3)">
+        <span class="tab-ico">◆</span>CAREER<span class="tab-count">4</span>
+      </div>
+      <div class="tab-btn" data-sec="4" style="--tab-color:#4ade80" onclick="setSection(4)">
+        <span class="tab-ico">▶</span>CONTACT<span class="tab-count">3</span>
+      </div>
+
+      <!-- spacer + book btn -->
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid rgba(201,162,39,.1);padding-top:8px;margin-top:8px">
+        <div class="tab-btn" style="--tab-color:#c9a227;border-color:rgba(201,162,39,.3);background:rgba(201,162,39,.05);color:var(--g-text)" onclick="openModal()">
+          <span class="tab-ico">🪙</span>BOOK CALL
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: SLOT MACHINE -->
+    <div id="slot-center">
+      <div id="slot-frame">
+        <!-- frame top -->
+        <div class="frame-top">
+          <div class="frame-top-left">
+            <div>
+              <div class="section-title" id="sec-title">PROJECTS</div>
+              <div class="section-sub" id="sec-sub">Slot Titles · Full Pipeline Audio</div>
+            </div>
+          </div>
+          <div class="frame-top-right">
+            <div class="ft-badge" id="sec-badge" style="color:var(--g300);border-color:rgba(201,162,39,.3);background:rgba(201,162,39,.05)">8 ITEMS</div>
+          </div>
+        </div>
+
+        <!-- col headers -->
+        <div class="col-headers-row" id="col-headers-row"></div>
+
+        <!-- reel area -->
+        <div id="reel-area">
+          <div id="payline"></div>
+          <canvas id="payline-canvas"></canvas>
+          <div id="reel-grid"></div>
+        </div>
+
+        <!-- frame bottom nav -->
+        <div class="frame-bottom">
+          <span class="fb-label">ITEM</span>
+          <div class="item-nav">
+            <div class="nav-arr" onclick="prevItem()">‹</div>
+            <div class="nav-pos" id="nav-pos">1 / 8</div>
+            <div class="nav-arr" onclick="nextItem()">›</div>
+          </div>
+          <div style="flex:1"></div>
+          <div id="win-msg" style="font-family:var(--f-mono);font-size:9px;letter-spacing:3px;color:var(--g300);opacity:0;transition:opacity .3s;text-transform:uppercase">
+            ★ WIN ★
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div id="controls">
+        <div class="ctrl-stat">
+          <div class="ctrl-val" id="credits-val">777</div>
+          <div class="ctrl-lbl">Credits</div>
+        </div>
+
+        <button id="spin-btn" onclick="doSpin()">▶ SPIN</button>
+
+        <div class="ctrl-stat">
+          <div class="ctrl-val" id="jackpot-val" style="color:var(--neon-c)">1337</div>
+          <div class="ctrl-lbl">Jackpot</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: DETAIL PANEL -->
+    <div id="detail-panel">
+      <div class="dp-header">
+        <div class="dp-title" id="dp-title">PIGGY PLUNGER</div>
+        <div class="dp-sub" id="dp-sub">Playnetic · 2025</div>
+      </div>
+      <div class="dp-body" id="dp-body">
+        <div class="dp-section">
+          <div class="dp-sec-label">Work</div>
+          <div class="dp-text" id="dp-work">Bouncy ragtime score, 4 adaptive layers. 200+ custom SFX — reel hits, coin cascades, plunger mechanics.</div>
+        </div>
+        <div class="dp-section">
+          <div class="dp-sec-label">Tools</div>
+          <div id="dp-tools" class="tools-wrap" style="display:flex;flex-wrap:wrap;gap:3px"></div>
+        </div>
+        <div class="dp-section">
+          <div class="dp-sec-label">Scope</div>
+          <div id="dp-scope" style="display:flex;flex-wrap:wrap;gap:3px"></div>
+        </div>
+      </div>
+      <div class="dp-cta">
+        <button class="dp-cta-btn" onclick="openModal()">🪙 Book Audio Teardown</button>
+      </div>
+    </div>
+
+  </div><!-- /slot-body -->
+</div><!-- /app -->
+
+<!-- BOOK MODAL -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal-card">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <span class="modal-coin">🪙</span>
+    <div class="modal-title">Book 15-min Call</div>
+    <div class="modal-sub">Free · No pitch · Just sound talk</div>
+    <div class="modal-slots">
+      <div class="modal-slot sel"><span class="ms-time">Mon 10:00</span><span class="ms-date">30 Apr · CET</span></div>
+      <div class="modal-slot"><span class="ms-time">Mon 14:00</span><span class="ms-date">30 Apr · CET</span></div>
+      <div class="modal-slot"><span class="ms-time">Tue 11:00</span><span class="ms-date">1 May · CET</span></div>
+      <div class="modal-slot"><span class="ms-time">Wed 09:00</span><span class="ms-date">2 May · CET</span></div>
+    </div>
+    <button class="modal-btn" onclick="closeModal()">🎰 SPIN — Confirm Booking</button>
+    <div style="text-align:center;font-family:var(--f-mono);font-size:9px;color:rgba(96,112,154,.4);margin-top:10px">bojan@vanvinkl.com · linkedin.com/in/vanvinkl</div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════════════ */
+const DATA = {
+  sections:[
+    {id:'projects',label:'PROJECTS',sub:'Slot Titles · Full Pipeline Audio',badge:'8 ITEMS',color:'#c9a227',
+     headers:[['⬡','GAME'],['◎','SCOPE'],['✦','WORK'],['⚙','TOOLS'],['▶','DEMO']],
+     cols:[220,110,'1fr',150,70]},
+    {id:'skills',label:'SKILLS',sub:'Expert-Level Audio Capabilities',badge:'6 SKILLS',color:'#22e8ff',
+     headers:[['◈','SKILL'],['★','LEVEL'],['◎','DETAILS'],['⚙','TOOLS'],['◆','DOMAIN']],
+     cols:[180,110,'1fr',160,110]},
+    {id:'about',label:'ABOUT',sub:'Bojan Petković · Belgrade, Serbia',badge:'5 ASPECTS',color:'#b14cff',
+     headers:[['◈','PROFILE'],['◎','CONTEXT'],['✦','STORY'],['◆','FACTS'],['●','FOCUS']],
+     cols:[160,160,'1fr','1fr',130]},
+    {id:'career',label:'CAREER',sub:'8 Years iGaming Audio · 2018–Present',badge:'4 ROLES',color:'#ff2bd6',
+     headers:[['◆','COMPANY'],['◎','PERIOD'],['✦','ROLE'],['◎','SCOPE'],['★','IMPACT']],
+     cols:[150,120,'1fr','1fr','1fr']},
+    {id:'contact',label:'CONTACT',sub:'Open to Work · Remote Worldwide',badge:'OPEN',color:'#4ade80',
+     headers:[['▶','CHANNEL'],['◎','TYPE'],['◆','VALUE'],['✓','STATUS'],['◎','NOTE']],
+     cols:[140,130,'1fr',110,'1fr']},
+  ],
+  projects:[
+    {ico:'🐷',name:'PIGGY PLUNGER',studio:'Playnetic · 2025',color:'#ff69b4',
+     scope:{music:1,sfx:1,integration:1,qa:1},
+     work:'Bouncy ragtime score, 4 adaptive layers. 200+ custom SFX — reel hits, coin cascades, plunger mechanics.',
+     tools:['Logic Pro','iZotope RX','Howler.js','Phaser 3']},
+    {ico:'⚡',name:'SMASH FACTORY',studio:'Playnetic · 2025',color:'#ff8c00',
+     scope:{music:1,sfx:1,integration:1,qa:0},
+     work:'Industrial metal theme — tension/euphoria transitions. Hydraulic SFX: metal impacts, sparks, electricity.',
+     tools:['Logic Pro','Reaper','Howler.js','Phaser 3']},
+    {ico:'✨',name:'STARLIGHT TRAVELERS',studio:'Playnetic · 2025',color:'#6a5acd',
+     scope:{music:1,sfx:1,integration:1,qa:1},
+     work:'Ethereal cosmic soundscape — shimmering synths, crystalline wins, nebula ambience, stardust audio.',
+     tools:['Logic Pro','iZotope','Howler.js','Phaser 3']},
+    {ico:'⚔️',name:'VALKYRIES',studio:'Playnetic · 2025',color:'#dc143c',
+     scope:{music:1,sfx:1,integration:1,qa:0},
+     work:'Nordic war theme — epic choir, war drums, dynamic free spin escalation. Shield clashes, battle ambience.',
+     tools:['Logic Pro','FMOD','Reaper','Phaser 3']},
+    {ico:'🐲',name:'ZHULONGS',studio:'IGT · 2023',color:'#00c853',
+     scope:{music:1,sfx:1,integration:0,qa:1},
+     work:'Pentatonic orchestral — Chinese classical meets casino energy. Dragon roars, gong hits, mystical effects.',
+     tools:['Logic Pro','Pro Tools','iZotope','Unity']},
+    {ico:'🌙',name:'MIDNIGHT GOLD',studio:'VanVinkl · 2024',color:'#1e90ff',
+     scope:{music:1,sfx:1,integration:1,qa:1},
+     work:'Dark jazz lounge with gold-rush anticipation builds. Velvet UI sounds, sax stingers, coin rain FX.',
+     tools:['Logic Pro','Reaper','Howler.js','Phaser 3']},
+    {ico:'🔥',name:"BLAZIN'S HOT",studio:'IGT · 2022',color:'#ff4500',
+     scope:{music:1,sfx:1,integration:0,qa:1},
+     work:'Upbeat Mediterranean melody — tension ramp for free spins. Fire crackles, sizzling wins, pepper explosions.',
+     tools:['Pro Tools','Logic Pro','iZotope','Unity']},
+    {ico:'🏺',name:'MUMMY RICHES',studio:'Playnetic · 2024',color:'#daa520',
+     scope:{music:1,sfx:1,integration:1,qa:0},
+     work:'Egyptian mystery — haunting flutes, sandy winds, tomb ambience. Scarab beetles, sand cascades, ancient SFX.',
+     tools:['Logic Pro','iZotope RX','Howler.js','Phaser 3']},
+  ],
+  skills:[
+    {ico:'🎵',name:'MUSIC PRODUCTION',level:'EXPERT',stars:5,
+     desc:'Adaptive layered compositions — base game loops, free spin escalation, jackpot fanfares. Seamless state transitions timed to volatility.',
+     tools:['Logic Pro','Reaper','Kontakt','Spitfire'],domain:'COMPOSITION',dcolor:'#ffd700'},
+    {ico:'🔊',name:'SOUND DESIGN',level:'EXPERT',stars:5,
+     desc:'200+ custom SFX per title — reel mechanics, coin physics, win escalation, UI feedback, ambience layers.',
+     tools:['iZotope RX','Logic Pro','Reaper','Krotos'],domain:'SOUND ART',dcolor:'#22e8ff'},
+    {ico:'⚙️',name:'AUDIO INTEGRATION',level:'ADVANCED',stars:4,
+     desc:'Event-driven playback systems wired directly into game engines. Trigger maps, state machines, spatial positioning.',
+     tools:['Howler.js','Phaser 3','Unity','PixiJS'],domain:'ENGINEERING',dcolor:'#00ff88'},
+    {ico:'🎛️',name:'AUDIO DIRECTION',level:'ADVANCED',stars:4,
+     desc:'Creative leadership — sonic identity, quality standards, mix supervision, final sign-off on every game state.',
+     tools:['Confluence','Figma','JIRA','Slack'],domain:'LEADERSHIP',dcolor:'#ff00aa'},
+    {ico:'🧪',name:'AUDIO QA',level:'EXPERT',stars:5,
+     desc:'Systematic trigger verification across every game state. Zero audio defects at launch across 50+ certified titles.',
+     tools:['TestRail','JIRA','Custom Scripts'],domain:'QA SYSTEMS',dcolor:'#9944ff'},
+    {ico:'🎰',name:'SLOT SPECIALIZATION',level:'EXPERT',stars:5,
+     desc:'Deep domain expertise in real-money slot audio. EU/UK/AUS compliance, player psychology, volatility-aware design.',
+     tools:['FMOD','Wwise','Howler.js','Tone.js'],domain:'iGAMING',dcolor:'#ff6600'},
+  ],
+  about:[
+    {ico:'👤',name:'WHO I AM',ctx:'Belgrade, Serbia',
+     story:'Senior audio professional from Belgrade, Serbia. 8+ years specializing in iGaming. Classically trained musician turned game audio expert — every score carries musical intent and technical precision.',
+     facts:['BELGRADE, RS','8+ YEARS','IGAMING SPECIALIST','MUSICIAN'],focus:'EU Timezone · Pioneer'},
+    {ico:'🎯',name:'MY PHILOSOPHY',ctx:'Zero-Defect · Full Pipeline',
+     story:'Full pipeline ownership from concept to certified release. Every asset purpose-built, every trigger QA-verified. Audio is not decoration — it drives player engagement and brand identity.',
+     facts:['FULL OWNERSHIP','ZERO DEFECTS','PURPOSE-BUILT','BRAND IDENTITY'],focus:'Audio = Engagement'},
+    {ico:'🌍',name:'WORK STYLE',ctx:'Remote Worldwide',
+     story:'Remote delivery to studios across EU, UK, North America, and Australia. 10+ parallel titles under tight release cycles. Clear communication, structured milestones, predictable delivery.',
+     facts:['REMOTE WW','10+ PARALLEL','EU · UK · US · AUS','ON-TIME ALWAYS'],focus:'Async-First'},
+    {ico:'🎓',name:'EDUCATION',ctx:'SAE · Faculty of Music',
+     story:'SAE Institute Belgrade — Audio Production Diploma. Faculty of Music Belgrade — BA Accordion & Piano Performance. Classical harmony, orchestration, and live performance training.',
+     facts:['SAE DIPLOMA','BA MUSIC PERF.','AUDIO PRODUCTION','CLASSICAL'],focus:'Classical Foundation'},
+    {ico:'⚡',name:'INNOVATION',ctx:'AI · Modern Workflow',
+     story:'AI-assisted production for faster iteration without quality loss. Custom toolchains: Logic Pro, Reaper, iZotope RX, Howler.js. Always exploring tech to push slot audio quality forward.',
+     facts:['AI WORKFLOW','CUSTOM TOOLS','FAST ITERATION','TECH-FORWARD'],focus:'Faster, No Compromise'},
+  ],
+  career:[
+    {ico:'🌐',name:'VANVINKL',period:'2024 → Present',role:'Founder & Audio Director',
+     scope:'Full-service iGaming audio production studio. End-to-end delivery worldwide.',
+     impact:'Own studio, own methodology, global reach from Day 1.',color:'#00e5ff',
+     hl:['FOUNDER','FULL-SERVICE','REMOTE WW','CLIENT DIRECT']},
+    {ico:'🎮',name:'PLAYNETIC',period:'2024 → 2026',role:'Audio Producer & Lead Sound Designer',
+     scope:'10+ parallel slot titles. Managed full audio pipeline: composition, SFX, integration, QA.',
+     impact:'10+ simultaneous titles, zero audio defects at any launch.',color:'#ffd700',
+     hl:['10+ TITLES','LEAD SOUND','ZERO DEFECTS','PARALLEL PROD.']},
+    {ico:'🏛️',name:'IGT',period:'2020 → 2024',role:'Senior Sound Designer & Audio Lead',
+     scope:'Led 3-person team in EU-regulated market. Standards, compliance, creative direction, global distribution.',
+     impact:'Led 3-person audio team · EU compliance · global distribution.',color:'#ff00aa',
+     hl:['SENIOR LEAD','3-PERSON TEAM','EU REGULATED','GLOBAL DIST.']},
+    {ico:'🎰',name:'FREELANCE',period:'2018 → 2020',role:'Independent Audio Contractor',
+     scope:'Custom SFX libraries, adaptive music systems. Built the production workflow that became VanVinkl.',
+     impact:'Built the workflow methodology that powers VanVinkl today.',color:'#ff6600',
+     hl:['INDEPENDENT','CUSTOM LIBS','ADAPTIVE MUSIC','WORKFLOW DEV']},
+  ],
+  contact:[
+    {ico:'📧',name:'EMAIL',type:'PROFESSIONAL',val:'bojan@vanvinkl.com',status:'ACTIVE',note:'FASTEST RESPONSE',hl:['DIRECT','PREFERRED'],color:'#ffd700'},
+    {ico:'💼',name:'LINKEDIN',type:'PROFESSIONAL',val:'linkedin.com/in/vanvinkl',status:'ACTIVE',note:'PORTFOLIO LINK',hl:['ACTIVE','VERIFIED'],color:'#0077b5'},
+    {ico:'✅',name:'AVAILABILITY',type:'STATUS',val:'Freelance · Contract · Full-time',status:'OPEN',note:'IMMEDIATE START',hl:['OPEN TO WORK','REMOTE WW'],color:'#4ade80'},
+  ],
+};
+
+/* ════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════ */
+let secIdx = 0;
+let itemIdx = 0;
+let spinning = false;
+let credits = 777;
+let jackpot = 1337;
+let animFrame = null;
+
+/* ════════════════════════════════════════════════════
+   BOOT SEQUENCE
+════════════════════════════════════════════════════ */
+const bootLines = [
+  {t:'ok',  txt:'[OK] CORTEX AUDIO ENGINE v2.0 loaded'},
+  {t:'ok',  txt:'[OK] EventBus: 44 events registered'},
+  {t:'ok',  txt:'[OK] SoundManager: Web Audio API ready'},
+  {t:'ok',  txt:'[OK] Portfolio data: 8 projects, 6 skills'},
+  {t:'ok',  txt:'[OK] Career: VanVinkl · Playnetic · IGT · Freelance'},
+  {t:'warn',txt:'[INF] AudioContext locked — user gesture required'},
+  {t:'ok',  txt:'[OK] HRTF PannerNode: initialized'},
+  {t:'ok',  txt:'[OK] Slot engine: 5-reel, GSAP timing'},
+  {t:'ok',  txt:'[OK] Payline waveform: canvas ready'},
+  {t:'ok',  txt:'[OK] Build: 146KB gzipped · 38 tests passed'},
+  {t:'ok',  txt:'[OK] SYSTEM READY — launching portfolio...'},
+];
+let bootDone = false;
+
+function runBoot(){
+  const log = document.getElementById('boot-log');
+  const fill = document.getElementById('boot-fill');
+  let i = 0;
+  function step(){
+    if(i >= bootLines.length){ showSplash(); return; }
+    const l = bootLines[i];
+    const div = document.createElement('div');
+    div.className = 'boot-line '+l.t;
+    div.textContent = l.txt;
+    div.style.animationDelay = '0s';
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    fill.style.width = ((i+1)/bootLines.length*100)+'%';
+    i++;
+    setTimeout(step, 90 + Math.random()*80);
+  }
+  setTimeout(step, 200);
+}
+
+function showSplash(){
+  document.getElementById('boot').classList.add('hide');
+  setTimeout(()=>{
+    const sp = document.getElementById('splash');
+    sp.classList.add('show');
+    spawnSplashParticles();
+  },400);
+}
+
+function spawnSplashParticles(){
+  const container = document.getElementById('splash-particles');
+  for(let i=0;i<30;i++){
+    const p = document.createElement('div');
+    p.className = 'splash-particle';
+    p.style.left = (20+Math.random()*60)+'%';
+    p.style.top = (30+Math.random()*40)+'%';
+    p.style.setProperty('--tx',(Math.random()*80-40)+'px');
+    p.style.setProperty('--ty',(-(20+Math.random()*80))+'px');
+    p.style.setProperty('--d',(1.5+Math.random()*2)+'s');
+    p.style.setProperty('--del',(Math.random()*3)+'s');
+    container.appendChild(p);
+  }
+}
+
+function enterMain(){
+  unlockAudio();
+  document.getElementById('splash').classList.add('hide');
+  setTimeout(()=>{
+    const app = document.getElementById('app');
+    app.classList.add('show');
+    buildUI();
+    startPaylineWave();
+    startJackpotTick();
+    startTimestampTick();
+    playOath();
+  }, 400);
+}
+
+/* ════════════════════════════════════════════════════
+   AUDIO
+════════════════════════════════════════════════════ */
+let AC;
+function unlockAudio(){
+  if(!AC) AC = new(window.AudioContext||window.webkitAudioContext)();
+}
+function getAC(){ return AC || (AC = new(window.AudioContext||window.webkitAudioContext)()); }
+
+function playNote(freq, vol, dur, type='sine', delay=0){
+  const a=getAC(), t=a.currentTime+delay;
+  const osc=a.createOscillator(), g=a.createGain();
+  osc.frequency.value=freq; osc.type=type;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.015);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  osc.connect(g); g.connect(a.destination);
+  osc.start(t); osc.stop(t+dur+0.05);
+}
+
+function playOath(){
+  playNote(196,.25,.3,'sine',0);
+  playNote(261.6,.25,.25,'sine',.13);
+  playNote(329.6,.25,.35,'sine',.26);
+  // shimmer
+  const a=getAC();
+  const osc=a.createOscillator(), g=a.createGain();
+  osc.frequency.value=1200; osc.type='triangle';
+  g.gain.setValueAtTime(0,a.currentTime);
+  g.gain.linearRampToValueAtTime(0.05,a.currentTime+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.39);
+  osc.connect(g); g.connect(a.destination);
+  osc.start(a.currentTime); osc.stop(a.currentTime+0.42);
+}
+
+function playClickSfx(){
+  playNote(660,.08,.06,'sine');
+}
+
+function playSpinSfx(){
+  const notes=[200,250,300,350,300,250,200];
+  notes.forEach((f,i)=>playNote(f,.06,.1,'sawtooth',i*0.04));
+}
+
+function playWinSfx(item){
+  const freqs=[261.6,329.6,392,523.2];
+  freqs.forEach((f,i)=>{ playNote(f,.18,.5,'sine',i*0.08); });
+  playNote(1046,.05,.3,'triangle',0.3);
+  spawnCoins(12);
+  showWinMsg();
+}
+
+function playDemoNote(freq, color){
+  const a=getAC();
+  [freq, freq*1.25, freq*1.5, freq*2].forEach((f,i)=>{
+    const osc=a.createOscillator(), g=a.createGain(), pan=a.createStereoPanner();
+    const t=a.currentTime+i*0.08;
+    osc.frequency.value=f; osc.type=i===0?'sawtooth':'sine';
+    pan.pan.value=(i-1.5)*0.35;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.2,t+0.02); g.gain.exponentialRampToValueAtTime(.001,t+.5);
+    osc.connect(g); g.connect(pan); pan.connect(a.destination);
+    osc.start(t); osc.stop(t+.6);
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   PAYLINE WAVEFORM
+════════════════════════════════════════════════════ */
+let wavePhase=0, waveWin=false;
+function startPaylineWave(){
+  const canvas = document.getElementById('payline-canvas');
+  if(!canvas) return;
+  function draw(){
+    const w = canvas.offsetWidth, h = 40;
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+    const mid = h/2;
+    const amp = waveWin ? h*.42 : h*.18;
+    const freq = waveWin ? 5 : 2;
+    const grad = ctx.createLinearGradient(0,0,w,0);
+    if(waveWin){
+      grad.addColorStop(0,'transparent'); grad.addColorStop(.2,'#f0d878');
+      grad.addColorStop(.5,'#22e8ff'); grad.addColorStop(.8,'#b14cff'); grad.addColorStop(1,'transparent');
+    } else {
+      grad.addColorStop(0,'transparent'); grad.addColorStop(.15,'rgba(201,162,39,.5)');
+      grad.addColorStop(.85,'rgba(201,162,39,.5)'); grad.addColorStop(1,'transparent');
+    }
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = waveWin ? 2 : 1.5;
+    ctx.shadowColor = waveWin ? '#22e8ff' : '#c9a227';
+    ctx.shadowBlur = waveWin ? 10 : 5;
+    ctx.beginPath();
+    for(let x=0;x<w;x++){
+      const t=x/w;
+      const env=Math.sin(t*Math.PI);
+      const y=mid+Math.sin(t*Math.PI*2*freq+wavePhase)*amp*env;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    wavePhase += waveWin ? .12 : .04;
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ════════════════════════════════════════════════════
+   UI BUILD
+════════════════════════════════════════════════════ */
+function getCurrentData(){
+  return [DATA.projects,DATA.skills,DATA.about,DATA.career,DATA.contact][secIdx];
+}
+function getCurrentItem(){
+  const d = getCurrentData();
+  return d[((itemIdx%d.length)+d.length)%d.length];
+}
+
+function buildUI(){
+  buildColHeaders();
+  buildReelGrid();
+  updateDetailPanel();
+  updateTopNav();
+}
+
+function buildColHeaders(){
+  const sec = DATA.sections[secIdx];
+  const row = document.getElementById('col-headers-row');
+  row.style.gridTemplateColumns = sec.cols.join(' ');
+  row.innerHTML = sec.headers.map(([ico,lbl])=>
+    `<div class="col-h"><span class="ch-icon">${ico}</span>${lbl}</div>`
+  ).join('');
+}
+
+function buildReelGrid(){
+  const sec = DATA.sections[secIdx];
+  const grid = document.getElementById('reel-grid');
+  grid.style.gridTemplateColumns = sec.cols.join(' ');
+  const data = getCurrentData();
+
+  // Show 3 visible rows: prev, center, next
+  const indices = [-1,0,1].map(o=>((itemIdx+o)%data.length+data.length)%data.length);
+
+  const numCols = sec.headers.length;
+  // Build columns
+  const cols = Array.from({length:numCols},()=>document.createElement('div'));
+  cols.forEach(c=>{c.className='reel-col'; grid.innerHTML=''; });
+
+  grid.innerHTML = '';
+  cols.forEach(c=>grid.appendChild(c));
+
+  indices.forEach((di,rowIdx)=>{
+    const item = data[di];
+    const isCenter = rowIdx===1;
+    cols.forEach((col,colIdx)=>{
+      const cell = buildCell(item,colIdx,isCenter);
+      col.appendChild(cell);
+    });
+  });
+}
+
+function buildCell(item, colIdx, isCenter){
+  const cell = document.createElement('div');
+  cell.className = 'reel-cell' + (isCenter?' center-row':'');
+  cell.style.setProperty('--cell-h','96px');
+
+  const s = DATA.sections[secIdx];
+
+  if(s.id==='projects'){
+    const p = item;
+    if(colIdx===0){
+      cell.className += ' cell-game';
+      cell.innerHTML = `<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,${p.color}10,transparent 70%);pointer-events:none"></div><span class="c-ico">${p.ico}</span><div class="c-name">${p.name}</div><div class="c-studio">${p.studio}</div>`;
+    } else if(colIdx===1){
+      cell.className += ' cell-scope';
+      const sc = p.scope;
+      cell.innerHTML = `<div class="scope-list">${
+        [['♪','MUSIC',sc.music],['🔊','SFX',sc.sfx],['⚙','INTEG.',sc.integration],['✓','QA',sc.qa]]
+        .map(([ic,lb,v])=>`<div class="sc ${v?'on':'off'}">${ic} ${lb}</div>`).join('')
+      }</div>`;
+    } else if(colIdx===2){
+      cell.className += ' cell-work';
+      cell.innerHTML = `<div class="c-text">${p.work}</div>`;
+    } else if(colIdx===3){
+      cell.className += ' cell-tools';
+      cell.innerHTML = `<div class="tools-wrap">${p.tools.map(t=>`<span class="tool">${t}</span>`).join('')}</div>`;
+    } else {
+      cell.className += ' cell-demo';
+      const noteMap={'Playnetic · 2025':261.6,'IGT · 2023':220,'VanVinkl · 2024':174.6,'IGT · 2022':196,'Playnetic · 2024':233.1};
+      const freq = Object.entries(noteMap).find(([k])=>p.studio.includes(k.split(' ·')[0]))?.[1]||220;
+      cell.innerHTML = `<div class="demo-play" onclick="event.stopPropagation();playDemoNote(${freq},'${p.color}')">▶</div>`;
+    }
+  } else if(s.id==='skills'){
+    const sk = item;
+    if(colIdx===0){cell.innerHTML=`<div class="cell-skill"><div class="sk-ico">${sk.ico}</div><div class="sk-name">${sk.name}</div></div>`}
+    else if(colIdx===1){cell.className+=' cell-level'; cell.innerHTML=`<div class="lv-badge ${sk.level==='EXPERT'?'lv-expert':'lv-advanced'}">${sk.level}</div><div class="stars">${Array(5).fill(0).map((_,i)=>`<div class="st${i>=sk.stars?' off':''}"></div>`).join('')}</div>`}
+    else if(colIdx===2){cell.innerHTML=`<div class="c-text" style="font-size:11px;line-height:1.6;color:var(--chr-mid)">${sk.desc}</div>`}
+    else if(colIdx===3){cell.innerHTML=`<div class="tools-wrap">${sk.tools.map(t=>`<span class="tool">${t}</span>`).join('')}</div>`}
+    else{cell.innerHTML=`<div class="lv-badge" style="color:${sk.dcolor};border-color:${sk.dcolor}33;background:${sk.dcolor}0d;font-family:var(--f-mono);font-size:9px;letter-spacing:2px;padding:4px 8px;border-radius:4px;border:1px solid;display:inline-block">${sk.domain}</div>`}
+  } else if(s.id==='about'){
+    const a = item;
+    if(colIdx===0){cell.innerHTML=`<span style="font-size:20px">${a.ico}</span><div style="font-size:12px;font-weight:700;color:var(--chr-hi);margin-top:3px">${a.name}</div>`}
+    else if(colIdx===1){cell.innerHTML=`<div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--g400);line-height:1.8">${a.ctx}</div>`}
+    else if(colIdx===2){cell.innerHTML=`<div class="c-text" style="font-size:11px;line-height:1.6;color:var(--chr-mid)">${a.story}</div>`}
+    else if(colIdx===3){cell.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:3px">${a.facts.map(f=>`<span style="font-family:var(--f-mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:3px;border:1px solid rgba(201,162,39,.2);color:var(--g400);background:rgba(201,162,39,.04)">${f}</span>`).join('')}</div>`}
+    else{cell.innerHTML=`<div style="font-family:var(--f-mono);font-size:9px;color:var(--neon-c);letter-spacing:1px">${a.focus}</div>`}
+  } else if(s.id==='career'){
+    const c = item;
+    cell.style.position='relative';
+    const acc = `<div class="career-acc" style="--acc:${c.color}"></div>`;
+    if(colIdx===0){cell.innerHTML=`${acc}<span style="font-size:20px">${c.ico}</span><div style="font-size:13px;font-weight:700;color:var(--chr-hi)">${c.name}</div><div style="font-family:var(--f-mono);font-size:8px;letter-spacing:2px;color:${c.color};margin-top:2px;text-transform:uppercase">${c.role.split(' ')[0]}</div>`}
+    else if(colIdx===1){cell.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--g-text)">${c.period}</div>`}
+    else if(colIdx===2){cell.innerHTML=`<div style="font-size:11px;line-height:1.6;color:var(--chr-mid)">${c.role}</div>`}
+    else if(colIdx===3){cell.innerHTML=`<div class="c-text" style="font-size:11px;line-height:1.6;color:var(--chr-mid)">${c.scope}</div>`}
+    else{cell.innerHTML=`<div style="font-size:11px;font-weight:600;color:${c.color};line-height:1.6">${c.impact}</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px">${c.hl.map(h=>`<span style="font-family:var(--f-mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(96,112,154,.2);color:var(--chr-mid);background:rgba(96,112,154,.04)">${h}</span>`).join('')}</div>`}
+  } else if(s.id==='contact'){
+    const ct = item;
+    if(colIdx===0){cell.innerHTML=`<span style="font-size:20px">${ct.ico}</span><div style="font-size:13px;font-weight:700;color:var(--chr-hi)">${ct.name}</div>`}
+    else if(colIdx===1){cell.innerHTML=`<div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:${ct.color};text-transform:uppercase">${ct.type}</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px">${ct.hl.map(h=>`<span style="font-family:var(--f-mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(96,112,154,.2);color:var(--chr-mid)">${h}</span>`).join('')}</div>`}
+    else if(colIdx===2){cell.innerHTML=`<div style="font-family:var(--f-mono);font-size:13px;font-weight:700;color:var(--g-text);word-break:break-all">${ct.val}</div>`}
+    else if(colIdx===3){cell.innerHTML=`<div style="display:flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:var(--neon-g)"><div style="width:6px;height:6px;border-radius:50%;background:var(--neon-g);animation:pulse 1s infinite"></div>${ct.status}</div>`}
+    else{cell.innerHTML=`<div style="font-family:var(--f-mono);font-size:9px;letter-spacing:2px;color:${ct.color};text-transform:uppercase">${ct.note}</div>`}
+  }
+  return cell;
+}
+
+function updateDetailPanel(){
+  const item = getCurrentItem();
+  const s = DATA.sections[secIdx];
+  let title='',sub='',work='',tools=[],scopes=[];
+
+  if(s.id==='projects'){
+    title=item.name; sub=item.studio; work=item.work; tools=item.tools;
+    scopes=Object.entries(item.scope).map(([k,v])=>({k:k.toUpperCase(),v}));
+  } else if(s.id==='skills'){
+    title=item.name; sub=item.domain; work=item.desc; tools=item.tools;
+  } else if(s.id==='about'){
+    title=item.name; sub=item.ctx; work=item.story;
+    tools=item.facts;
+  } else if(s.id==='career'){
+    title=item.name; sub=item.period; work=item.scope; tools=item.hl;
+  } else if(s.id==='contact'){
+    title=item.name; sub=item.type; work=item.val; tools=item.hl;
+  }
+
+  document.getElementById('dp-title').textContent=title;
+  document.getElementById('dp-sub').textContent=sub;
+  document.getElementById('dp-work').textContent=work;
+  document.getElementById('dp-tools').innerHTML=tools.map(t=>`<span class="tool">${t}</span>`).join('');
+  const dp_scope=document.getElementById('dp-scope');
+  dp_scope.innerHTML=scopes.map(({k,v})=>`<span style="font-family:var(--f-mono);font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid;${v?'color:var(--neon-c);border-color:rgba(34,232,255,.25);background:rgba(34,232,255,.05)':'color:rgba(96,112,154,.3);border-color:rgba(96,112,154,.1);text-decoration:line-through'}">${k}</span>`).join('');
+}
+
+function updateTopNav(){
+  const d = getCurrentData();
+  document.getElementById('nav-pos').textContent=(itemIdx+1)+' / '+d.length;
+  const sec=DATA.sections[secIdx];
+  document.getElementById('sec-title').textContent=sec.label;
+  document.getElementById('sec-sub').textContent=sec.sub;
+  const badge=document.getElementById('sec-badge');
+  badge.textContent=sec.badge;
+  badge.style.color=sec.color;
+  badge.style.borderColor=sec.color+'44';
+  badge.style.background=sec.color+'10';
+}
+
+/* ════════════════════════════════════════════════════
+   INTERACTION
+════════════════════════════════════════════════════ */
+function setSection(idx){
+  playClickSfx();
+  secIdx=idx; itemIdx=0;
+  document.querySelectorAll('.tab-btn[data-sec]').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.sec)===idx);
+  });
+  buildUI();
+}
+
+function prevItem(){ playClickSfx(); itemIdx=(itemIdx-1+getCurrentData().length)%getCurrentData().length; buildReelGrid(); updateDetailPanel(); updateTopNav(); }
+function nextItem(){ playClickSfx(); itemIdx=(itemIdx+1)%getCurrentData().length; buildReelGrid(); updateDetailPanel(); updateTopNav(); }
+
+function doSpin(){
+  if(spinning) return;
+  spinning=true;
+  playSpinSfx();
+  waveWin=false;
+  credits=Math.max(0,credits-10);
+  document.getElementById('credits-val').textContent=credits;
+  document.getElementById('spin-btn').disabled=true;
+  document.getElementById('spin-btn').textContent='· · ·';
+
+  // visually animate cells
+  const cells=document.querySelectorAll('.reel-cell');
+  cells.forEach((c,i)=>{c.style.opacity='.5';c.style.transition='opacity .1s'});
+
+  let t=0;
+  const d=getCurrentData();
+  const spinTo=Math.floor(Math.random()*d.length);
+  const steps=8+Math.floor(Math.random()*6);
+
+  function tick(){
+    itemIdx=(itemIdx+1)%d.length;
+    buildReelGrid();
+    t++;
+    if(t<steps){
+      setTimeout(tick,50+t*14);
+    } else {
+      itemIdx=spinTo;
+      buildReelGrid();
+      updateDetailPanel(); updateTopNav();
+      cells.forEach(c=>{c.style.opacity='1'});
+      spinning=false;
+      document.getElementById('spin-btn').disabled=false;
+      document.getElementById('spin-btn').textContent='▶ SPIN';
+      waveWin=true;
+      setTimeout(()=>{waveWin=false},2000);
+      playWinSfx(getCurrentItem());
+      jackpot+=Math.floor(Math.random()*5)+1;
+      document.getElementById('jackpot-val').textContent=jackpot;
+    }
+  }
+  setTimeout(tick,50);
+}
+
+function showWinMsg(){
+  const el=document.getElementById('win-msg');
+  el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',2000);
+}
+
+function spawnCoins(n){
+  for(let i=0;i<n;i++){
+    const coin=document.createElement('div');
+    coin.className='coin';
+    coin.style.left=(30+Math.random()*40)+'%';
+    coin.style.top='30%';
+    coin.style.setProperty('--sx','0px'); coin.style.setProperty('--sy','0px');
+    coin.style.setProperty('--ex',(Math.random()*120-60)+'px');
+    coin.style.setProperty('--ey',(50+Math.random()*120)+'px');
+    coin.style.setProperty('--dur',(.4+Math.random()*.6)+'s');
+    coin.style.setProperty('--del',(Math.random()*.3)+'s');
+    document.body.appendChild(coin);
+    setTimeout(()=>coin.remove(),1200);
+  }
+}
+
+/* modal */
+function openModal(){ document.getElementById('modal-overlay').classList.add('show'); playClickSfx(); }
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); spawnCoins(6); }
+document.querySelectorAll('.modal-slot').forEach(s=>{
+  s.addEventListener('click',()=>{
+    document.querySelectorAll('.modal-slot').forEach(x=>x.classList.remove('sel'));
+    s.classList.add('sel'); playClickSfx();
+  });
+});
+
+/* ticks */
+function startJackpotTick(){
+  setInterval(()=>{
+    jackpot+=Math.floor(Math.random()*3)+1;
+    document.getElementById('jackpot-val').textContent=jackpot;
+  },1200);
+}
+function startTimestampTick(){
+  function upd(){
+    const el=document.getElementById('ts-live');
+    if(el) el.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
+  upd(); setInterval(upd,60000);
+}
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='Enter'){
+    if(document.getElementById('splash').classList.contains('show')){enterMain();return;}
+    if(!spinning) doSpin();
+  }
+  if(e.code==='ArrowLeft') prevItem();
+  if(e.code==='ArrowRight') nextItem();
+  if(e.key>='1'&&e.key<='5') setSection(parseInt(e.key)-1);
+});
+
+/* start */
+window.addEventListener('load', ()=>setTimeout(runBoot,300));
+</script>
+</body>
+</html>
