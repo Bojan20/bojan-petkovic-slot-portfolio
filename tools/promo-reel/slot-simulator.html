@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CASH ERUPTION: THE WESTERN — Bojan Petković Audio Director</title>
+<style>
+/* ══ TOKENS ══ */
+:root {
+  --bg: #0a0604;
+  --gold: #d4a843;
+  --gold2: #f5d06a;
+  --red: #c0392b;
+  --cream: #f5e6c8;
+  --sky: #1a3a5c;
+  --green: #00e57a;
+  --neon: #22e8ff;
+  --wood: #3d2b1f;
+  --felt: #0d0a06;
+  --font: 'Arial Black', 'Arial Bold', sans-serif;
+  --mono: 'Courier New', monospace;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--bg); font-family: var(--font); }
+
+/* ══ BACKGROUND ══ */
+#bg-canvas { position: fixed; inset: 0; z-index: 0; }
+
+/* ══ SCENE ══ */
+#scene {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* ══ PHASE LABEL (top left debug — hidden in final) ══ */
+#phase-label {
+  position: fixed; top: 12px; left: 16px; z-index: 200;
+  font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.2);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+
+/* ══ LOWER THIRD (always on) ══ */
+#lower-third {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  height: 64px;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.8));
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  border-top: 1px solid rgba(212,168,67,.2);
+  opacity: 0; transition: opacity 1s ease;
+}
+#lower-third.visible { opacity: 1; }
+.lt-name {
+  font-size: 22px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold2);
+  text-shadow: 0 0 20px rgba(212,168,67,.5);
+}
+.lt-role {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  color: rgba(245,230,200,.5); text-transform: uppercase;
+}
+.lt-contact {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+  color: var(--neon); text-transform: uppercase;
+}
+
+/* ══ CABINET ══ */
+#cabinet {
+  width: 900px; height: 600px;
+  background: linear-gradient(160deg, #2a1a10 0%, var(--felt) 40%);
+  border-radius: 16px;
+  border: 2px solid rgba(212,168,67,.3);
+  box-shadow: 0 0 60px rgba(212,168,67,.08), 0 40px 80px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.08);
+  display: flex; flex-direction: column; align-items: center;
+  position: relative; overflow: hidden;
+  transform: scale(0); opacity: 0;
+  transition: transform .8s cubic-bezier(.22,.61,.36,1), opacity .8s ease;
+}
+#cabinet.visible { transform: scale(1); opacity: 1; }
+
+/* Cabinet top marquee */
+.cab-marquee {
+  width: 100%; text-align: center; padding: 12px 0 8px;
+  background: linear-gradient(90deg, transparent, rgba(212,168,67,.06), transparent);
+  border-bottom: 1px solid rgba(212,168,67,.1);
+  flex-shrink: 0;
+}
+.cab-title { font-size: 10px; letter-spacing: 8px; color: rgba(212,168,67,.5); text-transform: uppercase; }
+.cab-game-name { font-size: 18px; font-weight: 900; letter-spacing: 6px; color: var(--gold2); text-shadow: 0 0 20px rgba(212,168,67,.3); }
+
+/* Reel area */
+.reel-window {
+  flex: 1; width: 100%; display: flex; flex-direction: column;
+  padding: 8px 16px 4px; gap: 0;
+}
+.col-headers {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 2px;
+  padding: 0 2px 4px;
+}
+.col-hdr {
+  text-align: center; font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  color: rgba(212,168,67,.4); text-transform: uppercase;
+}
+.reel-grid {
+  flex: 1;
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 2px;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(212,168,67,.1);
+  border-radius: 6px; overflow: hidden;
+  position: relative;
+}
+/* Win line overlay */
+.win-line-overlay {
+  position: absolute; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+  z-index: 10; opacity: 0; transition: opacity .3s;
+  box-shadow: 0 0 12px var(--gold);
+}
+.win-line-overlay.show { opacity: 1; animation: wl-pulse 1s ease-in-out infinite; }
+@keyframes wl-pulse { 0%,100%{opacity:.8} 50%{opacity:1;box-shadow:0 0 24px var(--gold)} }
+
+.reel-col { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+
+.reel-cell {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; min-height: 0;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.04);
+  transition: all .3s ease;
+  position: relative; overflow: hidden;
+}
+.reel-cell.center-row {
+  background: rgba(212,168,67,.04);
+  border-color: rgba(212,168,67,.1);
+}
+.reel-cell.spinning { animation: cell-blur .12s linear infinite; }
+@keyframes cell-blur { 0%{transform:translateY(-6px);opacity:.7} 50%{transform:translateY(6px);opacity:.9} 100%{transform:translateY(-6px);opacity:.7} }
+.reel-cell.land { animation: cell-land .45s cubic-bezier(.22,.61,.36,1) forwards; }
+@keyframes cell-land { 0%{transform:translateY(-18px)} 55%{transform:translateY(7px)} 80%{transform:translateY(-2px)} 100%{transform:translateY(0)} }
+.reel-cell.scatter-glow { box-shadow: inset 0 0 20px rgba(192,57,43,.4); border-color: var(--red) !important; animation: scatter-flash 1s ease-in-out infinite; }
+@keyframes scatter-flash { 0%,100%{box-shadow:inset 0 0 20px rgba(192,57,43,.3)} 50%{box-shadow:inset 0 0 40px rgba(192,57,43,.7)} }
+.reel-cell.wild-glow { box-shadow: inset 0 0 20px rgba(212,168,67,.4); border-color: var(--gold) !important; }
+.reel-cell.win-cell { animation: win-cell-flash .4s ease-in-out 4; }
+@keyframes win-cell-flash { 0%,100%{background:rgba(212,168,67,.05)} 50%{background:rgba(212,168,67,.25)} }
+
+.cell-ico { font-size: 28px; line-height: 1; position: relative; z-index: 1; transition: transform .2s; }
+.reel-cell.land .cell-ico { animation: ico-pop .3s ease 0.2s both; }
+@keyframes ico-pop { 0%{transform:scale(.8)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.cell-label { font-family: var(--mono); font-size: 7px; letter-spacing: 1px; color: rgba(245,230,200,.3); text-transform: uppercase; }
+
+/* Cabinet bottom */
+.cab-bottom {
+  width: 100%; height: 56px; flex-shrink: 0;
+  background: rgba(0,0,0,.4); border-top: 1px solid rgba(212,168,67,.1);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+}
+.cab-stat { display: flex; flex-direction: column; gap: 2px; min-width: 80px; }
+.cab-stat-label { font-family: var(--mono); font-size: 7px; letter-spacing: 2px; color: rgba(212,168,67,.35); text-transform: uppercase; }
+.cab-stat-val { font-size: 18px; font-weight: 900; color: var(--gold); line-height: 1; }
+.cab-stat-val.green { color: var(--green); text-shadow: 0 0 8px rgba(0,229,122,.4); }
+.cab-stat-val.cyan  { color: var(--neon); }
+
+.spin-btn {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--gold2) 0%, var(--gold) 40%, #7a5a10 100%);
+  border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  box-shadow: 0 0 0 3px rgba(212,168,67,.3), 0 0 0 5px rgba(212,168,67,.1), 0 6px 20px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,.3);
+  position: relative;
+}
+.spin-btn::before { content:''; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.3), transparent 60%); }
+.spin-btn-ico { font-size: 20px; position: relative; z-index: 1; }
+.spin-btn-txt { font-size: 7px; letter-spacing: 3px; color: rgba(0,0,0,.7); text-transform: uppercase; position: relative; z-index: 1; font-weight: 900; }
+.spin-btn.active { animation: spin-btn-pulse .6s ease-in-out infinite; }
+@keyframes spin-btn-pulse { 0%,100%{box-shadow:0 0 0 3px var(--gold),0 0 20px rgba(212,168,67,.3),0 6px 20px rgba(0,0,0,.6),inset 0 2px 4px rgba(255,255,255,.3)} 50%{box-shadow:0 0 0 3px var(--gold),0 0 40px rgba(212,168,67,.6),0 8px 24px rgba(0,0,0,.7),inset 0 2px 4px rgba(255,255,255,.3)} }
+
+/* ══ PHASE OVERLAYS ══ */
+
+/* INTRO */
+#intro-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  opacity: 1; transition: opacity .8s ease;
+}
+#intro-overlay.fade { opacity: 0; pointer-events: none; }
+
+.intro-star { font-size: 48px; margin-bottom: 24px; animation: intro-star-spin 3s linear infinite; }
+@keyframes intro-star-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.intro-name {
+  font-size: 56px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
+  color: var(--gold2);
+  text-shadow: 0 0 40px rgba(212,168,67,.5), 0 0 80px rgba(212,168,67,.2);
+  animation: intro-name-pulse 2s ease-in-out infinite;
+}
+@keyframes intro-name-pulse { 0%,100%{text-shadow:0 0 40px rgba(212,168,67,.5),0 0 80px rgba(212,168,67,.2)} 50%{text-shadow:0 0 60px rgba(212,168,67,.8),0 0 120px rgba(212,168,67,.4)} }
+.intro-role {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 6px; color: rgba(245,230,200,.5);
+  text-transform: uppercase; margin-top: 8px;
+}
+.intro-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(245,230,200,.25); margin-top: 4px; }
+.intro-line { width: 200px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px auto 0; }
+
+/* SCATTER TRIGGER */
+#scatter-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.0);
+  pointer-events: none; opacity: 0; transition: opacity .4s;
+}
+#scatter-overlay.show { opacity: 1; }
+.scatter-burst {
+  font-size: 80px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
+  text-align: center;
+  color: var(--red);
+  text-shadow: 0 0 40px rgba(192,57,43,.8), 0 0 80px rgba(192,57,43,.4);
+  animation: scatter-burst-anim .5s ease-out forwards;
+}
+@keyframes scatter-burst-anim { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+.scatter-sub {
+  font-family: var(--mono); font-size: 14px; letter-spacing: 4px; color: rgba(245,230,200,.7);
+  text-transform: uppercase; margin-top: 12px;
+}
+
+/* FREE SPINS banner */
+#free-spins-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 180; height: 48px;
+  background: linear-gradient(90deg, #7a1a10, #c0392b, #7a1a10);
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  border-bottom: 2px solid rgba(245,200,100,.4);
+  transform: translateY(-100%); transition: transform .5s cubic-bezier(.22,.61,.36,1);
+}
+#free-spins-banner.show { transform: translateY(0); }
+.fs-text { font-size: 14px; font-weight: 900; letter-spacing: 6px; color: var(--gold2); text-transform: uppercase; }
+.fs-count { font-family: var(--mono); font-size: 18px; font-weight: 900; color: #fff; min-width: 32px; text-align: center; }
+
+/* BIG WIN overlay */
+#bigwin-overlay {
+  position: fixed; inset: 0; z-index: 250;
+  background: rgba(0,0,0,.75);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .5s ease; pointer-events: none;
+}
+#bigwin-overlay.show { opacity: 1; pointer-events: auto; }
+
+.bigwin-glow {
+  position: absolute; width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,168,67,.15) 0%, transparent 70%);
+  animation: bw-glow-pulse 1s ease-in-out infinite;
+}
+@keyframes bw-glow-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+.bigwin-text {
+  font-size: 90px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--gold2) 0%, var(--gold) 40%, #fff 60%, var(--gold2) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: bw-shimmer 2s ease-in-out infinite, bw-appear .6s ease-out forwards;
+  position: relative; z-index: 1;
+}
+@keyframes bw-shimmer { 0%,100%{background-position:100% 0} 50%{background-position:0% 0} }
+@keyframes bw-appear { from{transform:scale(.3);opacity:0} 60%{transform:scale(1.1)} to{transform:scale(1);opacity:1} }
+
+.bigwin-amount {
+  font-size: 48px; font-weight: 900; color: var(--gold);
+  text-shadow: 0 0 30px rgba(212,168,67,.6);
+  animation: bw-count-pulse 1s ease-in-out infinite;
+  position: relative; z-index: 1;
+}
+@keyframes bw-count-pulse { 0%,100%{text-shadow:0 0 30px rgba(212,168,67,.4)} 50%{text-shadow:0 0 60px rgba(212,168,67,.9)} }
+
+.bigwin-unlock {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 6px; color: rgba(245,230,200,.6);
+  text-transform: uppercase; margin-top: 12px; position: relative; z-index: 1;
+}
+
+.bigwin-stats {
+  display: flex; gap: 32px; margin-top: 28px; position: relative; z-index: 1;
+}
+.bw-stat {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border: 1px solid rgba(212,168,67,.2); border-radius: 8px; padding: 12px 20px;
+  background: rgba(212,168,67,.06);
+}
+.bw-stat-val { font-size: 28px; font-weight: 900; color: var(--gold); }
+.bw-stat-lbl { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: rgba(245,230,200,.35); text-transform: uppercase; }
+
+.bigwin-cta {
+  margin-top: 32px; font-size: 14px; font-weight: 900; letter-spacing: 4px;
+  color: #000; background: var(--gold); padding: 14px 40px; border: none; border-radius: 8px;
+  text-transform: uppercase; position: relative; z-index: 1;
+  animation: bw-cta-pulse 2s ease-in-out infinite 1s;
+}
+@keyframes bw-cta-pulse { 0%,100%{box-shadow:0 0 20px rgba(212,168,67,.3)} 50%{box-shadow:0 0 40px rgba(212,168,67,.7)} }
+
+/* OUTRO */
+#outro-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 1s ease;
+}
+#outro-overlay.show { opacity: 1; }
+.outro-logo { font-size: 56px; margin-bottom: 8px; }
+.outro-name { font-size: 44px; font-weight: 900; letter-spacing: 6px; text-transform: uppercase; color: var(--gold2); }
+.outro-role { font-family: var(--mono); font-size: 11px; letter-spacing: 4px; color: rgba(245,230,200,.5); text-transform: uppercase; }
+.outro-divider { width: 240px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.outro-contact { font-family: var(--mono); font-size: 14px; letter-spacing: 3px; color: var(--neon); }
+.outro-available { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(0,229,122,.7); text-transform: uppercase; }
+.outro-badge {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px;
+}
+.outro-b { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; background: rgba(212,168,67,.1); border: 1px solid rgba(212,168,67,.2); color: var(--gold); }
+
+/* COINS CANVAS */
+#coin-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 220; }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<canvas id="coin-canvas"></canvas>
+
+<!-- ══ INTRO ══ -->
+<div id="intro-overlay">
+  <div class="intro-star">🤠</div>
+  <div class="intro-name">BOJAN PETKOVIĆ</div>
+  <div class="intro-role">Audio Director · iGaming Specialist</div>
+  <div class="intro-sub">IGT · Playnetic · VanVinkl Studio · Belgrade</div>
+  <div class="intro-line"></div>
+</div>
+
+<!-- ══ SCENE ══ -->
+<div id="scene">
+  <div id="cabinet">
+    <div class="cab-marquee">
+      <div class="cab-title">PORTFOLIO SHOWCASE</div>
+      <div class="cab-game-name">CASH ERUPTION: THE WESTERN</div>
+    </div>
+
+    <div class="reel-window">
+      <div class="col-headers" id="col-headers"></div>
+      <div class="reel-grid" id="reel-grid">
+        <div class="win-line-overlay" id="win-line" style="top:calc(33.3% - 2px)"></div>
+        <div class="win-line-overlay" id="win-line2" style="top:calc(66.6% - 2px)"></div>
+      </div>
+    </div>
+
+    <div class="cab-bottom">
+      <div class="cab-stat">
+        <div class="cab-stat-label">Credits</div>
+        <div class="cab-stat-val" id="credits">777</div>
+      </div>
+      <div class="cab-stat">
+        <div class="cab-stat-label">Win</div>
+        <div class="cab-stat-val green" id="win-display">0</div>
+      </div>
+      <div class="spin-btn active" id="spin-btn-el">
+        <div class="spin-btn-ico">↻</div>
+        <div class="spin-btn-txt">SPIN</div>
+      </div>
+      <div class="cab-stat">
+        <div class="cab-stat-label">Free Spins</div>
+        <div class="cab-stat-val cyan" id="fs-count">0</div>
+      </div>
+      <div class="cab-stat">
+        <div class="cab-stat-label">Jackpot</div>
+        <div class="cab-stat-val" id="jackpot">1,337</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCATTER TRIGGER ══ -->
+<div id="scatter-overlay">
+  <div class="scatter-burst">🌵🌵🌵</div>
+  <div class="scatter-sub">SCATTER PAYS — FREE SPINS TRIGGERED!</div>
+</div>
+
+<!-- ══ FREE SPINS BANNER ══ -->
+<div id="free-spins-banner">
+  <div class="fs-text">🔥 FREE SPINS 🔥</div>
+  <div class="fs-count" id="fs-banner-count">8</div>
+  <div class="fs-text">REMAINING</div>
+</div>
+
+<!-- ══ BIG WIN ══ -->
+<div id="bigwin-overlay">
+  <div class="bigwin-glow"></div>
+  <div class="bigwin-text">BIG WIN!</div>
+  <div class="bigwin-amount" id="bw-amount">0</div>
+  <div class="bigwin-unlock">◆ FULL PIPELINE UNLOCKED ◆</div>
+  <div class="bigwin-stats">
+    <div class="bw-stat"><div class="bw-stat-val">50+</div><div class="bw-stat-lbl">Certified Titles</div></div>
+    <div class="bw-stat"><div class="bw-stat-val">200+</div><div class="bw-stat-lbl">SFX Per Title</div></div>
+    <div class="bw-stat"><div class="bw-stat-val" style="color:var(--green)">0</div><div class="bw-stat-lbl">Defects at Launch</div></div>
+    <div class="bw-stat"><div class="bw-stat-val">8+</div><div class="bw-stat-lbl">Years iGaming</div></div>
+  </div>
+  <div class="bigwin-cta">📧 CONTACT: bojan@vanvinkl.com</div>
+</div>
+
+<!-- ══ OUTRO ══ -->
+<div id="outro-overlay">
+  <div class="outro-logo">🎰</div>
+  <div class="outro-name">BOJAN PETKOVIĆ</div>
+  <div class="outro-role">Audio Director · iGaming · Full Pipeline</div>
+  <div class="outro-divider"></div>
+  <div class="outro-contact">bojan@vanvinkl.com</div>
+  <div class="outro-contact" style="font-size:11px;color:rgba(34,232,255,.5)">linkedin.com/in/vanvinkl</div>
+  <div class="outro-available">● Available Now · Remote Worldwide</div>
+  <div class="outro-badge">
+    <div class="outro-b">🎵 Composition</div>
+    <div class="outro-b">🔊 Sound Design</div>
+    <div class="outro-b">⚙️ Integration</div>
+    <div class="outro-b">🧪 QA</div>
+    <div class="outro-b">🎛️ Direction</div>
+  </div>
+</div>
+
+<!-- ══ LOWER THIRD ══ -->
+<div id="lower-third">
+  <div>
+    <div class="lt-name">BOJAN PETKOVIĆ</div>
+    <div class="lt-role">Audio Director · iGaming Specialist · Belgrade, Serbia</div>
+  </div>
+  <div class="lt-contact">bojan@vanvinkl.com · linkedin.com/in/vanvinkl</div>
+</div>
+
+<div id="phase-label"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   SYMBOL DEFINITIONS
+══════════════════════════════════════════════ */
+const SYMS = {
+  sheriff:  { ico:'🤠', label:'SHERIFF',  color:'#d4a843' },
+  gun:      { ico:'🔫', label:'GUN',      color:'#888' },
+  horse:    { ico:'🐴', label:'HORSE',    color:'#8b6914' },
+  coin:     { ico:'💰', label:'COIN',     color:'#ffd700' },
+  cactus:   { ico:'🌵', label:'SCATTER',  color:'#c0392b' }, // scatter
+  star:     { ico:'⭐', label:'WILD',     color:'#fff' },    // wild
+  boot:     { ico:'🥾', label:'BOOT',     color:'#8b4513' },
+  skull:    { ico:'💀', label:'SKULL',    color:'#aaa' },
+  diamond:  { ico:'💎', label:'DIAMOND',  color:'#22e8ff' },
+};
+
+const POOL_BASE = ['sheriff','gun','horse','coin','boot','skull'];
+const POOL_FEAT = ['sheriff','sheriff','gun','horse','coin','coin','diamond','star'];
+
+const HEADERS = ['GAME','SCOPE','WORK','TOOLS','DEMO'];
+const COLS = 5;
+const ROWS = 3;
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let grid = []; // [col][row] = sym key
+let credits = 777;
+let jackpot = 1337;
+let winAmt = 0;
+let fsFreeSpins = 0;
+let phase = 'init';
+
+/* ══════════════════════════════════════════════
+   INIT DOM
+══════════════════════════════════════════════ */
+function initDOM() {
+  // Headers
+  const hdrEl = document.getElementById('col-headers');
+  hdrEl.innerHTML = HEADERS.map(h => `<div class="col-hdr">${h}</div>`).join('');
+
+  // Grid
+  const g = document.getElementById('reel-grid');
+  for (let c = 0; c < COLS; c++) {
+    const col = document.createElement('div');
+    col.className = 'reel-col';
+    col.id = `col-${c}`;
+    for (let r = 0; r < ROWS; r++) {
+      const cell = document.createElement('div');
+      cell.className = 'reel-cell' + (r === 1 ? ' center-row' : '');
+      cell.id = `cell-${c}-${r}`;
+      col.appendChild(cell);
+    }
+    g.appendChild(col);
+  }
+
+  // Init grid data
+  grid = Array.from({length: COLS}, () =>
+    Array.from({length: ROWS}, () => randFrom(POOL_BASE))
+  );
+  renderGrid();
+}
+
+function renderGrid() {
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS; r++) {
+      const sym = SYMS[grid[c][r]];
+      const el = document.getElementById(`cell-${c}-${r}`);
+      if (!el) continue;
+      el.innerHTML = `<div class="cell-ico">${sym.ico}</div><div class="cell-label">${sym.label}</div>`;
+    }
+  }
+}
+
+function randFrom(pool) {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* ══════════════════════════════════════════════
+   BG CANVAS — dust particles
+══════════════════════════════════════════════ */
+function startBG() {
+  const canvas = document.getElementById('bg-canvas');
+  canvas.width = 1280; canvas.height = 720;
+  const ctx = canvas.getContext('2d');
+  const particles = Array.from({length:80}, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 720,
+    r: 0.5 + Math.random() * 1.5,
+    vx: (Math.random() - 0.5) * 0.2,
+    vy: -0.1 - Math.random() * 0.2,
+    a: Math.random() * 0.3,
+  }));
+
+  // Static horizon glow
+  ctx.fillStyle = 'rgba(10,6,4,1)';
+  ctx.fillRect(0,0,1280,720);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(10,6,4,0.15)';
+    ctx.fillRect(0,0,1280,720);
+    particles.forEach(p => {
+      p.x = (p.x + p.vx + 1280) % 1280;
+      p.y = (p.y + p.vy + 720) % 720;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(200,168,67,${p.a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ══════════════════════════════════════════════
+   JACKPOT TICK
+══════════════════════════════════════════════ */
+function startJackpotTick() {
+  setInterval(() => {
+    jackpot += Math.floor(Math.random() * 5) + 1;
+    document.getElementById('jackpot').textContent = jackpot.toLocaleString();
+  }, 300);
+}
+
+/* ══════════════════════════════════════════════
+   COIN SHOWER
+══════════════════════════════════════════════ */
+function spawnCoins(intensity = 60) {
+  const canvas = document.getElementById('coin-canvas');
+  canvas.width = 1280; canvas.height = 720;
+  const ctx = canvas.getContext('2d');
+  const coins = Array.from({length: intensity}, () => ({
+    x: 400 + Math.random() * 480,
+    y: 250 + Math.random() * 100,
+    vx: (Math.random() - 0.5) * 14,
+    vy: -8 - Math.random() * 14,
+    r: 6 + Math.random() * 10,
+    color: Math.random() > 0.5 ? '#d4a843' : '#f5d06a',
+    alpha: 1,
+    rot: Math.random() * Math.PI * 2,
+    rotv: (Math.random() - 0.5) * 0.25,
+  }));
+
+  let frame = 0;
+  function draw() {
+    frame++;
+    ctx.clearRect(0, 0, 1280, 720);
+    let alive = 0;
+    coins.forEach(c => {
+      c.y += c.vy; c.x += c.vx; c.vy += 0.5; c.rot += c.rotv;
+      c.alpha = Math.max(0, 1 - frame / 100);
+      if (c.alpha > 0 && c.y < 720) {
+        alive++;
+        ctx.save();
+        ctx.globalAlpha = c.alpha * 0.9;
+        ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, c.r, c.r * Math.abs(Math.cos(c.rot * 2)) + 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+    if (alive > 0) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,1280,720); }
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ══════════════════════════════════════════════
+   WIN COUNTER
+══════════════════════════════════════════════ */
+function animateCounter(el, from, to, dur) {
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(from + eased * (to - from)).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ══════════════════════════════════════════════
+   SPIN ANIMATION
+══════════════════════════════════════════════ */
+function spinCol(colIdx, newSyms, stagger) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // Spin phase
+      for (let r = 0; r < ROWS; r++) {
+        document.getElementById(`cell-${colIdx}-${r}`)?.classList.add('spinning');
+      }
+      setTimeout(() => {
+        // Land
+        grid[colIdx] = newSyms;
+        for (let r = 0; r < ROWS; r++) {
+          const el = document.getElementById(`cell-${colIdx}-${r}`);
+          if (!el) continue;
+          const sym = SYMS[newSyms[r]];
+          el.classList.remove('spinning');
+          el.classList.add('land');
+          el.innerHTML = `<div class="cell-ico">${sym.ico}</div><div class="cell-label">${sym.label}</div>`;
+          setTimeout(() => el.classList.remove('land'), 600);
+        }
+        resolve();
+      }, 600);
+    }, stagger);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   SCRIPTED SEQUENCE
+══════════════════════════════════════════════ */
+async function runSequence() {
+  // Phase 0: wait for page ready
+  await wait(500);
+
+  // PHASE 1: INTRO (3.5s)
+  setPhase('INTRO');
+  await wait(3500);
+  document.getElementById('intro-overlay').classList.add('fade');
+  await wait(800);
+  document.getElementById('cabinet').classList.add('visible');
+  document.getElementById('lower-third').classList.add('visible');
+  await wait(800);
+
+  // PHASE 2: BASE GAME — 3 regular spins
+  setPhase('BASE_GAME');
+  for (let s = 0; s < 3; s++) {
+    credits -= 10;
+    updateStats();
+    const cols = Array.from({length:5}, () => [randFrom(POOL_BASE), randFrom(POOL_BASE), randFrom(POOL_BASE)]);
+    const promises = cols.map((c, i) => spinCol(i, c, i * 130));
+    document.getElementById('spin-btn-el').classList.add('active');
+    await Promise.all(promises);
+    document.getElementById('spin-btn-el').classList.remove('active');
+    winAmt = 0;
+    document.getElementById('win-display').textContent = '0';
+    await wait(900);
+  }
+
+  // PHASE 3: SCATTER TRIGGER SPIN
+  setPhase('SCATTER_TRIGGER');
+  credits -= 10; updateStats();
+  // Scripted: 3 scatters in cols 0, 2, 4 middle row + some other symbols
+  const scatterSpin = [
+    ['gun', 'cactus', 'horse'],
+    ['coin', 'horse', 'skull'],
+    ['boot', 'cactus', 'gun'],
+    ['skull', 'horse', 'coin'],
+    ['sheriff', 'cactus', 'boot'],
+  ];
+  const promises3 = scatterSpin.map((c, i) => spinCol(i, c, i * 140));
+  document.getElementById('spin-btn-el').classList.add('active');
+  await Promise.all(promises3);
+  document.getElementById('spin-btn-el').classList.remove('active');
+
+  // Highlight scatter cells
+  await wait(300);
+  [[0,1],[2,1],[4,1]].forEach(([c,r]) => {
+    document.getElementById(`cell-${c}-${r}`)?.classList.add('scatter-glow');
+  });
+
+  await wait(600);
+  // SCATTER BURST
+  const scatterOverlay = document.getElementById('scatter-overlay');
+  scatterOverlay.classList.add('show');
+  await wait(2200);
+  scatterOverlay.classList.remove('show');
+  [[0,1],[2,1],[4,1]].forEach(([c,r]) => {
+    document.getElementById(`cell-${c}-${r}`)?.classList.remove('scatter-glow');
+  });
+
+  // PHASE 4: FREE SPINS (3 spins)
+  setPhase('FREE_SPINS');
+  fsFreeSpins = 8;
+  document.getElementById('fs-count').textContent = fsFreeSpins;
+  document.getElementById('free-spins-banner').classList.add('show');
+  document.getElementById('fs-banner-count').textContent = fsFreeSpins;
+  await wait(800);
+
+  for (let fs = 0; fs < 3; fs++) {
+    fsFreeSpins--;
+    document.getElementById('fs-count').textContent = fsFreeSpins;
+    document.getElementById('fs-banner-count').textContent = fsFreeSpins;
+
+    // Feature spins - more wilds, sheriffs
+    const featCols = Array.from({length:5}, () => [randFrom(POOL_FEAT), randFrom(POOL_FEAT), randFrom(POOL_FEAT)]);
+
+    if (fs === 1) {
+      // Force wild in col 2
+      featCols[2][1] = 'star';
+    }
+
+    const fprom = featCols.map((c, i) => spinCol(i, c, i * 120));
+    document.getElementById('spin-btn-el').classList.add('active');
+    await Promise.all(fprom);
+    document.getElementById('spin-btn-el').classList.remove('active');
+
+    // Small win on each free spin
+    const fw = 25 + Math.floor(Math.random() * 50);
+    winAmt += fw;
+    document.getElementById('win-display').textContent = winAmt;
+
+    // Wild glow on col 2 middle if wild
+    if (featCols[2][1] === 'star') {
+      document.getElementById('cell-2-1')?.classList.add('wild-glow');
+      await wait(400);
+      document.getElementById('cell-2-1')?.classList.remove('wild-glow');
+    }
+
+    // Win line flash
+    document.getElementById('win-line').classList.add('show');
+    await wait(700);
+    document.getElementById('win-line').classList.remove('show');
+    await wait(400);
+  }
+
+  // PHASE 5: FINAL FREE SPIN — BIG WIN
+  setPhase('BIG_WIN_SPIN');
+  fsFreeSpins--;
+  document.getElementById('fs-count').textContent = fsFreeSpins;
+  document.getElementById('fs-banner-count').textContent = fsFreeSpins;
+
+  // All sheriffs on middle row
+  const bigWinSpin = [
+    ['coin', 'sheriff', 'horse'],
+    ['skull', 'sheriff', 'gun'],
+    ['horse', 'sheriff', 'coin'],
+    ['gun', 'sheriff', 'boot'],
+    ['boot', 'sheriff', 'skull'],
+  ];
+  const bwprom = bigWinSpin.map((c, i) => spinCol(i, c, i * 110));
+  document.getElementById('spin-btn-el').classList.add('active');
+  await Promise.all(bwprom);
+  document.getElementById('spin-btn-el').classList.remove('active');
+
+  // 5x sheriff middle row
+  for (let c = 0; c < 5; c++) {
+    document.getElementById(`cell-${c}-1`)?.classList.add('win-cell');
+  }
+  document.getElementById('win-line').classList.add('show');
+  document.getElementById('win-line2').classList.add('show');
+
+  await wait(600);
+
+  // PHASE 6: BIG WIN OVERLAY
+  setPhase('BIG_WIN');
+  document.getElementById('free-spins-banner').classList.remove('show');
+  const bigWinTotal = 5000 + Math.floor(Math.random() * 2000);
+  document.getElementById('bigwin-overlay').classList.add('show');
+  spawnCoins(80);
+
+  // Count up amount
+  const bwEl = document.getElementById('bw-amount');
+  animateCounter(bwEl, 0, bigWinTotal, 2500);
+  credits += bigWinTotal;
+  setTimeout(() => updateStats(), 2500);
+
+  await wait(5500);
+
+  // More coins
+  spawnCoins(50);
+  await wait(2000);
+
+  // PHASE 7: OUTRO
+  setPhase('OUTRO');
+  document.getElementById('bigwin-overlay').classList.remove('show');
+  document.getElementById('lower-third').classList.remove('visible');
+  document.getElementById('outro-overlay').classList.add('show');
+  await wait(6000);
+
+  // Loop back (or freeze for recording)
+  setPhase('DONE');
+}
+
+function updateStats() {
+  document.getElementById('credits').textContent = credits.toLocaleString();
+  document.getElementById('win-display').textContent = winAmt;
+  document.getElementById('fs-count').textContent = fsFreeSpins;
+}
+
+function setPhase(p) {
+  phase = p;
+  document.getElementById('phase-label').textContent = p;
+}
+
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/* ══════════════════════════════════════════════
+   START
+══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  initDOM();
+  startBG();
+  startJackpotTick();
+  runSequence();
+});
+</script>
+</body>
+</html>
