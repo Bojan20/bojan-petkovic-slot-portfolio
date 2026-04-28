@@ -271,7 +271,7 @@ async function muxAudio({ silentVideo, oathWav, bedWav, outPath, durationSec }) 
 // ENTRY: compose for a single format
 // ─────────────────────────────────────────────────────────────────────
 
-export async function composeFormat(formatKey, { webmPath, oathWav, bedDir, intermediateDir, outDir }) {
+export async function composeFormat(formatKey, { webmPath, oathWav, bedDir, intermediateDir, outDir, captureStart = 0 }) {
   const fmt = FORMATS[formatKey];
   const timeline = TIMELINE[formatKey];
   if (!timeline) throw new Error(`No timeline for format ${formatKey}`);
@@ -293,7 +293,10 @@ export async function composeFormat(formatKey, { webmPath, oathWav, bedDir, inte
 
   // Step A — render each segment.
   mkdirSync(intermediateDir, { recursive: true });
-  let captureCursor = 0; // seconds into webm we've consumed
+  // Cursor advances through the source video as we consume gameplay segments.
+  // Honor an optional caller-provided start offset (e.g. when the first 5
+  // seconds of the user's screen recording is QuickTime UI / mouse settle).
+  let captureCursor = Math.max(0, Number(captureStart) || 0);
   const captureFile = webmPath;
   const captureDuration = await probeDuration(captureFile);
 

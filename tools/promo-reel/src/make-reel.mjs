@@ -39,6 +39,8 @@ function parseArgs(argv) {
     skipCards: false,
     skipOath: false,
     force: false,
+    input: null,           // path to user-provided MP4/MOV/WebM to use as gameplay
+    inputStart: 0,          // seconds into input to start cutting from
   };
   for (const a of argv) {
     if (a === '--skip-capture') opts.skipCapture = true;
@@ -46,9 +48,18 @@ function parseArgs(argv) {
     else if (a === '--skip-oath') opts.skipOath = true;
     else if (a === '--force') opts.force = true;
     else if (a.startsWith('--format=')) opts.format = a.split('=')[1];
+    else if (a.startsWith('--input=')) opts.input = a.slice('--input='.length);
+    else if (a.startsWith('--input-start=')) opts.inputStart = Number(a.split('=')[1]) || 0;
   }
   if (!['vertical', 'landscape', 'both'].includes(opts.format)) {
     throw new Error(`Invalid --format=${opts.format} (vertical | landscape | both)`);
+  }
+  if (opts.input) {
+    // Resolve to absolute path so it works no matter the cwd.
+    opts.input = resolve(opts.input);
+    if (!existsSync(opts.input)) {
+      throw new Error(`--input file not found: ${opts.input}`);
+    }
   }
   return opts;
 }
@@ -81,18 +92,33 @@ if (!opts.skipCards) {
   }
 }
 
-// ── stage 3: capture ────────────────────────────────────────────────────
-const webmPath = resolve(ROOT, CAPTURE.outputPath);
-if (!opts.skipCapture) {
-  if (!opts.force && existsSync(webmPath) && statSync(webmPath).size > 100_000) {
-    console.log('▸ [3/4] Capture cached, skipping (use --force to re-record)');
-  } else {
-    console.log('▸ [3/4] Recording gameplay capture');
-    await runCapture();
+// ── stage 3: capture (or use user-provided --input) ─────────────────────
+let webmPath;
+if (opts.input) {
+  // User dropped in their own gameplay MP4/MOV/WebM. ffmpeg in compose
+  // accepts any container — we just hand the path through. This is the
+  // recommended path for real game footage that can't be auto-captured
+  // (Cloudflare blocks, paywalled demos, screen recordings, IGT internals).
+  webmPath = opts.input;
+  const sizeMB = (statSync(webmPath).size / 1024 / 1024).toFixed(1);
+  console.log(`▸ [3/4] Using user-provided gameplay: ${webmPath} (${sizeMB} MB)`);
+  if (opts.inputStart > 0) {
+    console.log(`         starting at ${opts.inputStart}s into the source`);
   }
-} else if (!existsSync(webmPath)) {
-  console.error(`✗ --skip-capture set but ${webmPath} does not exist`);
-  process.exit(1);
+} else {
+  webmPath = resolve(ROOT, CAPTURE.outputPath);
+  if (!opts.skipCapture) {
+    if (!opts.force && existsSync(webmPath) && statSync(webmPath).size > 100_000) {
+      console.log('▸ [3/4] Capture cached, skipping (use --force to re-record)');
+    } else {
+      console.log('▸ [3/4] Recording gameplay capture');
+      await runCapture();
+    }
+  } else if (!existsSync(webmPath)) {
+    console.error(`✗ --skip-capture set but ${webmPath} does not exist`);
+    console.error(`  Either drop --skip-capture, or pass --input=path/to/your.mp4`);
+    process.exit(1);
+  }
 }
 
 // ── stage 4: compose per format ─────────────────────────────────────────
@@ -112,6 +138,7 @@ for (const f of targetFormats) {
       bedDir,
       intermediateDir: resolve(intermediateDir, f),
       outDir,
+      captureStart: opts.inputStart,
     });
     results.push({ format: f, path: out, ok: true });
   } catch (err) {

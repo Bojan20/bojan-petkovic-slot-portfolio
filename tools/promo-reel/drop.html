@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Promo Reel · Drop Your Gameplay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #ffd700;
+    --cyan: #00e5ff;
+    --magenta: #ff00aa;
+    --void: #060814;
+    --void-2: #0e1124;
+    --text: #f5f5fa;
+    --dim: #9aa0b4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-image:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgba(255,215,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 70% 80%, rgba(0,229,255,0.08) 0%, transparent 60%),
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: auto, auto, 64px 64px, 64px 64px;
+  }
+  header {
+    padding: 32px 48px 0;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .brand {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 24px; letter-spacing: -0.02em;
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(255,215,0,0.4);
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--dim); letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  main {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px;
+    gap: 32px;
+  }
+  .drop {
+    width: min(900px, 90vw);
+    min-height: 360px;
+    border: 2px dashed rgba(255,215,0,0.4);
+    border-radius: 24px;
+    background: rgba(14,17,36,0.4);
+    backdrop-filter: blur(8px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px;
+    transition: all .2s;
+    cursor: pointer;
+  }
+  .drop:hover, .drop.hover {
+    border-color: var(--gold);
+    background: rgba(255,215,0,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(255,215,0,0.15);
+  }
+  .drop h1 {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 42px; letter-spacing: -0.02em;
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(255,215,0,0.4);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .drop .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .drop .hint {
+    color: var(--dim);
+    font-size: 14px;
+    text-align: center;
+    max-width: 580px;
+    line-height: 1.5;
+  }
+  .drop .types {
+    margin-top: 18px;
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .drop .types span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.16em;
+    color: var(--text); padding: 6px 12px;
+    background: rgba(0,229,255,0.10); border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 999px;
+  }
+  input[type=file] { display: none; }
+  .file-info {
+    margin-top: 20px;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 580px;
+    display: none;
+  }
+  .file-info.show { display: block; }
+  .file-info dl {
+    display: grid; grid-template-columns: 1fr 2fr; gap: 6px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .file-info dt { color: var(--dim); letter-spacing: 0.16em; text-transform: uppercase; }
+  .file-info dd { color: var(--text); word-break: break-all; }
+
+  .commands {
+    width: min(900px, 90vw);
+    background: rgba(14,17,36,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .commands h2 {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 20px; letter-spacing: -0.01em;
+    color: var(--text); margin-bottom: 6px;
+  }
+  .commands h2 .badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.16em; padding: 4px 10px;
+    color: var(--gold); background: rgba(255,215,0,0.12);
+    border: 1px solid rgba(255,215,0,0.4); border-radius: 999px;
+    margin-left: 12px; vertical-align: middle;
+  }
+  .commands .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--cyan); letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .cmd {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--text);
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+    margin-top: 12px;
+    word-break: break-all;
+  }
+  .cmd code { color: var(--gold); flex: 1; }
+  .copy-btn {
+    flex-shrink: 0;
+    padding: 6px 14px; border-radius: 6px;
+    background: rgba(0,229,255,0.10); border: 1px solid rgba(0,229,255,0.4);
+    color: var(--cyan); font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    cursor: pointer; transition: all .15s;
+  }
+  .copy-btn:hover { background: rgba(0,229,255,0.2); }
+  .copy-btn.copied { background: rgba(0,255,136,0.2); border-color: rgba(0,255,136,0.5); color: #00ff88; }
+
+  .controls {
+    margin-top: 18px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .control {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .control label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--dim); letter-spacing: 0.18em; text-transform: uppercase;
+    display: block; margin-bottom: 8px;
+  }
+  .control input, .control select {
+    width: 100%; background: transparent; border: none;
+    font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    font-size: 18px; color: var(--text); outline: none;
+  }
+  footer {
+    padding: 24px 48px; text-align: center;
+    color: var(--dim); font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">VV · PROMO REEL · DROP STUDIO</div>
+    <div class="meta" style="margin-top:4px;">Where The Reels Meet The Score.</div>
+  </div>
+  <div class="meta">tools/promo-reel/drop.html</div>
+</header>
+
+<main>
+  <div class="drop" id="drop" tabindex="0">
+    <h1>▼ DROP YOUR GAMEPLAY</h1>
+    <div class="sub">MP4 · MOV · WebM · MKV — any container</div>
+    <div class="hint">
+      Snimi 30–60 sekundi gameplay-a (QuickTime · OBS · iPhone · whatever),
+      ovde dropuj, dobićeš jednu komandu — zalepi je u terminal i ostatak
+      uradi pipeline: brand kartice, Three-Note Oath, ambient bed, dva MP4 reel-a.
+    </div>
+    <div class="types">
+      <span>.mp4</span><span>.mov</span><span>.webm</span><span>.mkv</span><span>.m4v</span>
+    </div>
+    <input type="file" id="file" accept="video/*">
+
+    <div class="file-info" id="info">
+      <dl>
+        <dt>File</dt><dd id="i-name">—</dd>
+        <dt>Size</dt><dd id="i-size">—</dd>
+        <dt>Path (best guess)</dt><dd id="i-path">—</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="commands" id="cmd-box" style="display:none;">
+    <h2>One-line command <span class="badge">paste in terminal</span></h2>
+    <div class="sub">cd into tools/promo-reel first if you haven't</div>
+
+    <div class="controls">
+      <div class="control">
+        <label>FORMAT</label>
+        <select id="ctl-format">
+          <option value="both" selected>both (vertical 30s + landscape 60s)</option>
+          <option value="vertical">vertical 30s only</option>
+          <option value="landscape">landscape 60s only</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Skip first N seconds</label>
+        <input type="number" id="ctl-start" value="0" min="0" step="0.5">
+      </div>
+    </div>
+
+    <div class="cmd">
+      <code id="cmd-text">npm run make</code>
+      <button class="copy-btn" id="copy-btn">⎘ Copy</button>
+    </div>
+
+    <p style="margin-top:18px; color: var(--dim); font-size:13px; line-height:1.5;">
+      Pipeline koristi tvoj fajl direktno (ne kopira ga, ne menja ga).
+      Output ide u <code style="color:var(--gold);">tools/promo-reel/output/</code>
+      kao <code style="color:var(--gold);">promo-vertical-30s.mp4</code> i
+      <code style="color:var(--gold);">promo-landscape-60s.mp4</code>.
+      Nakon prvog runa pokreni <code style="color:var(--gold);">open output/preview.html</code>
+      da vidiš oba reel-a side-by-side.
+    </p>
+  </div>
+</main>
+
+<footer>
+  Generated by <a href="README.md">tools/promo-reel</a> · npm run make · paste &amp; ship
+</footer>
+
+<script>
+  const $drop = document.getElementById('drop');
+  const $file = document.getElementById('file');
+  const $info = document.getElementById('info');
+  const $iname = document.getElementById('i-name');
+  const $isize = document.getElementById('i-size');
+  const $ipath = document.getElementById('i-path');
+  const $cmdBox = document.getElementById('cmd-box');
+  const $cmd = document.getElementById('cmd-text');
+  const $copy = document.getElementById('copy-btn');
+  const $format = document.getElementById('ctl-format');
+  const $start = document.getElementById('ctl-start');
+
+  let chosenFile = null;
+  let bestPath = null;
+
+  function fmtBytes(b) {
+    const mb = b / 1024 / 1024;
+    if (mb >= 1024) return (mb / 1024).toFixed(2) + ' GB';
+    return mb.toFixed(1) + ' MB';
+  }
+
+  function shellEscape(s) {
+    if (!/[\s'"$`\\]/.test(s)) return s;
+    return "'" + s.replace(/'/g, "'\\''") + "'";
+  }
+
+  function commandFor(path, format, start) {
+    const args = ['npm', 'run', 'make', '--'];
+    args.push('--input=' + shellEscape(path));
+    args.push('--format=' + format);
+    if (Number(start) > 0) args.push('--input-start=' + start);
+    return args.join(' ');
+  }
+
+  function pickFile(file) {
+    chosenFile = file;
+    // Browser security forbids reading the absolute path; we render the
+    // bare filename and trust the user to drag-and-drop the path into the
+    // <input> below if it differs (most macOS users have it on Desktop or
+    // Downloads, both of which we hint as best guesses).
+    const macHints = ['~/Downloads/', '~/Desktop/', '~/Movies/'];
+    const guess = macHints[0] + file.name;
+    bestPath = guess;
+    $iname.textContent = file.name;
+    $isize.textContent = fmtBytes(file.size);
+    $ipath.textContent = guess + '   (edit if your path differs)';
+    $info.classList.add('show');
+    $cmdBox.style.display = 'block';
+    updateCommand();
+    $cmdBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function updateCommand() {
+    if (!bestPath) return;
+    $cmd.textContent = commandFor(bestPath, $format.value, $start.value);
+  }
+
+  $drop.addEventListener('click', () => $file.click());
+  $file.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (f) pickFile(f);
+  });
+
+  ['dragover', 'dragenter'].forEach(evt =>
+    $drop.addEventListener(evt, (e) => { e.preventDefault(); $drop.classList.add('hover'); })
+  );
+  ['dragleave', 'dragend', 'drop'].forEach(evt =>
+    $drop.addEventListener(evt, () => $drop.classList.remove('hover'))
+  );
+  $drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) pickFile(f);
+  });
+
+  // Allow user to edit best-guess path inline.
+  $ipath.contentEditable = true;
+  $ipath.addEventListener('input', () => {
+    bestPath = $ipath.textContent.replace(/\s+\(edit if your path differs\)/, '').trim();
+    updateCommand();
+  });
+
+  $format.addEventListener('change', updateCommand);
+  $start.addEventListener('input', updateCommand);
+
+  $copy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($cmd.textContent);
+      $copy.textContent = '✓ Copied';
+      $copy.classList.add('copied');
+      setTimeout(() => {
+        $copy.textContent = '⎘ Copy';
+        $copy.classList.remove('copied');
+      }, 1800);
+    } catch {}
+  });
+</script>
+
+</body>
+</html>
