@@ -21,6 +21,7 @@ import {
 import { CyberNebula } from './boot/CyberNebula'
 import { QuantumField } from './boot/QuantumField'
 import { CasinoField, type ParallaxState } from './boot/CasinoField'
+import { BootTagline } from './boot/BootTagline'
 import styles from './BootScreen.module.css'
 
 /** Fire a vibration pattern if the device + user-agent supports it.
@@ -489,6 +490,10 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           draggable={false}
         />
       </div>
+
+      {/* Cinematic tagline (P3.1) — 3-line manifesto anchoring the
+          slot-machine metaphor before the recruiter taps in. */}
+      <BootTagline exiting={exiting} />
 
       {/* Loading HUD — typewriter step + % + bar */}
       <div className={styles.hud} aria-live="polite">
