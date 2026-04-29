@@ -37,16 +37,7 @@ import {
   attachMediaSession, disposeMediaSession,
   startGamepadInput, stopGamepadInput,
   initSpeechAnnouncer, disposeSpeechAnnouncer,
-  startAmbientLightSensor, stopAmbientLightSensor,
-  startIdleDetector, stopIdleDetector,
-  exportSnapshot, importSnapshot,
-  startReelCapture, stopReelCapture, isReelCapturing,
-  connectHidDevice, startHidAutoBind, stopHidAutoBind,
   opfsFetchOrCache,
-  connectSerialDevice, startSerialAutoBind, stopSerialAutoBind,
-  connectHeartRateMonitor,
-  startPresence, stopPresence,
-  probeXrCapability,
   loadCellMemory,
   scheduleKeyDetection,
   startPersonaInference, stopPersonaInference,
@@ -55,6 +46,9 @@ import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
+import { useInputBridges } from './hooks/useInputBridges'
+import { useSensorium } from './hooks/useSensorium'
+import { useSessionCapture } from './hooks/useSessionCapture'
 // Heavy panels lazy-loaded — they're keyboard-gated (Shift+A, Konami)
 // or rare-render (PlatformChips post-boot only). Splitting them off
 // drops ~120KB from the main bundle so first paint of the boot screen
@@ -229,106 +223,11 @@ export default function App() {
     }
   }, [])
 
-  // Portfolio snapshot keybindings — Ctrl/Cmd+Shift+S = export,
-  // Ctrl/Cmd+Shift+L = restore. Uses Compression Streams + File
-  // System Access API where available; falls back to anchor download
-  // / synthetic <input type=file> on Firefox/Safari. The shortcut
-  // intentionally requires both Ctrl+Shift so it can't collide with
-  // browser default save (Ctrl+S) or any in-app text input.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const mod = e.ctrlKey || e.metaKey
-      if (!mod || !e.shiftKey || e.repeat) return
-      // KeyS / KeyL — use code so layout doesn't matter (AZERTY safe)
-      if (e.code === 'KeyS') {
-        e.preventDefault()
-        void exportSnapshot().catch((err) => {
-          console.warn('[App] snapshot export failed:', err)
-        })
-      } else if (e.code === 'KeyL') {
-        e.preventDefault()
-        void importSnapshot().catch((err) => {
-          console.warn('[App] snapshot import failed:', err)
-        })
-      } else if (e.code === 'KeyR') {
-        // Ctrl/Cmd+Shift+R — toggle screen recording. Browser default
-        // for plain Ctrl+R is hard reload, which we don't intercept;
-        // adding Shift moves it out of the way and into our control.
-        e.preventDefault()
-        if (isReelCapturing()) {
-          void stopReelCapture().catch((err) => {
-            console.warn('[App] reel stop failed:', err)
-          })
-        } else {
-          void startReelCapture(audioRef.current).catch((err) => {
-            console.warn('[App] reel start failed:', err)
-          })
-        }
-      } else if (e.code === 'KeyH') {
-        // Ctrl/Cmd+Shift+H — pair an HID device (Stream Deck, X-keys,
-        // Arduino as HID, generic gamepad). Picker is mandatory; user
-        // can cancel without consequence.
-        e.preventDefault()
-        void connectHidDevice([]).catch((err) => {
-          console.warn('[App] HID connect failed:', err)
-        })
-      } else if (e.code === 'KeyY') {
-        // Ctrl/Cmd+Shift+Y — pair a USB-Serial device (Arduino lever,
-        // RP2040, ESP32 with line protocol firmware).
-        e.preventDefault()
-        void connectSerialDevice(9600).catch((err) => {
-          console.warn('[App] Serial connect failed:', err)
-        })
-      } else if (e.code === 'KeyB') {
-        // Ctrl/Cmd+Shift+B — pair a BLE heart-rate monitor (Polar,
-        // Wahoo, Garmin, etc.). Pulse drives --heart-bpm + --heart-norm.
-        e.preventDefault()
-        void connectHeartRateMonitor().catch((err) => {
-          console.warn('[App] HR monitor connect failed:', err)
-        })
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
-
-  // WebHID auto-bind — re-attach to any device the user previously
-  // paired (navigator.hid.getDevices) and listen for plug events
-  // mid-session. Initial pairing is user-initiated via Ctrl+Shift+H
-  // (the picker is a mandatory user-gesture). No-op on Firefox/Safari.
-  useEffect(() => {
-    void startHidAutoBind()
-    return () => {
-      void stopHidAutoBind()
-    }
-  }, [])
-
-  // WebSerial auto-bind — same pattern as HID. Re-bind any port the
-  // user previously authorized. Default 9600 baud (Arduino classic).
-  useEffect(() => {
-    void startSerialAutoBind(9600)
-    return () => {
-      void stopSerialAutoBind()
-    }
-  }, [])
-
-  // Presence layer — BroadcastChannel between same-origin tabs +
-  // optional WebTransport relay (none configured by default). Emits
-  // custom:presence:count whenever peer set changes. Safe no-op when
-  // BroadcastChannel is unsupported.
-  useEffect(() => {
-    void startPresence(undefined)
-    return () => {
-      void stopPresence()
-    }
-  }, [])
-
-  // WebXR capability probe — non-blocking. Sets --xr-supported on
-  // :root so a "View in VR" badge can show on capable devices, emits
-  // custom:xr:capability with vr/ar booleans for components to react.
-  useEffect(() => {
-    void probeXrCapability()
-  }, [])
+  // ── Composed lifecycle hooks (P1.13 refactor) ─────────────────────
+  // Keyboard bindings + voice commands for snapshot/reel/HID/Serial/HR
+  useSessionCapture({ audioRef })
+  // WebHID + WebSerial auto-bind to already-authorized devices
+  useInputBridges(9600)
 
   // Cell memory — load persisted visited-state from OPFS so the slot
   // can render returning-visitor cues. One-time load at mount; the
@@ -356,58 +255,16 @@ export default function App() {
     }
   }, [])
 
-  // Environment sensors — ambient light + idle detection.
-  // AmbientLightSensor needs no user gesture but the Permissions API
-  // probe is async; we start it pre-tap so by the time the user is on
-  // the splash the --ambient-lux CSS var is already populated.
-  // IdleDetector watches mouse/touch/keys and emits user:idle after 30s.
-  // We pause ambient music on idle (battery + courtesy if recruiter
-  // walked away) and auto-resume the moment they come back.
-  useEffect(() => {
-    void startAmbientLightSensor()
-    startIdleDetector(30_000)
+  // Sensorium — ambient light + idle detector + presence + XR probe.
+  // Idle pauses music; active resumes only past boot phase (AudioContext
+  // unlock contract). Replaced 3 effects with one hook (P1.13 refactor).
+  useSensorium({
+    audioRef,
+    shouldResumeAudio: () => phase !== 'boot',
+    idleThresholdMs: 30_000,
+  })
 
-    const offIdle = bus.on('user:idle', () => {
-      const a = audioRef.current
-      if (a && !a.paused) a.pause()
-    })
-    const offActive = bus.on('user:active', () => {
-      const a = audioRef.current
-      // Only resume if we were past the boot screen (don't auto-play
-      // pre-tap; that violates the AudioContext-unlock contract).
-      if (a && a.paused && phase !== 'boot') {
-        a.play().catch(() => {})
-      }
-    })
-
-    return () => {
-      stopAmbientLightSensor()
-      stopIdleDetector()
-      offIdle()
-      offActive()
-    }
-  }, [phase])
-
-  // ── Voice commands: session capture (save / load / record) ─────────
-  // Recruiter says "save snapshot", "load snapshot", or "record" and
-  // the same code path as the keybindings runs. Stays parallel to
-  // mute/unmute below — we keep voice subscriptions colocated.
-  useEffect(() => {
-    const offSave = bus.on('voice:command:save', () => {
-      void exportSnapshot().catch(() => {})
-    })
-    const offLoad = bus.on('voice:command:load', () => {
-      void importSnapshot().catch(() => {})
-    })
-    const offRec = bus.on('voice:command:record', () => {
-      if (isReelCapturing()) {
-        void stopReelCapture().catch(() => {})
-      } else {
-        void startReelCapture(audioRef.current).catch(() => {})
-      }
-    })
-    return () => { offSave(); offLoad(); offRec() }
-  }, [])
+  // ── Voice commands: session capture is wired in useSessionCapture ──
 
   // ── Voice command: mute / unmute ────────────────────────────────────
   // SlotMachine handles spin/next/back/jackpot itself (those need its
