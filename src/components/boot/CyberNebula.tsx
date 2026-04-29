@@ -22,6 +22,7 @@ import { useEffect, useRef } from 'react'
 import styles from './CyberNebula.module.css'
 import type { ParallaxState } from './CasinoField'
 import { audioLevelsRef, getQualityMode } from '../../engine'
+import NebulaWorker from './nebula.worker.ts?worker'
 
 interface CyberNebulaProps {
   /** Shared parallax state — read directly, no getComputedStyle on hot path */
@@ -173,19 +174,104 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef(0)
   const startTimeRef = useRef(0)
+  const workerRef = useRef<Worker | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Samsung Internet + Mali GPU: when preserveDrawingBuffer is false, the
-    // driver reallocates the back buffer between frames, and on certain
-    // Adreno/Mali revisions the realloc races with the compositor → visible
-    // flicker on the WebGL surface (chromium #828363, pixijs #5121).
-    // preserveDrawingBuffer:true forces the driver to keep a single buffer,
-    // which costs a tiny bit of memory but eliminates the flicker race.
-    // Desktop is unaffected — keep false for slightly lower memory there.
+    // ─────────────────────────────────────────────────────────────
+    // OFFSCREEN-CANVAS WORKER PATH
+    // ─────────────────────────────────────────────────────────────
+    // If the browser supports OffscreenCanvas + transferControlToOffscreen,
+    // we move the entire WebGL render loop into a Web Worker thread.
+    // Main thread becomes free of the per-frame draw cost; React
+    // re-renders + GSAP timelines can stutter and the nebula keeps
+    // running at 60fps independently.
+    // Posting cheap audio + parallax updates each frame is ~0.05ms vs
+    // the ~3-5ms a full WebGL draw cycle costs on iPhone 11-class GPUs.
     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+    const liteMode = getQualityMode() === 'lite'
+    const isMobile = isCoarsePointer || liteMode
+
+    // Detect: HTMLCanvasElement.transferControlToOffscreen + Worker module
+    // both required. Some older Samsung Internet builds expose the API
+    // but throw on transfer — wrap in try.
+    const supportsOffscreen =
+      typeof OffscreenCanvas !== 'undefined' &&
+      typeof (canvas as HTMLCanvasElement & {
+        transferControlToOffscreen?: () => OffscreenCanvas
+      }).transferControlToOffscreen === 'function'
+
+    if (supportsOffscreen) {
+      try {
+        const offscreen = (canvas as HTMLCanvasElement & {
+          transferControlToOffscreen: () => OffscreenCanvas
+        }).transferControlToOffscreen()
+
+        const worker = new NebulaWorker()
+        workerRef.current = worker
+
+        const dprCap = isMobile ? 0.75 : 1.5
+        const dpr = Math.min(window.devicePixelRatio || 1, dprCap)
+        const w = window.innerWidth
+        const h = window.innerHeight
+        canvas.style.width = `${w}px`
+        canvas.style.height = `${h}px`
+
+        worker.postMessage(
+          { type: 'init', canvas: offscreen, isMobile, reducedMotion, w, h, dpr },
+          [offscreen],
+        )
+
+        // Main thread: cheap RAF that posts audio + parallax updates.
+        // No draw work — just messages. Costs ~0.05ms/frame.
+        const tick = () => {
+          const par = parallaxRef.current
+          worker.postMessage({
+            type: 'parallax',
+            x: par?.x ?? 0.5,
+            y: par?.y ?? 0.5,
+          })
+          if (!reducedMotion) {
+            worker.postMessage({
+              type: 'audio',
+              bass: audioLevelsRef.bass,
+              mid: audioLevelsRef.mid,
+              treble: audioLevelsRef.treble,
+            })
+          }
+          rafRef.current = requestAnimationFrame(tick)
+        }
+        rafRef.current = requestAnimationFrame(tick)
+
+        const onResize = () => {
+          const dprNow = Math.min(window.devicePixelRatio || 1, dprCap)
+          const wNow = window.innerWidth
+          const hNow = window.innerHeight
+          canvas.style.width = `${wNow}px`
+          canvas.style.height = `${hNow}px`
+          worker.postMessage({ type: 'resize', w: wNow, h: hNow, dpr: dprNow })
+        }
+        window.addEventListener('resize', onResize, { passive: true })
+
+        return () => {
+          window.removeEventListener('resize', onResize)
+          cancelAnimationFrame(rafRef.current)
+          worker.postMessage({ type: 'dispose' })
+          worker.terminate()
+          workerRef.current = null
+        }
+      } catch (err) {
+        console.info('[CyberNebula] OffscreenCanvas transfer failed, falling back to in-thread:', err)
+        // Fall through to legacy path
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // FALLBACK: in-thread render path (Safari < 16.4, Firefox < 105,
+    // browsers that throw on OffscreenCanvas transfer)
+    // ─────────────────────────────────────────────────────────────
     const gl = canvas.getContext('webgl', {
       alpha: false,
       antialias: false,
@@ -204,8 +290,7 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     // Adaptive quality (low battery / slow network / saveData) ALSO
     // forces the lite shader on desktop so the user's machine doesn't
     // burn cycles when battery is critical.
-    const liteMode = getQualityMode() === 'lite'
-    const isMobile = isCoarsePointer || liteMode
+    // (isMobile already computed above for OffscreenCanvas decision)
     const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC)
     const fs = compile(gl, gl.FRAGMENT_SHADER, isMobile ? FRAG_SRC_LITE : FRAG_SRC)
     if (!vs || !fs) return
