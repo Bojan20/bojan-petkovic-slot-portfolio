@@ -86,6 +86,13 @@ export {
 } from './PlatformPolish'
 export type { ShareOptions, QualityMode } from './PlatformPolish'
 
+export {
+  attachMediaSession,
+  disposeMediaSession,
+  isMediaSessionSupported,
+} from './MediaSession'
+export type { MediaTrackInfo } from './MediaSession'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

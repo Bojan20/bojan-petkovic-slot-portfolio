@@ -34,6 +34,7 @@ import {
   startPageVisibilityHandler, stopPageVisibilityHandler,
   registerAudioForVisibilityPause,
   startAdaptiveQuality,
+  attachMediaSession, disposeMediaSession,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
@@ -77,9 +78,12 @@ export default function App() {
     return () => disposeAudioBridge()
   }, [])
 
-  // Tear down audio analyser on unmount (HMR-safe)
+  // Tear down audio analyser + MediaSession on unmount (HMR-safe)
   useEffect(() => {
-    return () => disposeAnalyser()
+    return () => {
+      disposeAnalyser()
+      disposeMediaSession()
+    }
   }, [])
 
   // Konami code listener — ↑↑↓↓←→←→BA toggles the dev overlay.
@@ -142,10 +146,11 @@ export default function App() {
     return () => { offMute(); offUnmute() }
   }, [])
 
-  // Start ambient music + wire FFT analyser the MOMENT user taps boot.
-  // boot:tap is the canonical AudioContext-unlock gesture, so it's the
-  // earliest legal point to (a) play() the music and (b) construct the
-  // MediaElementSource → AnalyserNode pipeline. Doing it here (vs.
+  // Start ambient music + wire FFT analyser + MediaSession the MOMENT
+  // user taps boot. boot:tap is the canonical AudioContext-unlock
+  // gesture, so it's the earliest legal point to (a) play() the music,
+  // (b) construct the MediaElementSource → AnalyserNode pipeline, and
+  // (c) register OS-level media controls. Doing it here (vs.
   // boot:complete) means CyberNebula's shader gets a few seconds of
   // live FFT data while the boot loader finishes — the nebula visibly
   // pulses to the music BEFORE the splash transition.
@@ -155,6 +160,20 @@ export default function App() {
       if (!audio) return
       audio.play().catch(() => {})
       attachAnalyser(audio)
+      // Register with the OS media controls — recruiter sees title +
+      // artist + artwork on lock screen + headphone buttons + macOS
+      // Now Playing widget. nexttrack/previoustrack are repurposed
+      // to nav slot sections (clever for a single-track portfolio).
+      attachMediaSession(audio, {
+        title: 'Lounge Ambient',
+        artist: 'Bojan Petković',
+        album: 'Slot Machine Portfolio',
+        artwork: [
+          { src: '/seven-cyber.png', sizes: '512x512', type: 'image/png' },
+          { src: '/seven-symbol.png', sizes: '256x256', type: 'image/png' },
+          { src: '/favicon.svg', sizes: '96x96', type: 'image/svg+xml' },
+        ],
+      })
     })
     return off
   }, [])
