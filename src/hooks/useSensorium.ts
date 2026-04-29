@@ -20,6 +20,7 @@ import {
   startIdleDetector, stopIdleDetector,
   startPresence, stopPresence,
   probeXrCapability,
+  startComputePressure, stopComputePressure,
 } from '../engine'
 
 interface UseSensoriumOpts {
@@ -71,5 +72,14 @@ export function useSensorium({
   // WebXR capability probe — non-blocking, one-shot
   useEffect(() => {
     void probeXrCapability()
+  }, [])
+
+  // Compute Pressure observer (P2) — fires only when CPU pressure
+  // changes bucket. Surfaces level via --perf-pressure CSS var +
+  // custom:perf:pressure event so motion-heavy layers can degrade
+  // before the user sees jank.
+  useEffect(() => {
+    void startComputePressure(1000)
+    return () => { stopComputePressure() }
   }, [])
 }

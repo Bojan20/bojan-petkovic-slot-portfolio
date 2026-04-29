@@ -274,6 +274,15 @@ export {
 } from './SpinPhaseMachine'
 export type { SpinEvent } from './SpinPhaseMachine'
 
+export {
+  isComputePressureSupported,
+  startComputePressure,
+  stopComputePressure,
+  getCurrentPressure,
+  getCurrentPressureLoad,
+} from './ComputePressure'
+export type { PressureLevel } from './ComputePressure'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

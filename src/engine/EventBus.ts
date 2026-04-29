@@ -85,6 +85,9 @@ export interface CortexEventMap {
   'voice:command:load': void
   'voice:command:record': void
 
+  // Compute Pressure (P2) — adaptive quality gate
+  'custom:perf:pressure': { level: 'nominal' | 'fair' | 'serious' | 'critical'; load: number }
+
   // Persona inference (P1.8) — passive recruiter classifier
   'custom:persona:inferred': {
     persona: 'audio_designer' | 'engineer' | 'em_recruiter' | 'curiosity_browser' | 'balanced'
