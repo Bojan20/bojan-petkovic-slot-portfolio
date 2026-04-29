@@ -47,6 +47,7 @@
  */
 
 import { levelsRef as audioLevelsRef } from './AudioReactive'
+import { getCurrentBpmNorm } from './HeartRate'
 
 // ─── Capability detection ────────────────────────────────────────────────────
 
@@ -95,6 +96,14 @@ struct Uni {
   parX: f32,
   parY: f32,
   aspect: f32,
+  // Heart-rate normalized exertion 0..1 (60bpm → 0, 180bpm → 1).
+  // Drives a subtle palette pulse + size pump synced to the user's
+  // pulse (when WebBluetooth HR monitor is paired). Zero when no
+  // monitor is connected — visual layers see the static state.
+  heart: f32,
+  _r1: f32,
+  _r2: f32,
+  _r3: f32,
 }
 
 @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
@@ -198,6 +207,14 @@ struct Uni {
   parX: f32,
   parY: f32,
   aspect: f32,
+  // Heart-rate normalized exertion 0..1 (60bpm → 0, 180bpm → 1).
+  // Drives a subtle palette pulse + size pump synced to the user's
+  // pulse (when WebBluetooth HR monitor is paired). Zero when no
+  // monitor is connected — visual layers see the static state.
+  heart: f32,
+  _r1: f32,
+  _r2: f32,
+  _r3: f32,
 }
 
 struct VOut {
@@ -235,6 +252,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
 
   let speed = length(p.vel.xyz);
 
+  // ── HEART RATE PULSE ────────────────────────────────────────
+  // When a BLE heart-rate monitor is paired, u.heart carries a 0..1
+  // exertion value. We synthesize a beat envelope from a triangle
+  // wave at the user's apparent BPM (heart * 2 Hz at peak) and use
+  // it to lift particle size + alpha on each beat. Subtle — never
+  // exceeds ~12% size lift even at peak.
+  let beat = abs(sin(u.time * (1.0 + u.heart * 2.5)));
+  let heartPump = u.heart * beat * 0.12;
+
   // ── FRUSTUM CULL ────────────────────────────────────────────
   // Park culled particles at a clip position outside the [-1,1]³
   // homogeneous cube — the WebGPU primitive assembler discards the
@@ -251,8 +277,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
   // look that reads as motion volume.
   let depthFade = 1.0 - clamp(abs(p.pos.z) * 1.4, 0.0, 0.7);
 
-  // Size scales with speed (motion-blur-ish effect) and bass (pump on hits)
-  let size = (0.0030 + speed * 0.012 + u.bass * 0.0055) * p.vel.w * depthFade;
+  // Size scales with speed (motion-blur-ish effect) + bass (pump on hits)
+  // + heart pump (subtle pulse when HR monitor paired).
+  let size = (0.0030 + speed * 0.012 + u.bass * 0.0055 + heartPump) * p.vel.w * depthFade;
 
   // Compensate aspect so quads stay square in any viewport
   let aspectCorr = vec2<f32>(1.0 / u.aspect, 1.0);
@@ -401,8 +428,9 @@ export async function createWebGPUField(
     particleBuf.unmap()
   }
 
-  // Uniform buffer — 8 × f32 = 32 bytes (already 16-byte aligned)
-  const uniArr = new Float32Array(8)
+  // Uniform buffer — 12 × f32 = 48 bytes (16-byte aligned). Slot 8
+  // carries the heart-rate exertion; 9-11 reserved for future signals.
+  const uniArr = new Float32Array(12)
   const uniBuf = device.createBuffer({
     label: 'uniforms',
     size: uniArr.byteLength,
@@ -499,6 +527,8 @@ export async function createWebGPUField(
     uniArr[5] = parallaxRef.current?.x ?? 0.5
     uniArr[6] = parallaxRef.current?.y ?? 0.5
     uniArr[7] = aspect
+    uniArr[8] = opts.reducedMotion ? 0 : getCurrentBpmNorm()
+    // Slots 9-11 reserved for future signals (gaze, gyro intensity, etc.)
     device.queue.writeBuffer(uniBuf, 0, uniArr)
 
     const enc = device.createCommandEncoder({ label: 'frame' })
