@@ -23,18 +23,41 @@
  * no translate, no per-char animation.
  */
 
+import { useEffect, useState } from 'react'
 import styles from './BootTagline.module.css'
 
-const LINES = [
+const LINES_DESKTOP = [
   'Audio is a game of chance.',
   'Forty wins.',
   'Zero defects.',
 ] as const
 
-// Per-line start delay so each line begins after the previous is
-// roughly 60% revealed. Tuned visually — adjust if the cascade
-// feels lazy or rushed.
-const LINE_DELAYS = [0, 540, 880] as const
+// Mobile collapse: only the thesis line renders. Lines 2 and 3 are
+// supporting stats — on a 390px viewport they either wrap awkwardly
+// or shrink below readable. A single bold line carries the metaphor
+// in 3 seconds, which is what the mobile recruiter has anyway.
+const LINES_MOBILE = [
+  'Audio is a game of chance.',
+] as const
+
+const LINE_DELAYS_DESKTOP = [0, 540, 880] as const
+const LINE_DELAYS_MOBILE  = [0] as const
+
+/** Lightweight matchMedia hook with SSR + listener cleanup. */
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false
+    return window.matchMedia(query).matches
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia(query)
+    const onChange = () => setMatches(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [query])
+  return matches
+}
 
 interface BootTaglineProps {
   /** When true, runs the fade-out animation (sync with boot exit). */
@@ -42,6 +65,12 @@ interface BootTaglineProps {
 }
 
 export function BootTagline({ exiting = false }: BootTaglineProps) {
+  // Match either touch device OR narrow viewport — second rule catches
+  // testing tools (Playwright) and narrow desktop browser windows that
+  // emulate mobile via viewport size only without setting pointer:coarse.
+  const isMobile = useMediaQuery('(hover: none) and (pointer: coarse), (max-width: 640px)')
+  const LINES        = isMobile ? LINES_MOBILE        : LINES_DESKTOP
+  const LINE_DELAYS  = isMobile ? LINE_DELAYS_MOBILE  : LINE_DELAYS_DESKTOP
   return (
     <div
       className={`${styles.tagline} ${exiting ? styles.exiting : ''}`}

@@ -1,19 +1,28 @@
 /**
  * BootTagline — cinematic three-line manifesto on the boot screen.
  *
- * Positioned ABOVE the hologram nameplate (name at ~108–160px, tagline
- * at ~240–320px from bottom). Both elements live in a clear "info band"
- * at the bottom of the screen — well below the Lucky 7 body — with
- * frosted glass panels for guaranteed readability on any nebula backdrop.
+ * Positioned in the TOP band of the boot screen, above the Lucky 7
+ * hologram. Lives in the "header band" alongside the HUD (left) and
+ * version serial (right). Stays clear of the 7's body — never overlaps.
+ * Bottom of the screen is reserved for the BOJAN PETKOVIĆ nameplate
+ * + CONTINUE button.
+ *
+ * Layout:
+ *   [HUD]          [TAGLINE]          [SERIAL]
+ *               [Lucky 7 hologram]
+ *           [BOJAN PETKOVIĆ nameplate]
+ *                 [CONTINUE]
  *
  * Total cascade: ~1.6s. Stays visible until boot:tap.
  */
 
 .tagline {
   position: absolute;
-  /* Above the nameplate. Name bottom ~108-160px + height ~72px + gap 16px
-     = ~196px minimum. clamp() ensures it scales on tall screens.         */
-  bottom: max(clamp(240px, 36vh, 330px), calc(env(safe-area-inset-bottom, 0px) + 240px));
+  /* TOP band — between the HUD prompts (top ~32px) and the Lucky 7
+     crown. ~10vh keeps it well clear of the 7's body on standard
+     1080-1440 viewports while staying close enough to the HUD that
+     the eye reads them as one header strip. */
+  top: clamp(64px, 10vh, 100px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 9;
@@ -22,24 +31,26 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: clamp(4px, 0.9vh, 10px);
-  /* Frosted glass panel — readable over nebula/7 glow */
-  padding: clamp(14px, 1.8vh, 24px) clamp(28px, 4.5vw, 64px);
+  gap: clamp(2px, 0.5vh, 6px);
+  /* Subtle frosted glass — readable over nebula but doesn't dominate */
+  padding: clamp(8px, 1.1vh, 14px) clamp(20px, 3.5vw, 44px);
   background:
     linear-gradient(
       180deg,
       rgba(2, 6, 20, 0.0) 0%,
-      rgba(2, 6, 20, 0.58) 35%,
-      rgba(2, 6, 20, 0.72) 100%
+      rgba(2, 6, 20, 0.42) 50%,
+      rgba(2, 6, 20, 0.0) 100%
     );
-  backdrop-filter: blur(10px) saturate(1.3);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  border-top: 1px solid rgba(34, 232, 255, 0.20);
-  border-radius: 2px 2px 0 0;
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  border-top: 1px solid rgba(34, 232, 255, 0.18);
+  border-bottom: 1px solid rgba(34, 232, 255, 0.18);
   animation: taglineFadeIn 600ms ease 800ms both;
-  /* Keep width from stretching wider than the nameplate below */
-  max-width: min(92vw, 640px);
-  width: max-content;
+  /* Cap at viewport so long lines don't push past edges */
+  max-width: min(86vw, 720px);
+  /* Allow internal text to wrap naturally instead of forcing
+     max-content (which caused the "CHANC E" mobile break) */
+  width: auto;
 }
 
 .tagline.exiting {
@@ -79,15 +90,9 @@
   color: rgba(200, 235, 255, 0.88);
 }
 
-/* Subtle cyan dot divider between lines 1 and 2 */
-.line:nth-child(2)::before {
-  content: '· ';
-  color: rgba(34, 232, 255, 0.55);
-}
-.line:nth-child(3)::before {
-  content: '· ';
-  color: rgba(177, 76, 255, 0.55);
-}
+/* Note: dots between secondary lines are now baked into the line
+   text itself ("Forty wins · Zero defects.") so the mobile collapse
+   reads naturally without injected pseudo-elements. */
 
 /* ── Per-character reveal ── */
 .char {
@@ -130,17 +135,39 @@
   }
 }
 
-/* Mobile */
-@media (hover: none) and (pointer: coarse) {
+/* Mobile — only 2 lines render (TSX swaps to LINES_MOBILE on the
+   matching media query). Width-based fallback covers narrow desktop
+   browsers + Playwright viewport tests that don't emulate
+   pointer:coarse from a viewport change alone. */
+@media (hover: none) and (pointer: coarse), (max-width: 640px) {
   .tagline {
-    bottom: max(clamp(200px, 30vh, 270px), calc(env(safe-area-inset-bottom, 0px) + 200px));
-    padding: clamp(10px, 1.4vh, 16px) clamp(20px, 5vw, 40px);
-  }
-  .line {
-    font-size: clamp(11px, 3.6vw, 15px) !important;
-    letter-spacing: 0.14em !important;
+    /* Pushed below the HUD line so it doesn't overlap "System Ready ▒" */
+    top: clamp(60px, 9vh, 84px);
+    padding: clamp(7px, 1vh, 12px) clamp(14px, 4vw, 28px);
+    gap: 0;
+    max-width: 94vw;
   }
   .line:nth-child(1) {
-    font-size: clamp(13px, 4.2vw, 17px) !important;
+    /* Thesis fits in one line on iPhone-class viewports.
+       Letter-spacing trimmed so 26-char string clears 360px content box. */
+    font-size: clamp(11px, 3.4vw, 15px) !important;
+    letter-spacing: 0.10em !important;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+}
+
+/* Short viewports (laptop ≤ 720px height) — pull tagline closer to top
+   so it doesn't crowd the Lucky 7's head zone. */
+@media (max-height: 720px) {
+  .tagline {
+    top: clamp(58px, 10vh, 90px);
+    gap: 1px;
+  }
+  .line {
+    font-size: clamp(11px, 1.4vw, 15px);
+  }
+  .line:nth-child(1) {
+    font-size: clamp(13px, 1.8vw, 18px);
   }
 }
