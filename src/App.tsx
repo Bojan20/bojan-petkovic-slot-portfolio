@@ -42,6 +42,7 @@ import {
   exportSnapshot, importSnapshot,
   startReelCapture, stopReelCapture, isReelCapturing,
   connectHidDevice, startHidAutoBind, stopHidAutoBind,
+  opfsFetchOrCache,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { SlotAudioManager } from './components/SlotAudioManager'
@@ -71,13 +72,53 @@ export default function App() {
     document.body.setAttribute('data-phase', phase)
   }, [phase])
 
-  // Pre-create ambient audio element (doesn't play until splash)
+  // Pre-create ambient audio element. On the first visit we hit the
+  // network (Service Worker also caches via Cache API as a backup);
+  // on every subsequent visit we hand the audio element a blob URL
+  // pointing into OPFS, so playback starts as soon as the user taps —
+  // no network round-trip, no SW activation race, even fully offline.
   useEffect(() => {
-    const a = new Audio('/ambient/lounge.mp3')
-    a.loop = true
-    a.volume = 0.35
-    audioRef.current = a
-    return () => { a.pause(); a.src = '' }
+    let revoke: string | null = null
+    let cancelled = false
+
+    const loadAmbient = async (): Promise<HTMLAudioElement> => {
+      const a = new Audio()
+      a.loop = true
+      a.volume = 0.35
+      a.preload = 'auto'
+
+      const cached = await opfsFetchOrCache('/ambient/lounge.mp3', 'ambient/lounge.mp3').catch(() => null)
+      if (cached?.blob) {
+        const url = URL.createObjectURL(cached.blob)
+        revoke = url
+        a.src = url
+      } else {
+        // OPFS unavailable + fetch failed — fall back to direct URL,
+        // which the Service Worker can still satisfy from Cache API.
+        a.src = '/ambient/lounge.mp3'
+      }
+      return a
+    }
+
+    void loadAmbient().then((a) => {
+      if (cancelled) {
+        a.pause()
+        a.src = ''
+        if (revoke) URL.revokeObjectURL(revoke)
+        return
+      }
+      audioRef.current = a
+    })
+
+    return () => {
+      cancelled = true
+      const a = audioRef.current
+      if (a) {
+        a.pause()
+        a.src = ''
+      }
+      if (revoke) URL.revokeObjectURL(revoke)
+    }
   }, [])
 
   // Connect to CORTEX Audio Manager (WebSocket bridge) — idempotent

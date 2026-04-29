@@ -175,6 +175,18 @@ export {
   getActiveHidName,
 } from './HidInput'
 
+export {
+  isOpfsSupported,
+  opfsWrite,
+  opfsRead,
+  opfsReadBuffer,
+  opfsDelete,
+  opfsExists,
+  opfsList,
+  opfsUsageBytes,
+  opfsFetchOrCache,
+} from './OpfsCache'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
