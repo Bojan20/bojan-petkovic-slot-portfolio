@@ -31,6 +31,11 @@ import {
   isAmbientLightSupported,
   isSpeechSynthSupported,
   isWebXrSupported,
+  exportSnapshot,
+  importSnapshot,
+  startReelCapture,
+  stopReelCapture,
+  isReelCapturing,
 } from '../engine'
 
 interface DevOverlayProps {
@@ -279,6 +284,35 @@ export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
               onClick={() => { void connectHeartRateMonitor() }}
               title={isHeartRateSupported() ? 'Pair BLE heart-rate monitor' : 'WebBluetooth unsupported'}
             >HR ♥</button>
+          </div>
+        </div>
+
+        {/* ── Session capture (Phase 14, 15) ── */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>Session</div>
+          <div className={styles.hwRow}>
+            <button
+              className={styles.btn}
+              type="button"
+              onClick={() => { void exportSnapshot() }}
+              title="Export gzipped snapshot (Ctrl/Cmd+Shift+S)"
+            >SNAP ↓</button>
+            <button
+              className={styles.btn}
+              type="button"
+              onClick={() => { void importSnapshot() }}
+              title="Restore snapshot (Ctrl/Cmd+Shift+L)"
+            >SNAP ↑</button>
+            <button
+              className={styles.btn}
+              type="button"
+              disabled={!isReelCaptureSupported()}
+              onClick={() => {
+                if (isReelCapturing()) void stopReelCapture()
+                else void startReelCapture(null)
+              }}
+              title={isReelCaptureSupported() ? 'Toggle screen recording (Ctrl/Cmd+Shift+R)' : 'getDisplayMedia unsupported'}
+            >● REEL</button>
           </div>
         </div>
 
