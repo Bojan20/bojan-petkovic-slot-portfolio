@@ -87,39 +87,86 @@ body::before {
 }
 
 /* ────────────────────────────────────────────────────────────────
-   VIEW TRANSITIONS API — section change cross-fade + chromatic kick
+   VIEW TRANSITIONS API — Perlin-noise mask sweep + RGB chroma split
+   (P3.3 — VISUAL_RESEARCH.md §5.3)
    ────────────────────────────────────────────────────────────────
    Triggered when SlotMachine.handleSectionChange wraps the React
-   state update in document.startViewTransition. The browser auto-
-   names the root view ::view-transition-old/new(root); we override
-   the default cross-fade with a slightly more cinematic animation:
-     OLD frame: scale-down 0.985 + saturate(1.4) + small rgb shift
-     NEW frame: scale-up   1.015 + brightness(1.15) → settles to 1
-   The data-vt attribute on body scopes this to section changes only,
-   so future VT use cases (modals, page change, etc.) won't inherit. */
+   state update in document.startViewTransition. data-vt='section-change'
+   on body scopes this so unrelated VT calls don't inherit it.
+
+   The OLD frame fades + saturates + zooms back. The NEW frame is
+   revealed through a noise-displaced mask that sweeps bottom→top:
+   the boundary is jagged + organic (Perlin-driven), and during the
+   peak of the sweep (50%) we apply RGB chromatic aberration via
+   stacked drop-shadow filters so the moment reads like a CRT cut
+   rather than a simple wipe. */
 
 @keyframes vtSectionOut {
-  0%   { transform: scale(1);     filter: saturate(1) brightness(1); }
-  100% { transform: scale(0.985); filter: saturate(1.4) brightness(0.92); opacity: 0; }
+  0%   { opacity: 1; transform: scale(1);     filter: saturate(1) brightness(1) blur(0); }
+  100% { opacity: 0; transform: scale(0.965); filter: saturate(1.6) brightness(0.85) blur(4px); }
 }
+
 @keyframes vtSectionIn {
-  0%   { transform: scale(1.015); filter: brightness(1.15) blur(2px); opacity: 0; }
-  60%  { opacity: 1; }
-  100% { transform: scale(1);     filter: brightness(1) blur(0); opacity: 1; }
+  /* mask-position 0% 100% places the mask's black half over the new
+     frame → fully hidden. As it animates to 0% 0%, the white half
+     slides in from the bottom and the new frame tears through the
+     noise edge moving upward. */
+  0% {
+    opacity: 0;
+    mask-position: 0% 100%;
+    -webkit-mask-position: 0% 100%;
+    filter:
+      drop-shadow(4px 0 rgba(255, 50, 100, 0.0))
+      drop-shadow(-4px 0 rgba(40, 220, 255, 0.0))
+      brightness(1.25);
+    transform: scale(1.012);
+  }
+  /* RGB chromatic aberration peaks at 50% — the point where the
+     noise mask edge is in the middle of its sweep. Red shifts +6px,
+     cyan shifts -6px, creating a CRT-style chroma split. */
+  50% {
+    opacity: 1;
+    filter:
+      drop-shadow(6px 0 rgba(255, 50, 100, 0.55))
+      drop-shadow(-6px 0 rgba(40, 220, 255, 0.55))
+      brightness(1.10);
+  }
+  100% {
+    opacity: 1;
+    mask-position: 0% 0%;
+    -webkit-mask-position: 0% 0%;
+    filter: drop-shadow(0 0 transparent) brightness(1);
+    transform: scale(1);
+  }
 }
 
 body[data-vt='section-change']::view-transition-old(root) {
-  animation: vtSectionOut 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: vtSectionOut 320ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 body[data-vt='section-change']::view-transition-new(root) {
-  animation: vtSectionIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: vtSectionIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Noise-displaced mask. 100% × 200% size + position animation
+     makes the white half sweep up from below. luminance mode so
+     bright pixels = visible, dark = hidden. */
+  mask-image: url('/section-mask.svg');
+  -webkit-mask-image: url('/section-mask.svg');
+  mask-size: 100% 200%;
+  -webkit-mask-size: 100% 200%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-mode: luminance;
+  -webkit-mask-mode: luminance;
 }
 
-/* Honor reduced-motion — instant swap, no animation */
+/* Honor reduced-motion — instant swap, no animation, no mask. */
 @media (prefers-reduced-motion: reduce) {
   body[data-vt='section-change']::view-transition-old(root),
   body[data-vt='section-change']::view-transition-new(root) {
     animation-duration: 1ms;
+  }
+  body[data-vt='section-change']::view-transition-new(root) {
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 }
 
