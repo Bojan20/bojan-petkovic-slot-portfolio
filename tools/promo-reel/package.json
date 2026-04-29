@@ -5,6 +5,8 @@
   "type": "module",
   "description": "Auto-generates Bojan Petkovic promo reel video from slot game capture + brand overlay. Single-command pipeline: capture → detect → cut → brand → MP4.",
   "scripts": {
+    "studio": "node studio-server.mjs",
+    "smart-edit": "node smart-edit.mjs",
     "simulate": "node record-simulator.mjs",
     "make": "node src/make-reel.mjs",
     "make:vertical": "node src/make-reel.mjs --format=vertical",
