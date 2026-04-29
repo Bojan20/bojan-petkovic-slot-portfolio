@@ -182,7 +182,14 @@ class Director {
         }, 0.6)
     }
 
-    tl.to({}, { duration: 0.4 })  // breathing room for SlotMachine genesis
+    // CRITICAL — wait for SlotMachine genesis (1.55s once entering=true)
+    // to fully reveal cells / tabs / controls BEFORE flipping phase →
+    // 'slot'. Genesis is gated on entering=true; if we transition to
+    // 'slot' mid-genesis it triggers black-screen because the genesis
+    // useEffect's cleanup used to kill the in-flight tween.
+    // 0.6 (slot-fade start) + 1.05 (slot-fade duration) = 1.65,
+    // genesis completes by ~1.55, so a 1.4s tail leaves margin.
+    tl.to({}, { duration: 1.4 })
   }
 
   private completeSplashToSlot(): void {

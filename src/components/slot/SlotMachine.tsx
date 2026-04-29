@@ -275,7 +275,12 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       }
     }, undefined, 1.55)
 
-    return () => { tl.kill() }
+    // NOTE: NO tl.kill() in cleanup. Genesis is a one-shot reveal —
+    // killing it mid-flight when `entering` flips to false (because
+    // TransitionDirector advances phase → 'slot' before genesis
+    // completes) leaves every element at opacity:0 = BLACK SCREEN.
+    // Genesis is idempotent via genesisRanRef so it never re-fires;
+    // letting it run to completion in the background is safe.
   }, [entering, cellHeight])
 
   // Ambient project color

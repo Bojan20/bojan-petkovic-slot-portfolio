@@ -86,6 +86,22 @@ export default function App() {
     document.body.setAttribute('data-phase', phase)
   }, [phase])
 
+  // Remove the pre-shield div (set up in index.html to cover body bg
+  // until React mounts BootScreen) the moment we enter the SPLASH
+  // phase. Until this commit the shield was orphaned in the DOM
+  // forever — z-index 1999, opacity 1, near-black background — and
+  // covered the entire slot machine after the splash→slot transition,
+  // producing a fully BLACK screen on the slot phase.
+  useEffect(() => {
+    if (phase === 'boot') return
+    const shield = document.getElementById('pre-shield')
+    if (!shield) return
+    // Soft fade so we don't pop the BG between splash and slot
+    shield.style.transition = 'opacity 320ms ease'
+    shield.style.opacity = '0'
+    setTimeout(() => shield.remove(), 360)
+  }, [phase])
+
   // Pre-create ambient audio element. On the first visit we hit the
   // network (Service Worker also caches via Cache API as a backup);
   // on every subsequent visit we hand the audio element a blob URL
