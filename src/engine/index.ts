@@ -117,6 +117,11 @@ export {
   onPipWindowClosed,
 } from './DocumentPiP'
 
+export {
+  registerPaintWorklets,
+  isHoudiniPaintSupported,
+} from './HoudiniPaint'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

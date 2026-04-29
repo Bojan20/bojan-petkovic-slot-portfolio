@@ -13,7 +13,24 @@
   box-shadow:
     0 0 80px rgba(0, 0, 0, 0.9),
     0 0 160px rgba(0, 0, 0, 0.5);
+  /* CSS Houdini Paint API custom props — animated for hue cycle.
+     Type registered via CSS.registerProperty in HoudiniPaint.ts so
+     they're real numbers (not strings) and animate smoothly. */
+  --pattern-hue: 190;
+  --pattern-density: 0.42;
+  --pattern-glitch: 0.18;
+  --pattern-alpha: 0.32;
+  --pattern-seed: 7.13;
+  animation: cyberPatternHue 24s linear infinite;
 }
+
+@keyframes cyberPatternHue {
+  0%   { --pattern-hue: 190; }
+  33%  { --pattern-hue: 280; }
+  66%  { --pattern-hue: 38; }
+  100% { --pattern-hue: 190; }
+}
+
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    AMBIENT PHASE GLOW (background wash)
@@ -105,6 +122,33 @@
   overflow: visible;
   display: flex;
   flex-direction: column;
+}
+
+/* HOUDINI PAINT LAYER — procedural cyberpunk circuit-grid + glitches.
+   Dedicated DOM element (cyberPaintBg) so we don't fight the existing
+   .machine::before/::after pseudo-elements (ambient glow + scanlines).
+   Sits BEHIND the reels (z-index 0 within .machine) as a base
+   substrate. paint() falls back to the radial gradient on Safari /
+   Firefox — graceful, just less detailed. Hue cycles via the parent
+   .machine animation through CSS.registerProperty-typed custom prop. */
+.cyberPaintBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    paint(cyberPattern),
+    radial-gradient(ellipse at 50% 38%, rgba(34, 232, 255, 0.06), transparent 65%);
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+/* Mobile: kill the paint layer (Houdini paint isn't free on Mali GPUs
+   and the visual benefit is marginal at small viewports). */
+@media (hover: none) and (pointer: coarse) {
+  .cyberPaintBg {
+    display: none;
+  }
 }
 
 .reelHeaders {

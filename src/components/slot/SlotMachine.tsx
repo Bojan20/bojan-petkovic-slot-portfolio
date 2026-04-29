@@ -1154,6 +1154,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
   return (
     <div ref={machineRef} className={styles.machine} data-ambient-phase={ambientPhase}>
+      {/* CSS Houdini Paint — procedural cyberpunk circuit-grid base
+          (paint(cyberPattern) on Chromium-based browsers; falls back
+          to a radial gradient on Safari/Firefox via CSS layering). */}
+      <div className={styles.cyberPaintBg} aria-hidden="true" />
+
       {/* Tab Bar */}
       <TabBar
         ref={tabBarWrapRef}
