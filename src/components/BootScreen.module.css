@@ -201,57 +201,36 @@
   -webkit-user-drag: none;
 }
 
-/* ── HUD (loading step / %) ── */
-.hud {
+/* ── Clean progress bar (no CORTEX labels) ── */
+.loadBar {
   position: absolute;
-  top: clamp(22px, 5vh, 44px);
+  bottom: max(clamp(56px, 10vh, 100px), calc(env(safe-area-inset-bottom, 0px) + 56px));
   left: 50%;
   transform: translateX(-50%);
-  width: min(520px, 80vw);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  width: min(320px, 60vw);
+  height: 2px;
+  background: linear-gradient(90deg, rgba(34, 232, 255, 0.08), rgba(177, 76, 255, 0.08));
+  border: 1px solid rgba(34, 232, 255, 0.18);
+  overflow: hidden;
+  border-radius: 1px;
   z-index: 6;
-  font-family: var(--f-mono);
-  color: var(--neon-cyan);
-  text-shadow: 0 0 6px var(--neon-cyan-glow);
+  /* Fade in with the CONTINUE button */
+  opacity: 0;
+  animation: loadBarAppear 400ms ease 600ms forwards;
 }
 
-.hudLine {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  opacity: 0.75;
+@keyframes loadBarAppear {
+  to { opacity: 1; }
 }
 
-.hudPrompt { color: var(--g100); text-shadow: 0 0 6px rgba(240, 216, 120, 0.5); }
-.hudPct    { color: var(--neon-magenta); text-shadow: 0 0 6px var(--neon-magenta-glow); }
-
-.hudStep {
-  font-size: clamp(12px, 1.4vw, 14px);
-  letter-spacing: 0.1em;
-  color: var(--g-text);
-  min-height: 18px;
-  display: flex;
-  align-items: center;
-}
-
-.caret {
-  display: inline-block;
-  width: 8px;
-  height: 14px;
-  margin-left: 4px;
-  background: var(--neon-cyan);
-  box-shadow: 0 0 8px var(--neon-cyan-glow);
-  animation: caretBlink 0.9s steps(2) infinite;
-}
-
-@keyframes caretBlink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
+/* ── Dead code stubs — .hud/.hudLine/.hudStep/.caret kept for
+   CSS module tree-shaking. Removed from JSX so never rendered. ── */
+.hudLine { display: none; }
+.hudStep { display: none; }
+.caret   { display: none; }
+.hudPrompt { display: none; }
+.hudPct    { display: none; }
+.hud    { display: none; }
 
 .hudBar {
   width: 100%;

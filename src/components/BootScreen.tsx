@@ -36,13 +36,6 @@ function haptic(pattern: number | number[]): void {
   } catch { /* unavailable */ }
 }
 
-/** Stable IGT-style serial — varies per session but deterministic per page-load */
-function generateSerial(): string {
-  const seg = (n: number) => Math.floor(Math.random() * Math.pow(36, n))
-    .toString(36).toUpperCase().padStart(n, '0')
-  return `SN-${seg(4)}-${seg(3)}`
-}
-
 /** Detect once: does the user prefer reduced motion (vestibular safety) */
 function getPrefersReducedMotion(): boolean {
   if (typeof window === 'undefined' || !window.matchMedia) return false
@@ -89,8 +82,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const [loadingDone, setLoadingDone] = useState(false)
   const [exiting, setExiting] = useState(false)
   const [burst, setBurst] = useState(false)
-  const [stepIdx, setStepIdx] = useState(0)
-  const [typed, setTyped] = useState('')
+  // stepIdx / typed removed — typewriter HUD stripped
   const tappedRef = useRef(false)
   const startTimeRef = useRef(0)
   const bootDivRef = useRef<HTMLDivElement>(null)
@@ -111,7 +103,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const parallaxRafRef = useRef(0)
   const reducedMotion = useMemo(() => getPrefersReducedMotion(), [])
   const mobile = useMemo(() => isMobile(), [])
-  const serial = useMemo(() => generateSerial(), [])
+  // serial removed (version bar stripped)
   // Gyroscope calibration baseline — captured on first reading so resting
   // phone pose maps to (0.5, 0.5). Avoids the "7 lurches sideways" feel
   // recruiters get when they pick up the phone in landscape.
@@ -120,7 +112,6 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const inputModeRef = useRef<'idle' | 'mouse' | 'touch' | 'gyro'>('idle')
 
   const { boot, audio } = portfolioConfig
-  const loadingSteps: string[] = boot.loadingSteps ?? []
 
   // Pre-compute data stream columns once
   // Some columns flagged as "bright" (Matrix cursor), some as "glitch"
@@ -282,28 +273,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => cancelAnimationFrame(raf)
   }, [boot])
 
-  // Typewriter: drive step index from progress, then type chars at 30 ms/char
-  useEffect(() => {
-    if (loadingSteps.length === 0) return
-    const targetIdx = Math.min(
-      Math.floor(progress * loadingSteps.length),
-      loadingSteps.length - 1,
-    )
-    if (targetIdx !== stepIdx) {
-      setStepIdx(targetIdx)
-      setTyped('')
-    }
-  }, [progress, loadingSteps, stepIdx])
-
-  useEffect(() => {
-    const phrase = loadingSteps[stepIdx] ?? ''
-    if (!phrase) return
-    if (typed.length >= phrase.length) return
-    const t = setTimeout(() => {
-      setTyped(phrase.slice(0, typed.length + 1))
-    }, 30)
-    return () => clearTimeout(t)
-  }, [typed, stepIdx, loadingSteps])
+  // Typewriter HUD removed — steps/typed state stripped
 
   // ── Ready signal: fires once when load reaches 100% ────────────────
   // Two cues so the recruiter perceives "ready" before they consciously
@@ -426,7 +396,6 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleTap])
 
-  const percent = Math.round(progress * 100)
 
   return (
     <div
@@ -495,23 +464,13 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           slot-machine metaphor before the recruiter taps in. */}
       <BootTagline exiting={exiting} />
 
-      {/* Loading HUD — typewriter step + % + bar */}
-      <div className={styles.hud} aria-live="polite">
-        <div className={styles.hudLine}>
-          <span className={styles.hudPrompt}>&gt; NEURAL&nbsp;SYNC</span>
-          <span className={styles.hudPct}>{percent.toString().padStart(3, '0')}%</span>
-        </div>
-        <div className={styles.hudStep}>
-          {typed}
-          <span className={styles.caret} />
-        </div>
-        <div className={styles.hudBar}>
-          <div
-            ref={hudBarFillRef}
-            className={styles.hudBarFill}
-            style={{ transform: `scaleX(${progress})` }}
-          />
-        </div>
+      {/* Clean progress bar — no CORTEX/NEURAL labels */}
+      <div className={styles.loadBar} aria-hidden="true">
+        <div
+          ref={hudBarFillRef}
+          className={styles.hudBarFill}
+          style={{ transform: `scaleX(${progress})` }}
+        />
       </div>
 
       {/* CONTINUE — holographic ring pulse when ready */}
@@ -551,15 +510,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         BOJAN PETKOVIĆ
       </div>
 
-      {/* Version bar — IGT-style asset code + live LED */}
-      <div className={styles.versionBar}>
-        <span className={styles.versionLed} aria-hidden="true" />
-        <span>CORTEX&nbsp;ENGINE&nbsp;v1.0</span>
-        <span className={styles.versionPipe} aria-hidden="true">·</span>
-        <span className={styles.versionSerial}>{serial}</span>
-        <span className={styles.versionPipe} aria-hidden="true">·</span>
-        <span>PORTFOLIO&nbsp;SYSTEM</span>
-      </div>
+      {/* Version bar removed — no CORTEX branding */}
 
       {/* System-online burst — radial scanline flash + static noise */}
       {burst && <div className={styles.systemBurst} aria-hidden="true" />}
