@@ -35,7 +35,16 @@ export interface CortexEventMap {
 
   // Transition
   'transition:splash_to_slot': void
+  'transition:shockwave': void
   'transition:complete': void
+
+  // Slot Genesis (machine assembling itself on first appearance)
+  'slot:genesis:start': void
+  'slot:genesis:tabs': void
+  'slot:genesis:headers': void
+  'slot:genesis:cells': { col: number }
+  'slot:genesis:controls': void
+  'slot:genesis:complete': void
 
   // Slot
   'slot:spin:start': void

@@ -106,31 +106,53 @@ export default function App() {
       )
     }
 
-    // ── Slot entrance: SLOW fade-in that runs the whole length of the
-    //    casino shower (~3s). Reels + background emerge gradually while
-    //    chips/dice are raining — no pop, just a gentle materialization.
+    // ── Shockwave ring — concentric expansion at burst crest ───────
+    const shockwave = document.getElementById('shockwave-ring')
+    if (shockwave) {
+      tl.fromTo(shockwave,
+        { opacity: 0, scale: 0.05 },
+        {
+          opacity: 1, scale: 1,
+          duration: 0.55,
+          ease: 'power3.out',
+          onStart: () => bus.emit('transition:shockwave'),
+        },
+        0.18,
+      )
+      tl.to(shockwave,
+        { opacity: 0, duration: 0.4, ease: 'power2.in' },
+        0.65,
+      )
+    }
+
+    // ── Slot entrance: faster wrapper fade — SlotMachine genesis owns
+    //    the per-element staggered entrance. Wrapper just lifts the
+    //    overall opacity/blur veil so genesis can play on visible canvas.
     tl.fromTo(slotWrapRef.current,
       { opacity: 0, scale: 0.96, filter: 'blur(18px) brightness(1.25)' },
       {
         opacity: 1,
         scale: 1,
         filter: 'blur(0px) brightness(1)',
-        duration: 3.0,
-        ease: 'power1.inOut',
+        duration: 1.1,
+        ease: 'power2.out',
       },
-      0.3,
+      0.35,
     )
 
-    // Pre-shield fade — slow lockstep with slot wrapper
+    // Pre-shield fade — quick veil lift while shockwave is mid-expansion
     const shield = document.getElementById('pre-shield')
     if (shield) {
       tl.to(shield, {
         opacity: 0,
-        duration: 2.6,
-        ease: 'power1.inOut',
+        duration: 0.9,
+        ease: 'power2.out',
         onComplete: () => { shield.style.display = 'none' },
-      }, 0.3)
+      }, 0.35)
     }
+
+    // Hold timeline open ~3s so CasinoShower + SlotMachine genesis finish
+    tl.to({}, { duration: 1.8 })
   }, [phase])
 
   const handleShowerDone = useCallback(() => {
@@ -149,7 +171,7 @@ export default function App() {
           willChange: phase === 'entering' ? 'opacity, filter, transform' : undefined,
         }}
       >
-        <SlotMachine locked={introLocked} />
+        <SlotMachine locked={introLocked} entering={phase === 'entering'} />
       </div>
 
       {/* Casino particle shower — coins, chips, dice rain */}
@@ -168,6 +190,31 @@ export default function App() {
           background:
             'radial-gradient(circle at 50% 50%, rgba(34,232,255,0.9) 0%, rgba(177,76,255,0.55) 28%, rgba(255,43,214,0.2) 55%, transparent 75%)',
           mixBlendMode: 'screen',
+        }}
+      />
+
+      {/* Shockwave ring — concentric expanding ring at burst crest */}
+      <div
+        id="shockwave-ring"
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          width: '160vmax',
+          height: '160vmax',
+          marginLeft: '-80vmax',
+          marginTop: '-80vmax',
+          zIndex: 2004,
+          pointerEvents: 'none',
+          opacity: 0,
+          borderRadius: '50%',
+          border: '2px solid rgba(240, 216, 120, 0.85)',
+          boxShadow:
+            '0 0 80px 8px rgba(34, 232, 255, 0.6), inset 0 0 60px 6px rgba(177, 76, 255, 0.45), 0 0 220px 30px rgba(240, 216, 120, 0.25)',
+          mixBlendMode: 'screen',
+          transform: 'scale(0.05)',
+          willChange: 'transform, opacity',
         }}
       />
 

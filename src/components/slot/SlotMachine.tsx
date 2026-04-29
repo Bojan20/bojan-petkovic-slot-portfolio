@@ -115,9 +115,11 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
 interface SlotMachineProps {
   /** Block all interaction during intro transition */
   locked?: boolean
+  /** True while App is in 'entering' phase — triggers genesis timeline */
+  entering?: boolean
 }
 
-export function SlotMachine({ locked = false }: SlotMachineProps) {
+export function SlotMachine({ locked = false, entering = false }: SlotMachineProps) {
   const {
     currentSectionIdx,
     currentItemIdx,
@@ -141,8 +143,12 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
   const stripRefs = useRef<(HTMLDivElement | null)[]>([])
   const colRefs = useRef<(HTMLDivElement | null)[]>([])
   const machineRef = useRef<HTMLDivElement>(null)
+  const tabBarWrapRef = useRef<HTMLDivElement>(null)
+  const reelHeadersRef = useRef<HTMLDivElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
   const takeoverTlRef = useRef<gsap.core.Timeline | null>(null)
   const takeoverCleanupRef = useRef<(() => void) | null>(null)
+  const genesisRanRef = useRef(false)
 
   // Current column data
   const [colData, setColData] = useState<CellData[][]>(() =>
@@ -195,6 +201,98 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
   useEffect(() => {
     setColData(getColData(currentSectionIdx, currentItemIdx))
   }, [currentSectionIdx, currentItemIdx])
+
+  // ── GENESIS TIMELINE ─────────────────────────────────────────────────
+  // Plays once when phase enters 'entering' and cells are measured.
+  // Machine assembles itself: tab bar → headers → cells column-by-column → controls.
+  useEffect(() => {
+    if (!entering || cellHeight <= 0 || genesisRanRef.current) return
+    genesisRanRef.current = true
+
+    const tabBar = tabBarWrapRef.current
+    const headers = reelHeadersRef.current
+    const controls = controlsRef.current
+    const inner = reelsInnerRef.current
+    const cols = colRefs.current.filter(Boolean) as HTMLDivElement[]
+
+    bus.emit('slot:genesis:start')
+
+    // Set initial hidden states immediately so first paint is from 0
+    if (tabBar) gsap.set(tabBar, { opacity: 0, y: -36, filter: 'blur(8px)' })
+    if (headers) gsap.set(headers, { opacity: 0, y: -22, filter: 'blur(6px)' })
+    cols.forEach((col) => {
+      gsap.set(col, { opacity: 0, scale: 0.82, filter: 'blur(14px) brightness(1.4)', y: 14 })
+    })
+    if (controls) gsap.set(controls, { opacity: 0, y: 48, scale: 0.78, filter: 'blur(8px)' })
+
+    const tl = gsap.timeline()
+
+    // ── 0.05s: Tab bar drops from above with elastic ──
+    tl.to(tabBar, {
+      opacity: 1, y: 0, filter: 'blur(0px)',
+      duration: 0.55, ease: 'expo.out',
+      onStart: () => bus.emit('slot:genesis:tabs'),
+    }, 0.05)
+
+    // ── 0.20s: Reel headers slide in + light sweep (CSS-driven) ──
+    tl.to(headers, {
+      opacity: 1, y: 0, filter: 'blur(0px)',
+      duration: 0.55, ease: 'expo.out',
+      onStart: () => {
+        bus.emit('slot:genesis:headers')
+        // Trigger CSS light sweep
+        headers?.classList.add(styles.headersGenesis || 'headersGenesis')
+        setTimeout(
+          () => headers?.classList.remove(styles.headersGenesis || 'headersGenesis'),
+          900,
+        )
+      },
+    }, 0.18)
+
+    // ── 0.40s: Cells materialize column-by-column ──
+    cols.forEach((col, i) => {
+      tl.to(col, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        filter: 'blur(0px) brightness(1)',
+        duration: 0.62,
+        ease: 'expo.out',
+        onStart: () => bus.emit('slot:genesis:cells', { col: i }),
+      }, 0.40 + i * 0.09)
+    })
+
+    // ── 1.10s: Controls (SpinButton) rises with elastic ──
+    tl.to(controls, {
+      opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
+      duration: 0.7, ease: 'back.out(1.6)',
+      onStart: () => bus.emit('slot:genesis:controls'),
+    }, 1.05)
+
+    // ── 1.55s: Genesis complete ──
+    tl.call(() => {
+      bus.emit('slot:genesis:complete')
+      // Brief shimmer pulse over reels zone
+      if (inner) {
+        const flare = document.createElement('div')
+        flare.style.cssText = `
+          position:absolute;inset:0;z-index:50;pointer-events:none;
+          background:linear-gradient(115deg, transparent 30%, rgba(240,216,120,0.18) 48%, rgba(255,255,255,0.30) 50%, rgba(240,216,120,0.18) 52%, transparent 70%);
+          mix-blend-mode:screen;opacity:0;transform:translateX(-100%);
+        `
+        inner.appendChild(flare)
+        gsap.to(flare, {
+          opacity: 1, x: '110%',
+          duration: 0.65, ease: 'power2.inOut',
+          onComplete: () => {
+            gsap.to(flare, { opacity: 0, duration: 0.25, onComplete: () => flare.remove() })
+          },
+        })
+      }
+    }, undefined, 1.55)
+
+    return () => { tl.kill() }
+  }, [entering, cellHeight])
 
   // Ambient project color
   useEffect(() => {
@@ -977,6 +1075,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
     <div ref={machineRef} className={styles.machine} data-ambient-phase={ambientPhase}>
       {/* Tab Bar */}
       <TabBar
+        ref={tabBarWrapRef}
         sections={SECTIONS}
         activeSectionIdx={currentSectionIdx}
         onChange={handleSectionChange}
@@ -984,7 +1083,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
       />
 
       {/* Reel Headers */}
-      <div className={styles.reelHeaders}>
+      <div ref={reelHeadersRef} className={styles.reelHeaders}>
         <div className={styles.reelHeadersInner}>
           {section.headers.map((h, i) => (
             <div key={i} style={{ display: 'contents' }}>
@@ -1050,7 +1149,7 @@ export function SlotMachine({ locked = false }: SlotMachineProps) {
       </div>
 
       {/* Controls */}
-      <div className={styles.controls}>
+      <div ref={controlsRef} className={styles.controls}>
         <SpinButton
           isSpinning={isSpinning}
           credits={credits}

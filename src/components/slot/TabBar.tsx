@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import type { SectionDef } from '../../types'
 import styles from './TabBar.module.css'
 
@@ -8,9 +9,12 @@ interface TabBarProps {
   disabled: boolean
 }
 
-export function TabBar({ sections, activeSectionIdx, onChange, disabled }: TabBarProps) {
+export const TabBar = forwardRef<HTMLDivElement, TabBarProps>(function TabBar(
+  { sections, activeSectionIdx, onChange, disabled },
+  ref,
+) {
   return (
-    <div className={styles.tabs} role="tablist">
+    <div ref={ref} className={styles.tabs} role="tablist">
       {sections.map((section, i) => (
         <button
           key={section.id}
@@ -26,6 +30,6 @@ export function TabBar({ sections, activeSectionIdx, onChange, disabled }: TabBa
       ))}
     </div>
   )
-}
+})
 
 export default TabBar

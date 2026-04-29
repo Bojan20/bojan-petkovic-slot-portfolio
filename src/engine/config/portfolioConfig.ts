@@ -86,6 +86,35 @@ export const portfolioConfig: PortfolioConfig = {
         audio: { play: 'sfx_chromatic_burst', volume: 0.5 },
         haptic: 'light',
       },
+      'transition:shockwave': {
+        audio: { play: 'sfx_boom', volume: 0.55 },
+        haptic: 'heavy',
+      },
+
+      // ─── Slot Genesis SFX (machine assembling on first appearance) ──────
+      'slot:genesis:start': {
+        audio: { play: 'sfx_warp_ignite', volume: 0.35 },
+        haptic: 'light',
+      },
+      'slot:genesis:tabs': {
+        audio: { play: 'sfx_sweep', volume: 0.4 },
+        haptic: 'light',
+      },
+      'slot:genesis:headers': {
+        audio: { play: 'sfx_shimmer', volume: 0.35 },
+        haptic: 'light',
+      },
+      'slot:genesis:cells': {
+        audio: { play: 'sfx_rail_tick', volume: 0.4 },
+        haptic: 'light',
+      },
+      'slot:genesis:controls': {
+        audio: { play: 'sfx_ding', volume: 0.4 },
+        haptic: 'button',
+      },
+      'slot:genesis:complete': {
+        audio: { play: 'sfx_crystal_arp', volume: 0.4 },
+      },
     },
   },
 
