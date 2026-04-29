@@ -231,3 +231,62 @@ body[data-idle] *::before {
     min-height: 100lvh;
   }
 }
+
+/* ────────────────────────────────────────────────────────────────
+   CABINET VERTIGO PUSH (P3.5) — body-level dolly on jackpot
+   ────────────────────────────────────────────────────────────────
+   Frame.tsx sets body[data-jackpot] for 760ms when slot:win[jackpot]
+   fires. The body briefly scales up + tints inward via radial
+   gradient → recruiter perceives the camera lunging at the cabinet
+   at the exact moment the per-frame ripple animation runs.
+
+   Total duration matches Frame.module.css cabinetRippleJackpot
+   (720ms). Effects compose: ripple = bell strike on the cabinet,
+   vertigo push = camera pull. Together = "moment". */
+
+@keyframes vertigoCabinetPush {
+  0%   { transform: scale(1);    filter: brightness(1)   saturate(1); }
+  18%  { transform: scale(1.022); filter: brightness(1.18) saturate(1.18); }
+  45%  { transform: scale(1.012); filter: brightness(1.10) saturate(1.10); }
+  100% { transform: scale(1);    filter: brightness(1)   saturate(1); }
+}
+
+body[data-jackpot] {
+  animation: vertigoCabinetPush 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center center;
+  will-change: transform, filter;
+}
+
+/* Inward radial darkening — "spotlight on cabinet" effect during
+   the vertigo push. Pure pseudo-element so it doesn't fight the
+   body transform. */
+body[data-jackpot]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 951;  /* above scanlines (950) */
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 52%,
+    transparent 22%,
+    rgba(0, 0, 0, 0) 38%,
+    rgba(0, 0, 0, 0.42) 88%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+  animation: jackpotVignettePulse 720ms ease-out both;
+}
+
+@keyframes jackpotVignettePulse {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Honor reduced-motion + auto-disable on critical CPU pressure
+   (P2 ComputePressure sets --perf-pressure on :root). */
+@media (prefers-reduced-motion: reduce) {
+  body[data-jackpot],
+  body[data-jackpot]::after {
+    animation: none !important;
+  }
+}

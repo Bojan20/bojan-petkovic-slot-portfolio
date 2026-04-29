@@ -33,6 +33,21 @@ export function Frame({ children, isSpinning, cellHeight = 0 }: FrameProps) {
         el.classList.add(cls)
         setTimeout(() => el.classList.remove(cls), 720)
       }
+
+      // P3.5 — cabinet VERTIGO PUSH on jackpot (CSS hook on <body>).
+      // Augments the per-frame ripple with a body-level dolly: the
+      // entire viewport scales up briefly and the perimeter darkens
+      // → recruiter feels the camera lunging at the cabinet at the
+      // exact moment of the jackpot. body[data-jackpot] CSS lives
+      // in styles/index.css so it can read --perf-pressure to
+      // auto-disable on critical CPU load.
+      if (p.type === 'jackpot') {
+        document.body.setAttribute('data-jackpot', '')
+        // Match the ripple's full duration so both effects close out
+        // together; flag clears slightly later so the keyframe fully
+        // finishes before the attribute is removed.
+        setTimeout(() => document.body.removeAttribute('data-jackpot'), 760)
+      }
     })
     return off
   }, [])
