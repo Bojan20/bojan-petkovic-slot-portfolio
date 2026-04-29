@@ -254,12 +254,17 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
 
   // ── HEART RATE PULSE ────────────────────────────────────────
   // When a BLE heart-rate monitor is paired, u.heart carries a 0..1
-  // exertion value. We synthesize a beat envelope from a triangle
-  // wave at the user's apparent BPM (heart * 2 Hz at peak) and use
-  // it to lift particle size + alpha on each beat. Subtle — never
-  // exceeds ~12% size lift even at peak.
-  let beat = abs(sin(u.time * (1.0 + u.heart * 2.5)));
-  let heartPump = u.heart * beat * 0.12;
+  // exertion value (60 bpm → 0, 180 bpm → 1). Convert to Hz so the
+  // beat envelope literally matches the user's pulse:
+  //   1 Hz  (60 bpm) at heart=0
+  //   3 Hz  (180 bpm) at heart=1
+  // abs(sin(πt·Hz)) has period 1/Hz seconds → one peak per beat.
+  // pow(..., 6) gives a sharp pulse waveform (rest-rest-PUMP) instead
+  // of a smooth sine — reads as a real heart-pulse, not a sine wave.
+  let heartHz = 1.0 + u.heart * 2.0;
+  let beatPhase = abs(sin(u.time * 3.14159265 * heartHz));
+  let beat = pow(beatPhase, 6.0);
+  let heartPump = u.heart * beat * 0.14;
 
   // ── FRUSTUM CULL ────────────────────────────────────────────
   // Park culled particles at a clip position outside the [-1,1]³
