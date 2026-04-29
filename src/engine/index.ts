@@ -100,6 +100,14 @@ export {
   gamepadStateRef,
 } from './GamepadInput'
 
+export {
+  startMidiInput,
+  stopMidiInput,
+  setMidiCursorWriter,
+  isWebMidiSupported,
+  midiStateRef,
+} from './MidiInput'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

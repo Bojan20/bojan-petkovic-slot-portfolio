@@ -19,6 +19,9 @@ import {
   sharePortfolio,
   subscribeQualityMode,
   gamepadStateRef,
+  isWebMidiSupported,
+  startMidiInput,
+  midiStateRef,
   type QualityMode,
 } from '../engine'
 import { activatePendingUpdate, isUpdateAvailable } from '../sw-register'
@@ -44,6 +47,9 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
   )
   const [updateReady, setUpdateReady] = useState(() => isUpdateAvailable())
   const [gamepadName, setGamepadName] = useState<string>('')
+  const [midiName, setMidiName] = useState<string>('')
+  const [midiSupported] = useState(isWebMidiSupported)
+  const [midiBusy, setMidiBusy] = useState(false)
 
   useEffect(() => {
     const off = subscribeQualityMode((m) => setMode(m))
@@ -86,6 +92,30 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
     return off
   }, [])
 
+  // MIDI detection — note that MIDI requires explicit user click
+  // (permission prompt), so we only surface the device name AFTER
+  // the user enables it via the chip.
+  useEffect(() => {
+    const off = bus.on('custom:midi' as 'custom:midi', (p) => {
+      const payload = (p ?? {}) as { connected?: boolean; name?: string }
+      setMidiName(payload.connected ? (payload.name || 'MIDI') : '')
+    })
+    if (midiStateRef.connected) setMidiName(midiStateRef.inputName)
+    return off
+  }, [])
+
+  const onEnableMidi = async () => {
+    if (midiBusy) return
+    setMidiBusy(true)
+    const ok = await startMidiInput()
+    setMidiBusy(false)
+    if (!ok) {
+      setToast('midi unavailable')
+      setToastKey((k) => k + 1)
+      window.setTimeout(() => setToast(null), 1700)
+    }
+  }
+
   if (!visible) return null
 
   const onShare = async () => {
@@ -114,6 +144,27 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
           <span className={styles.dot} />
           🎮 Gamepad
         </span>
+      )}
+      {midiName && (
+        <span
+          className={styles.chipBadge}
+          title={`MIDI: ${midiName}\nC3=spin · D3=next · E3=back · F3/G3=item · A3=mute · B3=jackpot · C4↑ = playable\npitch wheel = parallax X · mod wheel = parallax Y · sustain = spin`}
+        >
+          <span className={styles.dot} />
+          🎹 MIDI
+        </span>
+      )}
+      {midiSupported && !midiName && (
+        <button
+          type="button"
+          className={styles.chip}
+          onClick={onEnableMidi}
+          disabled={midiBusy}
+          title="Enable MIDI input — plug a keyboard, then map keys to slot actions"
+          aria-label="Enable MIDI input"
+        >
+          🎹 Enable MIDI
+        </button>
       )}
       {mode === 'lite' && (
         <span

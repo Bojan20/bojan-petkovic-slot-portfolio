@@ -16,6 +16,7 @@ import {
   playSynthById,
   portfolioConfig,
   setStickCursorWriter,
+  setMidiCursorWriter,
 } from '../engine'
 import { CyberNebula } from './boot/CyberNebula'
 import { CasinoField, type ParallaxState } from './boot/CasinoField'
@@ -235,12 +236,14 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     // Gamepad stick → parallax (LX/LY mapped to 0..1 like mouse).
     // Writes go through the same input path as mouse/touch/gyro:
     // updates m.tx/ty so the lerp tick smooths the motion.
-    setStickCursorWriter((sx, sy) => {
+    const writeCursor = (sx: number, sy: number) => {
       m.tx = sx
       m.ty = sy
       lastInputAtRef.current = performance.now()
       inputModeRef.current = 'mouse'
-    })
+    }
+    setStickCursorWriter(writeCursor)
+    setMidiCursorWriter(writeCursor)
 
     parallaxRafRef.current = requestAnimationFrame(tick)
 
