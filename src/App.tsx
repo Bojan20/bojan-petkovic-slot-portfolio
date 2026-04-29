@@ -24,7 +24,13 @@ import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
 import { PullToRefresh } from './components/PullToRefresh'
-import { bus, initAudioBridge, disposeAudioBridge, attachAnalyser, disposeAnalyser, listenForKonami } from './engine'
+import {
+  bus,
+  initAudioBridge, disposeAudioBridge,
+  attachAnalyser, disposeAnalyser,
+  listenForKonami,
+  startHapticOrchestra, disposeHapticOrchestra,
+} from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { DevOverlay } from './components/DevOverlay'
@@ -76,6 +82,13 @@ export default function App() {
   useEffect(() => {
     const off = listenForKonami(() => setDevOverlay((v) => !v))
     return off
+  }, [])
+
+  // Haptic orchestra — translates app events to vibration patterns.
+  // Idempotent + HMR-safe; does nothing on devices without vibrate API.
+  useEffect(() => {
+    startHapticOrchestra()
+    return () => disposeHapticOrchestra()
   }, [])
 
   // ── Voice command: mute / unmute ────────────────────────────────────

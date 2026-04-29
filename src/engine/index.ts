@@ -61,6 +61,16 @@ export { listenForKonami } from './KonamiCode'
 export { startPerfMonitor, disposePerfMonitor, perfRef } from './PerfMonitor'
 export type { PerfSnapshot } from './PerfMonitor'
 
+export {
+  startHapticOrchestra,
+  disposeHapticOrchestra,
+  isHapticEnabled,
+  setHapticEnabled,
+  vibrate,
+  HAPTIC_PATTERNS,
+} from './HapticOrchestra'
+export type { HapticPattern } from './HapticOrchestra'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

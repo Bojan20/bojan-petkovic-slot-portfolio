@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { bus, playReelAccent, playPaylineTravel, playJackpotBloom } from '../../engine'
+import { bus, playReelAccent, playPaylineTravel, playJackpotBloom, vibrate } from '../../engine'
 import { useSlotStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
@@ -384,6 +384,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           // Volume scales down a touch for inner columns (centered ones
           // are already prominent in the central synth).
           playReelAccent(i, numCols, 0.16)
+
+          // HAPTIC — single thud per reel landing. Last column gets the
+          // emphasized pattern via slot:reel:stop subscriber in
+          // HapticOrchestra; here we fire the standard land pattern for
+          // every NON-last column so the user feels the reels lock down
+          // one by one.
+          if (i !== numCols - 1) vibrate('reel_land')
 
           // Phase 3: Landing pulse on column
           setSpinPhase('landing')
