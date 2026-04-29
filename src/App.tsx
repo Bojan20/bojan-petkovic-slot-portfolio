@@ -43,7 +43,6 @@ import {
   startPersonaInference, stopPersonaInference,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
-import { PresenceChip } from './components/PresenceChip'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
 import { useInputBridges } from './hooks/useInputBridges'
@@ -519,10 +518,11 @@ export default function App() {
           recording stops or saves. */}
       <RecIndicator />
 
-      {/* Presence chip — top-right "● N VIEWING" when multiple tabs /
-          peers see the portfolio. Auto-hides at count = 1 (the
-          single-viewer common case). */}
-      <PresenceChip />
+      {/* PresenceChip removed from UI — engine module (Phase 22) stays
+          available for future "real" presence with a WebTransport relay,
+          but the BroadcastChannel-only LOCAL tier just counts same-origin
+          tabs on the visitor's own machine, which has no value for the
+          recruiter. Surfacing only on a future relay-backed deployment. */}
 
       {/* ARIA live region (P0.5) — visually-hidden polite announcer
           that mirrors SpeechAnnouncer events to assistive tech. */}
