@@ -391,6 +391,18 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
       const offsetX = (mx - 0.5) * vmin * 0.16
       const offsetY = (my - 0.5) * vmin * 0.10
 
+      // CURSOR MAGNET FIELD — finger / mouse / gyro becomes a gravity
+      // well that the casino symbols are drawn into. We use the
+      // SMOOTHED parallax position (mx, my) because mobile gyro is
+      // noisy at the raw level. Magnet radius scales with viewport so
+      // it feels right on phone + desktop.
+      // Reduced-motion: zero magnet force (vestibular-sensitive users
+      // get the calm orbit).
+      const cursorX = mx * cw
+      const cursorY = my * ch
+      const magnetR = vmin * 0.32
+      const magnetStrength = reducedMotion ? 0 : 18
+
       // Audio reactive: bass amplitude bumps the orbit radius outward
       // (symbols "fly out" on a kick), and treble accelerates the
       // self-tumble rotation (cymbals = spinning chips). Subtle so it
@@ -417,6 +429,24 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
         const damping = 0.86
         s.vx = (s.vx + dx * k * dt) * damping
         s.vy = (s.vy + dy * k * dt) * damping
+
+        // ── MAGNET FORCE — pull toward cursor when within radius ──
+        // Force falls off linearly with distance (smooth, no jitter at
+        // the boundary). Symbols inside the boundary feel "captured" —
+        // they orbit the cursor briefly before the spring drags them
+        // back to home position. The combined motion is uncannily
+        // life-like (orbit + react to finger + audio pulse).
+        const cdx = cursorX - s.x
+        const cdy = cursorY - s.y
+        const cd = Math.sqrt(cdx * cdx + cdy * cdy) + 0.001
+        if (cd < magnetR) {
+          const falloff = 1 - cd / magnetR  // 1 near cursor, 0 at radius
+          const fx = (cdx / cd) * magnetStrength * falloff
+          const fy = (cdy / cd) * magnetStrength * falloff
+          s.vx += fx * dt * 60   // dt-normalized impulse
+          s.vy += fy * dt * 60
+        }
+
         s.x += s.vx * dt
         s.y += s.vy * dt
 
