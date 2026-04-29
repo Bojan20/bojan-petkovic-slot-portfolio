@@ -11,6 +11,15 @@
   scrollbar-width: none;
 }
 
+/* Mobile: kill backdrop-filter (Samsung Internet flicker on idle) */
+@media (hover: none) and (pointer: coarse) {
+  .tabs {
+    background: rgba(6, 6, 18, 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 .tabs::-webkit-scrollbar {
   display: none;
 }

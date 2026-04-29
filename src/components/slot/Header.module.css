@@ -11,6 +11,15 @@
   padding-top: 0;
 }
 
+/* Mobile: kill backdrop-filter (Samsung Internet flicker) — header
+   gradient already opaque enough at 0.96/0.98 alpha */
+@media (hover: none) and (pointer: coarse) {
+  .header {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Blue-steel chrome rail */
 .header::before {
   content: '';

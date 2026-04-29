@@ -41,6 +41,28 @@
   animation: ambientSpin 2.2s ease-in-out infinite;
 }
 
+/* Mobile: kill filter-based ambient animation (per-frame blur+hue-rotate
+   recompositing causes Samsung Internet to flicker the entire surface).
+   Static gradients alone read as ambient glow. */
+@media (hover: none) and (pointer: coarse) {
+  .machine::before {
+    filter: blur(20px);
+    transition: opacity 0.5s ease;
+    /* Isolate to its own compositor layer so address-bar reflow
+       doesn't invalidate the blurred raster. */
+    transform: translateZ(0);
+    will-change: opacity;
+  }
+  .machine[data-ambient-phase="spinning"]::before {
+    animation: none;
+  }
+  /* Mobile scanline overlay — promote to GPU layer */
+  .machine::after {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
 .machine[data-ambient-phase="landing"]::before {
   background:
     radial-gradient(ellipse 60% 45% at 50% 40%, rgba(255, 215, 0, 0.24) 0%, transparent 60%),
@@ -94,6 +116,17 @@
   border-bottom: 1px solid rgba(201, 162, 39, 0.45);
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
   overflow: hidden;
+}
+
+/* Mobile: kill backdrop-filter (Samsung Internet repaints the blurred
+   backdrop on every touch event → visible flicker on idle).
+   Solid bg with higher alpha reads identically against the slot bg. */
+@media (hover: none) and (pointer: coarse) {
+  .reelHeaders {
+    background: rgba(4, 5, 14, 0.94);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* Genesis light sweep — runs once when slot first appears */
