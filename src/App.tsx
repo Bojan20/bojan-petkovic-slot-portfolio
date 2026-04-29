@@ -40,7 +40,9 @@ import {
   startAmbientLightSensor, stopAmbientLightSensor,
   startIdleDetector, stopIdleDetector,
   exportSnapshot, importSnapshot,
+  startReelCapture, stopReelCapture, isReelCapturing,
 } from './engine'
+import { RecIndicator } from './components/RecIndicator'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { DevOverlay } from './components/DevOverlay'
@@ -188,6 +190,20 @@ export default function App() {
         void importSnapshot().catch((err) => {
           console.warn('[App] snapshot import failed:', err)
         })
+      } else if (e.code === 'KeyR') {
+        // Ctrl/Cmd+Shift+R — toggle screen recording. Browser default
+        // for plain Ctrl+R is hard reload, which we don't intercept;
+        // adding Shift moves it out of the way and into our control.
+        e.preventDefault()
+        if (isReelCapturing()) {
+          void stopReelCapture().catch((err) => {
+            console.warn('[App] reel stop failed:', err)
+          })
+        } else {
+          void startReelCapture(audioRef.current).catch((err) => {
+            console.warn('[App] reel start failed:', err)
+          })
+        }
       }
     }
     window.addEventListener('keydown', handler)
@@ -465,6 +481,11 @@ export default function App() {
       {/* Pull-to-refresh — active in boot/splash, suppressed during slot
           interaction (slot has its own swipe gestures for section + reel) */}
       <PullToRefresh enabled={phase !== 'slot'} />
+
+      {/* Recording indicator — top-right ● REC chip while a portfolio
+          reel is being captured via Ctrl/Cmd+Shift+R. Auto-hides when
+          recording stops or saves. */}
+      <RecIndicator />
     </>
   )
 }

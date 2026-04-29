@@ -1,0 +1,60 @@
+/**
+ * RecIndicator — top-right "● REC" pulse while a portfolio reel is
+ * being captured. Sits above all other UI (z-index 9999) so it's
+ * always visible regardless of phase / view transition.
+ */
+
+.indicator {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: rgba(20, 0, 0, 0.78);
+  border: 1px solid rgba(255, 60, 60, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 60, 60, 0.15),
+    0 6px 24px rgba(255, 30, 30, 0.32);
+  font: 700 11px var(--f-mono, monospace);
+  letter-spacing: 0.18em;
+  color: #ffe6e6;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+  /* Subtle glassmorphism so the chip reads as belonging to the same
+     palette as the rest of the cyber HUD, just tinted red. */
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff3333;
+  box-shadow:
+    0 0 6px #ff3333,
+    0 0 14px rgba(255, 60, 60, 0.6);
+  animation: recPulse 1100ms cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.label {
+  font-feature-settings: 'tnum';
+  /* Tabular nums so the timer doesn't shift width as digits change */
+}
+
+@keyframes recPulse {
+  0%   { opacity: 1;   transform: scale(1); }
+  50%  { opacity: 0.45; transform: scale(0.82); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    opacity: 0.92;
+  }
+}

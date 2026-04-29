@@ -157,6 +157,14 @@ export {
 } from './SnapshotExport'
 export type { PortfolioSnapshotV1 } from './SnapshotExport'
 
+export {
+  isReelCaptureSupported,
+  isReelCapturing,
+  startReelCapture,
+  stopReelCapture,
+  getReelDurationMs,
+} from './PortfolioReel'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
