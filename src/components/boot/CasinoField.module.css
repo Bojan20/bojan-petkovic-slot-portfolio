@@ -1,0 +1,12 @@
+/* CasinoField — fullscreen canvas, sits BEHIND Lucky 7 (z-index 4)
+   so symbols visibly tuck behind the 7 as they orbit around it.
+
+   No mix-blend-mode here — the casino symbols are opaque artifacts,
+   not light effects. They want a clean composite over the nebula. */
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}

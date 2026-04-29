@@ -17,7 +17,7 @@ import {
   portfolioConfig,
 } from '../engine'
 import { CyberNebula } from './boot/CyberNebula'
-import { ParticleField } from './boot/ParticleField'
+import { CasinoField } from './boot/CasinoField'
 import styles from './BootScreen.module.css'
 
 /** Fire a vibration pattern if the device + user-agent supports it.
@@ -403,8 +403,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       {/* Background layer 0 — WebGL nebula (procedural cyan/violet/gold flow) */}
       <CyberNebula parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
 
-      {/* Foreground layer 7 — magnetic particle constellation orbiting the 7 */}
-      <ParticleField parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
+      {/* Mid-back layer 3 — casino symbols (coins, dice, chips, stars)
+          orbit BEHIND Lucky 7 so they tuck visibly behind the figure */}
+      <CasinoField parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
 
       {/* Data stream background — columns of hex cascading downward */}
       <div className={styles.dataStream} aria-hidden="true">
