@@ -485,98 +485,78 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* ── Holographic name — forms while 7 comes into focus ──
-   Anchored to the BOTTOM of the viewport so it never overlaps
-   the 7 figure. Sits above the CONTINUE button.
-   TECHNIQUE: panel goes on ::before pseudo so background-clip:text
-   on the element itself only clips the gold gradient, not the panel. */
-.hologramName {
+/* ── Nameplate — signature block anchored to the bottom ──
+   Color + text-shadow only — NO background-clip:text. That approach
+   conflicts with filter animations and produces the faint/blurry look.
+   Solid warm-white + gold glow = always readable at any progress value. */
+.nameplate {
   position: absolute;
   bottom: max(clamp(108px, 17vh, 160px), calc(env(safe-area-inset-bottom, 0px) + 108px));
   left: 50%;
   transform: translateX(-50%);
-  padding: clamp(10px, 1.4vh, 18px) clamp(28px, 5vw, 64px);
-  /* Panel via ::before — doesn't interfere with text gradient */
-  isolation: isolate;
-  font-family: var(--f-ui);
-  font-size: clamp(18px, 3.2vw, 44px);
-  font-weight: 800;
-  letter-spacing: clamp(6px, 2.4vw, 26px);
-  text-transform: uppercase;
-  text-align: center;
-  white-space: nowrap;
-  /* Gold shimmer gradient clipped to text */
-  background: linear-gradient(
-    135deg,
-    #fff8e0 0%,
-    #e8c84a 18%,
-    #c9a227 38%,
-    #fffdf0 50%,
-    #d4af37 65%,
-    #e8c84a 84%,
-    #fff8e0 100%
-  );
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding: clamp(14px, 1.8vh, 22px) clamp(36px, 6vw, 88px);
+  background: rgba(2, 6, 20, 0.72);
+  border-top: 1px solid rgba(34, 232, 255, 0.30);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.22);
+  backdrop-filter: blur(12px) saturate(1.6);
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  border-radius: 2px;
   pointer-events: none;
   z-index: 6;
   opacity: 0;
-  filter: blur(12px);
-  transition: opacity 0s, filter 0s;
+  filter: blur(10px);
 }
 
-/* Frosted glass panel behind the name text */
-.hologramName::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: 2px;
-  background: linear-gradient(
-    180deg,
-    rgba(2, 6, 20, 0.0) 0%,
-    rgba(2, 6, 20, 0.62) 30%,
-    rgba(2, 6, 20, 0.78) 100%
-  );
-  border-top: 1px solid rgba(34, 232, 255, 0.22);
-  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
-  backdrop-filter: blur(10px) saturate(1.5);
-  -webkit-backdrop-filter: blur(10px) saturate(1.5);
+.nameplateName {
+  display: block;
+  font-family: var(--f-ui);
+  font-size: clamp(22px, 4vw, 52px);
+  font-weight: 800;
+  letter-spacing: clamp(6px, 2.4vw, 28px);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  /* Warm gold-white — fully opaque, always readable */
+  color: #f8edbe;
+  text-shadow:
+    0 0 18px rgba(255, 210, 80, 0.85),
+    0 0 42px rgba(255, 185, 40, 0.45),
+    0 0 80px rgba(255, 140, 20, 0.20),
+    0 1px 3px rgba(0, 0, 0, 0.95);
 }
 
-.hologramNameVisible {
-  animation:
-    hologramFormIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-    hologramShimmer 3.5s ease-in-out 1.2s infinite,
-    hologramGlowPulse 2.8s ease-in-out 1.2s infinite;
+.nameplateRole {
+  display: block;
+  font-family: var(--f-mono, monospace);
+  font-size: clamp(9px, 1vw, 13px);
+  font-weight: 500;
+  letter-spacing: clamp(3px, 0.8vw, 8px);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  color: rgba(160, 210, 255, 0.72);
+  text-shadow: 0 0 10px rgba(34, 232, 255, 0.35);
 }
 
-@keyframes hologramFormIn {
-  0%   { opacity: 0; filter: blur(14px) brightness(3); letter-spacing: clamp(16px, 6vw, 60px); }
-  30%  { opacity: 0.6; filter: blur(5px) brightness(1.8); }
-  70%  { opacity: 0.85; filter: blur(1px) brightness(1.2); }
-  100% { opacity: 0.9; filter: blur(0px) brightness(1); }
+.nameplateVisible {
+  animation: nameplateFormIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             nameplatePulse  3.2s ease-in-out 1.4s infinite;
 }
 
-@keyframes hologramShimmer {
-  0%   { background-position: 100% 50%; }
-  50%  { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+@keyframes nameplateFormIn {
+  0%   { opacity: 0; filter: blur(16px); transform: translateX(-50%) translateY(8px); }
+  40%  { opacity: 0.7; filter: blur(4px);  transform: translateX(-50%) translateY(2px); }
+  100% { opacity: 1;   filter: blur(0px);  transform: translateX(-50%) translateY(0); }
 }
 
-@keyframes hologramGlowPulse {
-  0%, 100% {
-    text-shadow: none;
-    filter: drop-shadow(0 0 8px rgba(201, 162, 39, 0.4)) drop-shadow(0 0 2px rgba(34, 232, 255, 0.3));
-  }
-  40% {
-    filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.85)) drop-shadow(0 0 8px rgba(34, 232, 255, 0.5)) drop-shadow(0 0 1px rgba(177, 76, 255, 0.6));
-  }
-  70% {
-    filter: drop-shadow(0 0 14px rgba(201, 162, 39, 0.6)) drop-shadow(-2px 0 4px rgba(34, 232, 255, 0.4)) drop-shadow(2px 0 4px rgba(177, 76, 255, 0.4));
-  }
+@keyframes nameplatePulse {
+  0%, 100% { box-shadow: 0 0 0px rgba(255, 210, 80, 0); }
+  50%       { box-shadow: 0 0 28px rgba(255, 210, 80, 0.18),
+                          0 0 60px rgba(34, 232, 255, 0.10); }
 }
 
 /* ── Exit animation ── */
@@ -764,7 +744,7 @@
   .continueWrap,
   .holoRing,
   .tapBtn,
-  .hologramName,
+  .nameplate,
   .tapHint {
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -833,7 +813,7 @@
   .caret,
   .holoRingActive,
   .tapBtnVisible,
-  .hologramNameVisible,
+  .nameplateVisible,
   .systemBurst,
   .burstParticle,
   .tapHintVisible,
@@ -854,9 +834,11 @@
     filter: drop-shadow(0 0 80px rgba(201, 162, 39, 0.4)) !important;
     opacity: 1 !important;
   }
-  .hologramName {
-    opacity: 0.9 !important;
+  .nameplate {
+    opacity: 1 !important;
     filter: none !important;
+  }
+  .nameplateName {
     letter-spacing: clamp(4px, 2vw, 20px) !important;
   }
   .tapBtnVisible {

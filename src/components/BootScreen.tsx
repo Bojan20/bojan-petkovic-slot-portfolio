@@ -502,12 +502,13 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         </div>
       )}
 
-      {/* Holographic name — forms from particles as 7 comes into focus */}
+      {/* Nameplate — forms as 7 comes into focus */}
       <div
-        className={`${styles.hologramName} ${progress >= 0.55 ? styles.hologramNameVisible : ''}`}
+        className={`${styles.nameplate} ${progress >= 0.55 ? styles.nameplateVisible : ''}`}
         aria-hidden="true"
       >
-        BOJAN PETKOVIĆ
+        <span className={styles.nameplateName}>BOJAN PETKOVIĆ</span>
+        <span className={styles.nameplateRole}>AUDIO DESIGNER · GAME SFX · 8+ YEARS</span>
       </div>
 
       {/* Version bar removed — no CORTEX branding */}
