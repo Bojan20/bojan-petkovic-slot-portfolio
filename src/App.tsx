@@ -36,6 +36,7 @@ import {
   startAdaptiveQuality,
   attachMediaSession, disposeMediaSession,
   startGamepadInput, stopGamepadInput,
+  initSpeechAnnouncer, disposeSpeechAnnouncer,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
@@ -147,6 +148,20 @@ export default function App() {
   useEffect(() => {
     const off = bus.on('boot:tap', () => enableWakeLock())
     return off
+  }, [])
+
+  // Speech announcer — cinematic casino-host voice. Init AFTER boot:tap
+  // (the canonical user gesture) so browsers don't drop the first
+  // utterance. The announcer subscribes to boot:complete, splash:enter,
+  // slot:section:change, slot:item:select, slot:win and voice:jackpot
+  // internally; nothing else here. No-op on browsers without
+  // window.speechSynthesis (older Samsung, locked-down kiosks).
+  useEffect(() => {
+    const off = bus.on('boot:tap', () => initSpeechAnnouncer())
+    return () => {
+      off()
+      disposeSpeechAnnouncer()
+    }
   }, [])
 
   // ── Voice command: mute / unmute ────────────────────────────────────

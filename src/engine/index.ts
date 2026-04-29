@@ -128,6 +128,14 @@ export {
 } from './WebGPUCompute'
 export type { WebGPUFieldHandle, WebGPUFieldOptions } from './WebGPUCompute'
 
+export {
+  isSpeechSynthSupported,
+  initSpeechAnnouncer,
+  disposeSpeechAnnouncer,
+  isAnnouncerActive,
+  announce,
+} from './SpeechAnnouncer'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

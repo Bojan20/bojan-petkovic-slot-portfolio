@@ -22,6 +22,14 @@ interface AudioStore {
    * switching itself, it only persists the preference.
    */
   cinematicMode: boolean
+  /**
+   * When `true` (default) the SpeechAnnouncer narrates boot complete,
+   * section changes, project selection, and wins. Persisted so a user
+   * who silenced the voice once stays silent across visits — the master
+   * mute already gates the voice but this is a separate toggle so users
+   * can keep music + sfx and silence just the narration.
+   */
+  announcerEnabled: boolean
 
   // — Actions —
   setMasterVolume: (vol: number) => void
@@ -33,6 +41,8 @@ interface AudioStore {
   setAmbientPlaying: (playing: boolean) => void
   setCinematicMode: (on: boolean) => void
   toggleCinematicMode: () => void
+  setAnnouncerEnabled: (on: boolean) => void
+  toggleAnnouncer: () => void
 }
 
 export const useAudioStore = create<AudioStore>()(
@@ -44,6 +54,7 @@ export const useAudioStore = create<AudioStore>()(
       isMuted: false,
       ambientPlaying: false,
       cinematicMode: true,
+      announcerEnabled: true,
 
       setMasterVolume: (vol) => set({ masterVolume: clamp01(vol) }),
       setMusicVolume: (vol) => set({ musicVolume: clamp01(vol) }),
@@ -53,6 +64,8 @@ export const useAudioStore = create<AudioStore>()(
       setAmbientPlaying: (playing) => set({ ambientPlaying: playing }),
       setCinematicMode: (on) => set({ cinematicMode: on }),
       toggleCinematicMode: () => set((s) => ({ cinematicMode: !s.cinematicMode })),
+      setAnnouncerEnabled: (on) => set({ announcerEnabled: on }),
+      toggleAnnouncer: () => set((s) => ({ announcerEnabled: !s.announcerEnabled })),
     }),
     {
       name: 'bp-slot-audio',
@@ -62,6 +75,7 @@ export const useAudioStore = create<AudioStore>()(
         sfxVolume: s.sfxVolume,
         isMuted: s.isMuted,
         cinematicMode: s.cinematicMode,
+        announcerEnabled: s.announcerEnabled,
       }),
     }
   )
