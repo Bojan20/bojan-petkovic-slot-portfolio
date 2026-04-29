@@ -506,33 +506,65 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* ── Holographic name — forms while 7 comes into focus ── */
+/* ── Holographic name — forms while 7 comes into focus ──
+   Anchored to the BOTTOM of the viewport so it never overlaps
+   the 7 figure. Sits above the CONTINUE button.
+   TECHNIQUE: panel goes on ::before pseudo so background-clip:text
+   on the element itself only clips the gold gradient, not the panel. */
 .hologramName {
   position: absolute;
-  top: 50%;
+  bottom: max(clamp(108px, 17vh, 160px), calc(env(safe-area-inset-bottom, 0px) + 108px));
   left: 50%;
-  transform: translate(-50%, calc(min(95vw, 95vh) * 0.17 + 8px));
+  transform: translateX(-50%);
+  padding: clamp(10px, 1.4vh, 18px) clamp(28px, 5vw, 64px);
+  /* Panel via ::before — doesn't interfere with text gradient */
+  isolation: isolate;
   font-family: var(--f-ui);
-  font-size: clamp(14px, 2.8vw, 36px);
-  font-weight: 700;
-  letter-spacing: clamp(4px, 2vw, 20px);
+  font-size: clamp(18px, 3.2vw, 44px);
+  font-weight: 800;
+  letter-spacing: clamp(6px, 2.4vw, 26px);
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
+  /* Gold shimmer gradient clipped to text */
   background: linear-gradient(
     135deg,
-    #fff8e0 0%, var(--g100) 20%, var(--g300) 40%,
-    #fff8e0 50%, var(--g200) 65%, var(--g100) 85%, #fff8e0 100%
+    #fff8e0 0%,
+    #e8c84a 18%,
+    #c9a227 38%,
+    #fffdf0 50%,
+    #d4af37 65%,
+    #e8c84a 84%,
+    #fff8e0 100%
   );
   background-size: 200% 200%;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   pointer-events: none;
   z-index: 6;
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0s, filter 0s;
+}
+
+/* Frosted glass panel behind the name text */
+.hologramName::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(2, 6, 20, 0.0) 0%,
+    rgba(2, 6, 20, 0.62) 30%,
+    rgba(2, 6, 20, 0.78) 100%
+  );
+  border-top: 1px solid rgba(34, 232, 255, 0.22);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
+  backdrop-filter: blur(10px) saturate(1.5);
+  -webkit-backdrop-filter: blur(10px) saturate(1.5);
 }
 
 .hologramNameVisible {
