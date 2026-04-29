@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { bus } from '../../engine'
+import { bus, playReelAccent, playPaylineTravel, playJackpotBloom } from '../../engine'
 import { useSlotStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
@@ -377,6 +377,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           spinTweensRef.current[i] = null
           gsap.set(strip, { y: 0 })
           strip.style.filter = ''
+
+          // SPATIAL AUDIO ACCENT — per-column stereo ping at the column's
+          // pan position. Fires alongside the centered reel:land synth so
+          // the listener gets clear left→right tracking through headphones.
+          // Volume scales down a touch for inner columns (centered ones
+          // are already prominent in the central synth).
+          playReelAccent(i, numCols, 0.16)
 
           // Phase 3: Landing pulse on column
           setSpinPhase('landing')
@@ -1049,6 +1056,18 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleSpin, handleSectionChange, currentSectionIdx, currentItemIdx, spinToIdx])
+
+  // ── Spatial audio: payline travel + jackpot bloom ──────────────────
+  // Layer stereo accents on top of the centered slot:win synth. The
+  // travel sweep pans L→R as the payline reveals; the jackpot bloom
+  // fires a wide center hit with stereo halo for jackpot-class wins.
+  useEffect(() => {
+    const off = bus.on('slot:win', (p) => {
+      playPaylineTravel(850, 0.12)
+      if (p?.type === 'jackpot') playJackpotBloom(0.22)
+    })
+    return off
+  }, [])
 
   // ── Voice command subscribers ───────────────────────────────────────
   // Bridges Web Speech API → existing nav/spin handlers. Voice commands

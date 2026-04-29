@@ -50,6 +50,13 @@ export {
 } from './VoiceControl'
 export type { VoiceCommand, VoiceStatus } from './VoiceControl'
 
+export {
+  getReelPan,
+  playReelAccent,
+  playPaylineTravel,
+  playJackpotBloom,
+} from './SpatialAudio'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
