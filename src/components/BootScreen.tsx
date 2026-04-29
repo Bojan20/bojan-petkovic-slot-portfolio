@@ -21,7 +21,6 @@ import {
 import { CyberNebula } from './boot/CyberNebula'
 import { QuantumField } from './boot/QuantumField'
 import { CasinoField, type ParallaxState } from './boot/CasinoField'
-import { BootTagline } from './boot/BootTagline'
 import styles from './BootScreen.module.css'
 
 /** Fire a vibration pattern if the device + user-agent supports it.
@@ -460,10 +459,6 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         />
       </div>
 
-      {/* Cinematic tagline (P3.1) — 3-line manifesto anchoring the
-          slot-machine metaphor before the recruiter taps in. */}
-      <BootTagline exiting={exiting} />
-
       {/* Clean progress bar — no CORTEX/NEURAL labels */}
       <div className={styles.loadBar} aria-hidden="true">
         <div
@@ -502,12 +497,13 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         </div>
       )}
 
-      {/* Nameplate — forms as 7 comes into focus */}
+      {/* Title marquee — top of cabinet, like a physical slot machine header */}
       <div
-        className={`${styles.nameplate} ${progress >= 0.55 ? styles.nameplateVisible : ''}`}
+        className={`${styles.nameplate} ${progress >= 0.3 ? styles.nameplateVisible : ''}`}
         aria-hidden="true"
       >
         <span className={styles.nameplateName}>BOJAN PETKOVIĆ</span>
+        <span className={styles.nameplateDivider} aria-hidden="true" />
         <span className={styles.nameplateRole}>AUDIO DESIGNER · GAME SFX · 8+ YEARS</span>
       </div>
 
