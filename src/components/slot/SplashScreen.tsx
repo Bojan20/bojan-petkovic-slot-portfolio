@@ -246,12 +246,16 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
             AUDIO SLOT GAME DESIGNER — PORTFOLIO
           </div>
 
-          <div
-            ref={nameRef}
-            className={styles.name}
-            data-text="BOJAN PETKOVIĆ"
-          >
-            BOJAN PETKOVIĆ
+          <div className={styles.nameWrap}>
+            <div
+              ref={nameRef}
+              className={styles.name}
+              data-text="BOJAN PETKOVIĆ"
+            >
+              BOJAN PETKOVIĆ
+            </div>
+            <div className={styles.hologramOverlay} aria-hidden="true" />
+            <div className={styles.spectrumAberration} aria-hidden="true" />
           </div>
 
           <div ref={lineRef} className={styles.line} />

@@ -20,6 +20,7 @@
   overflow: hidden;
   cursor: crosshair;
   user-select: none;
+  perspective: 1800px;
 }
 
 /* ── Data stream curtain — monospace hex columns ── */
@@ -103,12 +104,11 @@
   box-shadow: 0 0 10px rgba(34, 232, 255, 0.5);
 }
 
-/* ── Fullscreen Lucky 7 — blur focus loader ── */
+/* ── Fullscreen Lucky 7 — blur focus loader + 3D mouse parallax ── */
 .sevenStage {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -56%) scale(calc(0.65 + var(--seven-progress, 0) * 0.35));
   width: min(95vw, 95vh);
   height: min(95vw, 95vh);
   display: flex;
@@ -116,14 +116,23 @@
   justify-content: center;
   pointer-events: none;
   z-index: 4;
-  transform-origin: center;
+  transform-origin: center center;
+  transform-style: preserve-3d;
   --blur-max: 48px;
+  transform:
+    translate(
+      calc(-50% + (var(--mx, 0.5) - 0.5) * -55px),
+      calc(-56% + (var(--my, 0.5) - 0.5) * -32px)
+    )
+    scale(calc(0.65 + var(--seven-progress, 0) * 0.35))
+    rotateX(calc((var(--my, 0.5) - 0.5) * -9deg))
+    rotateY(calc((var(--mx, 0.5) - 0.5) * 14deg));
   filter:
     blur(calc((1 - var(--seven-progress, 0)) * var(--blur-max)))
     drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.15 + var(--seven-progress, 0) * 0.4)))
     drop-shadow(0 0 60px rgba(34, 232, 255, calc(var(--seven-progress, 0) * 0.25)));
   opacity: calc(0.35 + var(--seven-progress, 0) * 0.65);
-  transition: filter 120ms linear, opacity 120ms linear, transform 120ms linear;
+  will-change: transform, filter;
 }
 
 .sevenFull {
@@ -336,6 +345,68 @@
   0%   { opacity: 0; transform: scale(0.6); }
   30%  { opacity: 1; transform: scale(1.05); }
   100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* ── Holographic name — forms while 7 comes into focus ── */
+.hologramName {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(min(95vw, 95vh) * 0.17 + 8px));
+  font-family: var(--f-ui);
+  font-size: clamp(14px, 2.8vw, 36px);
+  font-weight: 700;
+  letter-spacing: clamp(4px, 2vw, 20px);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  background: linear-gradient(
+    135deg,
+    #fff8e0 0%, var(--g100) 20%, var(--g300) 40%,
+    #fff8e0 50%, var(--g200) 65%, var(--g100) 85%, #fff8e0 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  filter: blur(12px);
+  transition: opacity 0s, filter 0s;
+}
+
+.hologramNameVisible {
+  animation:
+    hologramFormIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    hologramShimmer 3.5s ease-in-out 1.2s infinite,
+    hologramGlowPulse 2.8s ease-in-out 1.2s infinite;
+}
+
+@keyframes hologramFormIn {
+  0%   { opacity: 0; filter: blur(14px) brightness(3); letter-spacing: clamp(16px, 6vw, 60px); }
+  30%  { opacity: 0.6; filter: blur(5px) brightness(1.8); }
+  70%  { opacity: 0.85; filter: blur(1px) brightness(1.2); }
+  100% { opacity: 0.9; filter: blur(0px) brightness(1); }
+}
+
+@keyframes hologramShimmer {
+  0%   { background-position: 100% 50%; }
+  50%  { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes hologramGlowPulse {
+  0%, 100% {
+    text-shadow: none;
+    filter: drop-shadow(0 0 8px rgba(201, 162, 39, 0.4)) drop-shadow(0 0 2px rgba(34, 232, 255, 0.3));
+  }
+  40% {
+    filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.85)) drop-shadow(0 0 8px rgba(34, 232, 255, 0.5)) drop-shadow(0 0 1px rgba(177, 76, 255, 0.6));
+  }
+  70% {
+    filter: drop-shadow(0 0 14px rgba(201, 162, 39, 0.6)) drop-shadow(-2px 0 4px rgba(34, 232, 255, 0.4)) drop-shadow(2px 0 4px rgba(177, 76, 255, 0.4));
+  }
 }
 
 /* ── Exit animation ── */

@@ -46,6 +46,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const [typed, setTyped] = useState('')
   const tappedRef = useRef(false)
   const startTimeRef = useRef(0)
+  const bootDivRef = useRef<HTMLDivElement>(null)
+  const mouseLerpRef = useRef({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 })
+  const parallaxRafRef = useRef(0)
 
   const { boot, audio } = portfolioConfig
   const loadingSteps: string[] = boot.loadingSteps ?? []
@@ -60,6 +63,36 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     })),
     [],
   )
+
+  // Mouse 3D parallax — lerp smooth RAF loop, direct DOM mutation (zero re-renders)
+  useEffect(() => {
+    const m = mouseLerpRef.current
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+
+    const handleMouse = (e: MouseEvent) => {
+      m.tx = e.clientX / window.innerWidth
+      m.ty = e.clientY / window.innerHeight
+    }
+
+    const tick = () => {
+      m.x = lerp(m.x, m.tx, 0.055)
+      m.y = lerp(m.y, m.ty, 0.055)
+      const el = bootDivRef.current
+      if (el) {
+        el.style.setProperty('--mx', m.x.toFixed(4))
+        el.style.setProperty('--my', m.y.toFixed(4))
+      }
+      parallaxRafRef.current = requestAnimationFrame(tick)
+    }
+
+    window.addEventListener('mousemove', handleMouse, { passive: true })
+    parallaxRafRef.current = requestAnimationFrame(tick)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouse)
+      cancelAnimationFrame(parallaxRafRef.current)
+    }
+  }, [])
 
   // Progress tick
   useEffect(() => {
@@ -147,6 +180,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
   return (
     <div
+      ref={bootDivRef}
       className={`${styles.boot} ${exiting ? styles.bootExit : ''}`}
       onClick={handleTap}
       role="button"
@@ -219,6 +253,14 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         >
           CONTINUE
         </button>
+      </div>
+
+      {/* Holographic name — forms from particles as 7 comes into focus */}
+      <div
+        className={`${styles.hologramName} ${progress >= 0.55 ? styles.hologramNameVisible : ''}`}
+        aria-hidden="true"
+      >
+        BOJAN PETKOVIĆ
       </div>
 
       {/* Version bar */}
