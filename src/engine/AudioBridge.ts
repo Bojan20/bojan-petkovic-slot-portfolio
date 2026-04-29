@@ -18,6 +18,7 @@
  */
 
 import { bus } from './EventBus'
+import { opfsWrite, opfsRead, opfsDelete, opfsList } from './OpfsCache'
 
 const WS_URL = 'ws://localhost:9800'
 const RECONNECT_INTERVAL = 3000
@@ -30,6 +31,71 @@ let _reconnectTimer: number | null = null
 
 /** Hook → cached Audio element */
 const _audioCache = new Map<string, HTMLAudioElement>()
+
+// ─── OPFS persistence ────────────────────────────────────────────────────────
+//
+// Audio Manager sends base64 dataUrl payloads over WS. Without persistence
+// the recruiter loses every assignment on refresh — a fresh page-load
+// has to wait for the WS reconnect before any portfolio sound fires.
+// We mirror every assign into OPFS under `bridge/<hookId>` (raw blob,
+// no base64 padding) and replay them all on init() before WS even
+// opens, so a returning visitor has the full assignment table loaded
+// instantly + offline.
+
+const BRIDGE_OPFS_DIR = 'bridge'
+
+/** Decode a data URL into a Blob — extract MIME + base64 body. */
+function dataUrlToBlob(dataUrl: string): Blob | null {
+  const m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl)
+  if (!m) return null
+  const mime = m[1]!
+  const b64 = m[2]!
+  try {
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    return new Blob([bytes], { type: mime })
+  } catch {
+    return null
+  }
+}
+
+/** Persist an assignment to OPFS. Fire-and-forget. */
+function persistAssign(hookId: string, dataUrl: string): void {
+  const blob = dataUrlToBlob(dataUrl)
+  if (!blob) return
+  void opfsWrite(`${BRIDGE_OPFS_DIR}/${hookId}`, blob).catch(() => {})
+}
+
+/** Remove an assignment from OPFS. Fire-and-forget. */
+function unpersistAssign(hookId: string): void {
+  void opfsDelete(`${BRIDGE_OPFS_DIR}/${hookId}`).catch(() => {})
+}
+
+/**
+ * On init, replay all persisted assignments into the in-memory cache.
+ * Runs before WS connect so the next user gesture (boot tap) already
+ * has the full sound palette wired. WS later overwrites with fresher
+ * assignments if the Audio Manager has updated mappings.
+ */
+async function rehydrateFromOpfs(): Promise<number> {
+  const entries = await opfsList(BRIDGE_OPFS_DIR)
+  let loaded = 0
+  for (const hookId of entries) {
+    const blob = await opfsRead(`${BRIDGE_OPFS_DIR}/${hookId}`)
+    if (!blob) continue
+    const url = URL.createObjectURL(blob)
+    const audio = new Audio(url)
+    audio.preload = 'auto'
+    _audioCache.set(hookId, audio)
+    loaded++
+  }
+  if (loaded > 0) {
+    wireEvents()
+    console.log(`[AudioBridge] Rehydrated ${loaded} assignments from OPFS`)
+  }
+  return loaded
+}
 
 /** Hook ID → EventBus event name mapping */
 const HOOK_TO_EVENT: Record<string, string> = {
@@ -145,6 +211,9 @@ function handleMessage(data: string): void {
         const audio = new Audio(msg.dataUrl)
         audio.preload = 'auto'
         _audioCache.set(msg.hookId, audio)
+        // Persist to OPFS so the assignment survives refresh + works
+        // offline next time. Fire-and-forget — non-blocking.
+        persistAssign(msg.hookId, msg.dataUrl)
         wireEvents()
         console.log(`[AudioBridge] Assigned "${msg.soundId}" → hook "${msg.hookId}"`)
         break
@@ -152,6 +221,7 @@ function handleMessage(data: string): void {
 
       case 'unassign': {
         _audioCache.delete(msg.hookId)
+        unpersistAssign(msg.hookId)
         wireEvents()
         console.log(`[AudioBridge] Unassigned hook "${msg.hookId}"`)
         break
@@ -231,6 +301,11 @@ export function getAssignedHooks(): string[] {
 
 /** Initialize bridge — call once on app mount */
 export function initAudioBridge(): void {
+  // Rehydrate persisted assignments from OPFS first so the first
+  // event after mount can fire its assigned sound even before WS
+  // reconnect — critical for "open portfolio offline, hear all the
+  // sounds anyway" UX. Non-blocking; WS connect runs in parallel.
+  void rehydrateFromOpfs().catch(() => {})
   connect()
   console.log('[AudioBridge] Initialized, connecting to ws://localhost:9800...')
 }
