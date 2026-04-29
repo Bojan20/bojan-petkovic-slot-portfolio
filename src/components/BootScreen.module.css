@@ -29,14 +29,18 @@
   overscroll-behavior: none;
 }
 
-/* ── Data stream curtain — monospace hex columns ── */
+/* ── Data stream curtain — monospace hex columns ──
+   Sits between the WebGL nebula (z-index 0) and the Lucky 7 stage,
+   acting as a fine-detail texture overlay. Opacity tuned down from
+   0.15 → 0.10 because the nebula already provides depth and we don't
+   want the hex grid muddying its color cycle. */
 .dataStream {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.15;
+  opacity: 0.10;
   mix-blend-mode: screen;
 }
 

@@ -16,7 +16,21 @@ import {
   playSynthById,
   portfolioConfig,
 } from '../engine'
+import { CyberNebula } from './boot/CyberNebula'
+import { ParticleField } from './boot/ParticleField'
 import styles from './BootScreen.module.css'
+
+/** Fire a vibration pattern if the device + user-agent supports it.
+ *  No-op silently otherwise (Safari, desktop, denied permission). */
+function haptic(pattern: number | number[]): void {
+  if (typeof navigator === 'undefined') return
+  try {
+    const nav = navigator as Navigator & {
+      vibrate?: (p: number | number[]) => boolean
+    }
+    nav.vibrate?.(pattern)
+  } catch { /* unavailable */ }
+}
 
 /** Stable IGT-style serial — varies per session but deterministic per page-load */
 function generateSerial(): string {
@@ -268,6 +282,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     if (fill) {
       fill.setAttribute('data-energy-surge', 'true')
       const cleanup = setTimeout(() => fill.removeAttribute('data-energy-surge'), 700)
+      // Haptic — short tick to confirm "ready" tactilely on mobile,
+      // moments before the gold flash visually peaks
+      haptic(12)
       return () => clearTimeout(cleanup)
     }
   }, [loadingDone])
@@ -299,6 +316,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     }
 
     bus.emit('boot:tap')
+
+    // Haptic choreography on tap — three-stage rising pattern that
+    // feels like "engaging" a mechanism: short pulse → micro-pause →
+    // confirm thud. Mobile only; desktop ignores silently.
+    haptic([18, 35, 28])
 
     // Ready ping — subtle shimmer chime now that the AudioContext is
     // freshly unlocked. Played at low volume so it sits under the
@@ -378,6 +400,12 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       tabIndex={0}
       aria-label="Tap to begin"
     >
+      {/* Background layer 0 — WebGL nebula (procedural cyan/violet/gold flow) */}
+      <CyberNebula parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
+
+      {/* Foreground layer 7 — magnetic particle constellation orbiting the 7 */}
+      <ParticleField parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
+
       {/* Data stream background — columns of hex cascading downward */}
       <div className={styles.dataStream} aria-hidden="true">
         {streamColumns.map((c, i) => (

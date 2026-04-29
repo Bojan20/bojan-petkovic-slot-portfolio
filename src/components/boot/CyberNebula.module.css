@@ -1,0 +1,13 @@
+/* CyberNebula — fullscreen WebGL canvas, sits behind everything else */
+
+.nebula {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Slight contrast lift over the deep base — the fragment shader paints
+     near-black on edges; a subtle multiply blend keeps the .boot black
+     vignette gradient still acting as the final fall-off frame. */
+  mix-blend-mode: screen;
+  opacity: 0.92;
+}
