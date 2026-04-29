@@ -283,6 +283,20 @@ export {
 } from './ComputePressure'
 export type { PressureLevel } from './ComputePressure'
 
+export {
+  initTransitionDirector,
+  getTransitionDirector,
+  disposeTransitionDirector,
+} from './TransitionDirector'
+export type { AppPhase, TransitionLabel, DirectorOpts } from './TransitionDirector'
+
+export {
+  onAudioCue,
+  startAudioBus,
+  stopAudioBus,
+  isAudioBusStarted,
+} from './AudioBus'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

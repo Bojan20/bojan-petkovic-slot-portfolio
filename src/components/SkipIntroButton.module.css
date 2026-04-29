@@ -1,0 +1,79 @@
+/**
+ * SkipIntroButton — top-right pill that appears during boot/splash/entering.
+ * Click → TransitionDirector.skip() → jump straight to slot_ready.
+ *
+ * Cinematographer's note from the GPT panel: cinematic intros must
+ * NEVER trap the user. Skip is a courtesy.
+ */
+
+.skip {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  z-index: 3500; /* above cinematic-matte (3001) */
+  appearance: none;
+  background: rgba(8, 12, 22, 0.62);
+  color: rgba(220, 250, 255, 0.86);
+  border: 1px solid rgba(34, 232, 255, 0.42);
+  border-radius: 999px;
+  padding: 7px 14px 7px 16px;
+  font: 700 11px var(--f-mono, monospace);
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  user-select: none;
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  box-shadow:
+    0 0 0 1px rgba(34, 232, 255, 0.12),
+    0 4px 18px rgba(0, 0, 0, 0.4);
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease,
+    opacity 220ms ease;
+  /* Soft entrance — only appears 1.4s after mount so it doesn't
+     compete with the boot tagline cascade. */
+  opacity: 0;
+  animation: skipFadeIn 360ms ease 1400ms forwards;
+}
+
+.skip:hover {
+  background: rgba(20, 32, 50, 0.85);
+  border-color: rgba(34, 232, 255, 0.85);
+  color: rgb(255, 255, 255);
+  transform: translateY(-1px);
+}
+
+.skip:active {
+  transform: translateY(0);
+}
+
+.skipArrow {
+  display: inline-block;
+  margin-left: 8px;
+  transform: translateY(-1px);
+  font-size: 10px;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+@keyframes skipFadeIn {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip {
+    animation: none;
+    opacity: 1;
+  }
+  .skip:hover { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .skip {
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+}

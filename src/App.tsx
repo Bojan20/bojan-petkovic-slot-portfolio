@@ -18,7 +18,6 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import gsap from 'gsap'
 import { BootScreen } from './components/BootScreen'
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
@@ -41,10 +40,14 @@ import {
   loadCellMemory,
   scheduleKeyDetection,
   startPersonaInference, stopPersonaInference,
+  initTransitionDirector, disposeTransitionDirector, getTransitionDirector,
+  startAudioBus, stopAudioBus, onAudioCue,
+  playSynthById,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
+import { SkipIntroButton } from './components/SkipIntroButton'
 import { useInputBridges } from './hooks/useInputBridges'
 import { useSensorium } from './hooks/useSensorium'
 import { useSessionCapture } from './hooks/useSessionCapture'
@@ -316,7 +319,55 @@ export default function App() {
     return off
   }, [])
 
-  // Boot → Splash: cinematic fade to black
+  // ── Cinematic transition orchestrator (TransitionDirector) ────────
+  // Single source of truth for boot→splash→slot phase moves. Emits
+  // cue labels that AudioBus subscribes to (J-cut: sound leads picture
+  // by ~120ms). All phase setters flow through here.
+  useEffect(() => {
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    initTransitionDirector({
+      matteEl: document.getElementById('cinematic-matte'),
+      splashRef,
+      slotWrapRef,
+      setPhase,
+      setShowerActive,
+      setIntroLocked,
+      reducedMotion,
+    })
+    startAudioBus()
+
+    // Wire J-cut audio cues to existing SoundManager synths.
+    // Each cue handler fires synchronously so the leadMs offset
+    // (already provided by Director emitting BEFORE the picture
+    // tweens) lands the sound 80–150ms ahead of visual change.
+    const offBootSplash = onAudioCue('boot_to_splash_start', () => {
+      try { playSynthById('cyberWind') } catch { /* ignore */ }
+    })
+    const offSplashEnter = onAudioCue('splash_enter', () => {
+      try { playSynthById('whoosh') } catch { /* ignore */ }
+    })
+    const offMatchCut = onAudioCue('match_cut_peak', () => {
+      try { playSynthById('hyperspaceSnap') } catch { /* ignore */ }
+    })
+    const offSlotReveal = onAudioCue('slot_reveal', () => {
+      try { playSynthById('cyberBoot') } catch { /* ignore */ }
+    })
+
+    return () => {
+      offBootSplash()
+      offSplashEnter()
+      offMatchCut()
+      offSlotReveal()
+      stopAudioBus()
+      disposeTransitionDirector()
+    }
+  }, [])
+
+  // Boot → Splash: delegate to TransitionDirector
   const handleBootComplete = useCallback(() => {
     const audio = audioRef.current
     if (audio) {
@@ -324,64 +375,13 @@ export default function App() {
       attachAnalyser(audio)
     }
     bus.emit('splash:start')
-
-    const matte = document.getElementById('cinematic-matte')
-    if (matte) {
-      const tl = gsap.timeline()
-      tl.to(matte, { opacity: 1, duration: 0.6, ease: 'power2.inOut' })
-      tl.call(() => setPhase('splash'))
-      tl.to({}, { duration: 0.18 })
-      tl.to(matte, { opacity: 0, duration: 0.75, ease: 'power2.inOut' })
-    } else {
-      setPhase('splash')
-    }
+    getTransitionDirector()?.playBootToSplash()
   }, [])
 
-  // Splash → Slot: cinematic cross-dissolve through black
+  // Splash → Slot: delegate to TransitionDirector
   const handleEnter = useCallback(() => {
     if (phase !== 'splash') return
-
-    // Lock slot invisible before React re-render fires
-    gsap.set(slotWrapRef.current, {
-      opacity: 0,
-      scale: 1.015,
-      filter: 'blur(8px)',
-    })
-
-    setPhase('entering')
-    setShowerActive(true)
-    bus.emit('splash:enter')
-    bus.emit('transition:splash_to_slot')
-
-    const matte = document.getElementById('cinematic-matte')
-    const tl = gsap.timeline({ onComplete: () => setPhase('slot') })
-
-    // Splash fades out
-    tl.to(splashRef.current, {
-      opacity: 0,
-      scale: 0.985,
-      filter: 'blur(6px)',
-      duration: 0.85,
-      ease: 'power2.inOut',
-    }, 0)
-
-    // Matte rises briefly for depth at midpoint
-    if (matte) {
-      tl.to(matte, { opacity: 0.5, duration: 0.4, ease: 'power2.in' }, 0.32)
-      tl.to(matte, { opacity: 0, duration: 0.65, ease: 'power2.out' }, 0.72)
-    }
-
-    // Slot materializes — overlaps matte descent
-    tl.to(slotWrapRef.current, {
-      opacity: 1,
-      scale: 1,
-      filter: 'blur(0px)',
-      duration: 1.05,
-      ease: 'power2.out',
-    }, 0.6)
-
-    // Hold for CasinoShower + SlotMachine genesis
-    tl.to({}, { duration: 1.2 })
+    getTransitionDirector()?.playSplashToSlot()
   }, [phase])
 
   const handleShowerDone = useCallback(() => {
@@ -479,6 +479,10 @@ export default function App() {
           the tab regains focus. Click triggers the standard
           gesture-required pair picker. */}
       <HardwareToast />
+
+      {/* Skip Intro — courtesy escape during boot/splash/entering.
+          Click → TransitionDirector.skip() jumps to slot_ready. */}
+      <SkipIntroButton visible={phase !== 'slot'} />
     </>
   )
 }
