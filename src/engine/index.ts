@@ -108,6 +108,15 @@ export {
   midiStateRef,
 } from './MidiInput'
 
+export {
+  isDocumentPipSupported,
+  isPipWindowOpen,
+  openPipWindow,
+  closePipWindow,
+  getPipWindow,
+  onPipWindowClosed,
+} from './DocumentPiP'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

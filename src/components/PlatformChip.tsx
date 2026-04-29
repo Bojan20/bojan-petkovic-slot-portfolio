@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './PlatformChip.module.css'
 import {
   isWebShareSupported,
@@ -22,10 +23,15 @@ import {
   isWebMidiSupported,
   startMidiInput,
   midiStateRef,
+  isDocumentPipSupported,
+  openPipWindow,
+  closePipWindow,
+  onPipWindowClosed,
   type QualityMode,
 } from '../engine'
 import { activatePendingUpdate, isUpdateAvailable } from '../sw-register'
 import { bus } from '../engine'
+import { PipCard } from './PipCard'
 
 interface PlatformChipsProps {
   /** Hide entirely during boot — Lucky 7 hero owns the screen there. */
@@ -50,6 +56,8 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
   const [midiName, setMidiName] = useState<string>('')
   const [midiSupported] = useState(isWebMidiSupported)
   const [midiBusy, setMidiBusy] = useState(false)
+  const [pipSupported] = useState(isDocumentPipSupported)
+  const [pipWindow, setPipWindow] = useState<Window | null>(null)
 
   useEffect(() => {
     const off = subscribeQualityMode((m) => setMode(m))
@@ -116,6 +124,31 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
     }
   }
 
+  // PiP toggle — opens the floating window on first click, closes on
+  // second click. Window-closed listener flips the toggle back if the
+  // user closes via OS chrome instead.
+  const onTogglePip = async () => {
+    if (pipWindow) {
+      closePipWindow()
+      setPipWindow(null)
+      return
+    }
+    const w = await openPipWindow({ width: 280, height: 180 })
+    if (!w) {
+      setToast('pip unavailable')
+      setToastKey((k) => k + 1)
+      window.setTimeout(() => setToast(null), 1700)
+      return
+    }
+    setPipWindow(w)
+  }
+
+  // Listen for PiP window close so the toggle button reflects state
+  useEffect(() => {
+    const off = onPipWindowClosed(() => setPipWindow(null))
+    return off
+  }, [])
+
   if (!visible) return null
 
   const onShare = async () => {
@@ -166,6 +199,24 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
           🎹 Enable MIDI
         </button>
       )}
+      {pipSupported && (
+        <button
+          type="button"
+          className={styles.chip}
+          onClick={onTogglePip}
+          aria-pressed={pipWindow !== null}
+          title={pipWindow
+            ? 'Close the Picture-in-Picture window'
+            : 'Open a floating PiP window — current section + item stays on top of other apps'}
+          aria-label={pipWindow ? 'Close Picture-in-Picture' : 'Open Picture-in-Picture'}
+        >
+          {pipWindow ? '✕ PiP' : '↗ PiP'}
+        </button>
+      )}
+      {/* Render PiP card content into the floating window via portal.
+          The window inherits parent styles in DocumentPiP so React's
+          className-based styling works inside it. */}
+      {pipWindow && createPortal(<PipCard />, pipWindow.document.body)}
       {mode === 'lite' && (
         <span
           className={styles.chipBadge}
