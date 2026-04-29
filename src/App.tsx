@@ -54,6 +54,7 @@ import {
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
+import { HardwareToast } from './components/HardwareToast'
 // Heavy panels lazy-loaded — they're keyboard-gated (Shift+A, Konami)
 // or rare-render (PlatformChips post-boot only). Splitting them off
 // drops ~120KB from the main bundle so first paint of the boot screen
@@ -669,6 +670,12 @@ export default function App() {
       {/* ARIA live region (P0.5) — visually-hidden polite announcer
           that mirrors SpeechAnnouncer events to assistive tech. */}
       <AriaAnnouncer />
+
+      {/* Hardware auto-detect toast (P1.12) — surfaces "new device
+          detected, pair now?" when a USB/BLE device appears while
+          the tab regains focus. Click triggers the standard
+          gesture-required pair picker. */}
+      <HardwareToast />
     </>
   )
 }
