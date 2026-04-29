@@ -232,6 +232,19 @@ export {
 } from './WebXrMode'
 export type { XrCapability } from './WebXrMode'
 
+export {
+  cellKey,
+  loadCellMemory,
+  recordVisit,
+  recordExpand,
+  isCellVisited,
+  getCellMemory,
+  getVisitedKeys,
+  getTotalDwellMs,
+  clearCellMemory,
+} from './CellMemory'
+export type { CellMemoryEntry } from './CellMemory'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

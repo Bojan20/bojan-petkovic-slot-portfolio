@@ -82,6 +82,12 @@ export interface CortexEventMap {
   'voice:command:load': void
   'voice:command:record': void
 
+  // Cell memory (P0.2) — visited-state tracking
+  // Fires whenever a cell becomes the center (winning row) and its
+  // visit count is bumped. Subscribers can react with a "welcome
+  // back" cue or simply re-render the visited badge.
+  'custom:cell:visited': { cellKey: string; visitCount: number; isFirstVisit: boolean }
+
   // Environment sensors — ambient light + idle detection
   // env:lux fires whenever the AmbientLightSensor reports a reading.
   // user:idle / user:active fire when the IdleDetector crosses the

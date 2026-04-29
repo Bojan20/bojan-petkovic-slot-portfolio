@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { bus, playReelAccent, playPaylineTravel, playJackpotBloom, vibrate } from '../../engine'
+import { bus, playReelAccent, playPaylineTravel, playJackpotBloom, vibrate, recordVisit } from '../../engine'
 import { useSlotStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
@@ -200,6 +200,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
   // Update col data when section/item changes
   useEffect(() => {
     setColData(getColData(currentSectionIdx, currentItemIdx))
+    // Record visit for cell memory (P0.2). Section ID + item index
+    // uniquely identifies the cell that's now centered. Engine module
+    // handles dwell-tracking + persistence automatically.
+    const secId = SECTIONS[currentSectionIdx]?.id
+    if (secId) recordVisit(secId, currentItemIdx)
   }, [currentSectionIdx, currentItemIdx])
 
   // ── GENESIS TIMELINE ─────────────────────────────────────────────────

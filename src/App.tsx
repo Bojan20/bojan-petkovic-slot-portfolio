@@ -47,6 +47,7 @@ import {
   connectHeartRateMonitor,
   startPresence, stopPresence,
   probeXrCapability,
+  loadCellMemory,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
@@ -323,6 +324,13 @@ export default function App() {
   // custom:xr:capability with vr/ar booleans for components to react.
   useEffect(() => {
     void probeXrCapability()
+  }, [])
+
+  // Cell memory — load persisted visited-state from OPFS so the slot
+  // can render returning-visitor cues. One-time load at mount; the
+  // module debounces its own writes.
+  useEffect(() => {
+    void loadCellMemory()
   }, [])
 
   // Environment sensors — ambient light + idle detection.
