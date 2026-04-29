@@ -17,7 +17,7 @@ import {
   portfolioConfig,
 } from '../engine'
 import { CyberNebula } from './boot/CyberNebula'
-import { CasinoField } from './boot/CasinoField'
+import { CasinoField, type ParallaxState } from './boot/CasinoField'
 import styles from './BootScreen.module.css'
 
 /** Fire a vibration pattern if the device + user-agent supports it.
@@ -91,7 +91,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const startTimeRef = useRef(0)
   const bootDivRef = useRef<HTMLDivElement>(null)
   const hudBarFillRef = useRef<HTMLDivElement>(null)
-  const mouseLerpRef = useRef({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 })
+  // Shared parallax state — written by our RAF, read directly by canvas
+  // children (CyberNebula, CasinoField). Sharing via ref instead of CSS
+  // vars + getComputedStyle avoids forcing style recalc on every frame,
+  // which was the dominant cause of mobile flicker pre-2026-04.
+  const mouseLerpRef = useRef<ParallaxState>({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 })
   const parallaxRafRef = useRef(0)
   const reducedMotion = useMemo(() => getPrefersReducedMotion(), [])
   const mobile = useMemo(() => isMobile(), [])
@@ -405,11 +409,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       aria-label="Tap to begin"
     >
       {/* Background layer 0 — WebGL nebula (procedural cyan/violet/gold flow) */}
-      <CyberNebula parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
+      <CyberNebula parallaxRef={mouseLerpRef} reducedMotion={reducedMotion} />
 
       {/* Mid-back layer 3 — casino symbols (coins, dice, chips, stars)
           orbit BEHIND Lucky 7 so they tuck visibly behind the figure */}
-      <CasinoField parallaxFromRef={bootDivRef} reducedMotion={reducedMotion} />
+      <CasinoField parallaxRef={mouseLerpRef} reducedMotion={reducedMotion} />
 
       {/* Data stream background — columns of hex cascading downward */}
       <div className={styles.dataStream} aria-hidden="true">

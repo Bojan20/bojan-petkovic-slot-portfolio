@@ -9,4 +9,10 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
+  /* Pin to GPU layer — without this hint Safari's compositor moves the
+     canvas in/out of layered rendering depending on what's stacked
+     above it, which on mobile manifests as a visible 3-8Hz flicker
+     while the symbols animate. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }

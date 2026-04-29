@@ -20,7 +20,11 @@
   overflow: hidden;
   cursor: crosshair;
   user-select: none;
-  perspective: 1800px;
+  /* Perspective is intentionally NOT on .boot — putting it here makes
+     iOS Safari promote every child into its own 3D layer, and any layer
+     that reads animated CSS vars or has mix-blend-mode flickers as the
+     compositor re-evaluates layer membership each frame. We only need
+     perspective for the .sevenStage rotateX/Y, so it lives there. */
   /* Mobile: capture all touch input for parallax + suppress pull-to-refresh,
      iOS-Safari rubber-banding, and the 300ms tap delay. The whole boot div
      IS the joystick on mobile, so we own touch entirely. */
@@ -161,6 +165,9 @@
   z-index: 4;
   transform-origin: center center;
   transform-style: preserve-3d;
+  /* Local perspective (was on .boot) — keeps the 3D rotateX/Y on the 7
+     without forcing every sibling to be promoted to its own 3D layer */
+  perspective: 1800px;
   --blur-max: 22px;
   --seven-focus: clamp(0, calc(var(--seven-progress, 0) * 1.8), 1);
   transform:
@@ -664,6 +671,66 @@
     box-shadow:
       0 0 14px var(--neon-cyan-glow),
       0 0 26px rgba(34, 232, 255, 0.55);
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Mobile (touch / coarse pointer) flicker mitigation
+   ─────────────────────────────────────────────────
+   Problem: on iOS Safari + many Android Chrome builds, every layer
+   except .sevenStage was visibly flickering (~3-8 Hz strobe). Three
+   compounding causes were identified and fixed here + in TSX:
+
+   1. .boot had `perspective: 1800px` → moved to .sevenStage. Global
+      perspective puts every child into its own 3D rendering context;
+      compositor re-evaluates layer membership each frame as CSS vars
+      change, producing flicker on anything not pinned with will-change.
+
+   2. CyberNebula and CasinoField called getComputedStyle(.boot) every
+      RAF tick to read --mx/--my. That forces a full style recalc on
+      a tree the compositor was already churning. Now passes a shared
+      ref directly (see ParallaxState in CasinoField.tsx).
+
+   3. mix-blend-mode: screen on .nebula and .dataStream — works fine
+      on desktop, but on mobile Safari interacts badly with the canvas
+      compositor when many layers stack. We drop blend-mode on mobile
+      and bump opacity slightly so the visual density still reads.
+
+   Plus: CRT scanline animates `background-position-y` which is a paint
+   property — on mobile we hold it static (the scanline pattern alone
+   sells the CRT feel; the drift was a desktop-only finishing touch).
+
+   Detection: (hover: none) and (pointer: coarse) — true on phones,
+   false on desktops with a mouse, even if browser is narrow. We don't
+   want to penalize laptops in narrow windows.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (hover: none) and (pointer: coarse) {
+  /* Drop mix-blend-mode that fights mobile compositor */
+  .dataStream {
+    mix-blend-mode: normal;
+    opacity: 0.14;
+  }
+
+  /* Pin canvas layers so the compositor can't move them around between
+     frames. translateZ(0) is the GPU-promotion hint that survives
+     Safari's aggressive layer-recycling. */
+  .boot::before,
+  .boot::after {
+    transform: translateZ(0);
+  }
+
+  /* Hold CRT scanline static — animation triggers paint, not just
+     composite, on mobile. The 2px stripe pattern alone reads as CRT. */
+  .boot::before {
+    animation: none;
+  }
+
+  /* Reduce data-stream column count visually by hiding glitch columns —
+     the steps(2) glitch animation is the single most expensive infinite
+     animation in this scene on mid-range Androids. */
+  .streamColGlitch {
+    animation-name: streamFall;
+    animation-duration: inherit;
   }
 }
 

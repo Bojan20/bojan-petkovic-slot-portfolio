@@ -10,4 +10,18 @@
      vignette gradient still acting as the final fall-off frame. */
   mix-blend-mode: screen;
   opacity: 0.92;
+  /* Pin layer to GPU so compositor can't recycle / re-promote the canvas
+     between frames. Was contributing to the mobile-only flicker. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Mobile: drop mix-blend-mode (Safari compositor flickers when blending
+   a WebGL canvas under animated CSS-var children) + slightly raise
+   opacity so the nebula still carries the scene without the screen blend. */
+@media (hover: none) and (pointer: coarse) {
+  .nebula {
+    mix-blend-mode: normal;
+    opacity: 0.78;
+  }
 }

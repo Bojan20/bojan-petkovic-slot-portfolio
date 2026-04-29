@@ -20,10 +20,11 @@
 
 import { useEffect, useRef } from 'react'
 import styles from './CyberNebula.module.css'
+import type { ParallaxState } from './CasinoField'
 
 interface CyberNebulaProps {
-  /** Element whose --mx / --my CSS vars drive parallax (typically .boot root) */
-  parallaxFromRef: React.RefObject<HTMLElement | null>
+  /** Shared parallax state — read directly, no getComputedStyle on hot path */
+  parallaxRef: React.RefObject<ParallaxState>
   /** Honor prefers-reduced-motion — pause animation, render single frame */
   reducedMotion?: boolean
 }
@@ -132,7 +133,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
   return sh
 }
 
-export function CyberNebula({ parallaxFromRef, reducedMotion = false }: CyberNebulaProps) {
+export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef(0)
   const startTimeRef = useRef(0)
@@ -183,9 +184,14 @@ export function CyberNebula({ parallaxFromRef, reducedMotion = false }: CyberNeb
     const uRes = gl.getUniformLocation(prog, 'u_res')
     const uPar = gl.getUniformLocation(prog, 'u_par')
 
-    // ── Resize handling — DPR aware, capped at 1.5 for perf on retina ──
+    // ── Resize handling — DPR aware, capped at 1.5 desktop / 1.0 mobile ──
+    // On phones the GPU memory bandwidth + fragment shader complexity
+    // makes 1.5x DPR drop frames intermittently — visible as flicker.
+    // 1.0 DPR halves the pixel count and keeps a steady 60fps on iPhone 11+
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
+    const dprCap = isMobile ? 1.0 : 1.5
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      const dpr = Math.min(window.devicePixelRatio || 1, dprCap)
       const w = window.innerWidth * dpr
       const h = window.innerHeight * dpr
       canvas.width = w
@@ -203,13 +209,13 @@ export function CyberNebula({ parallaxFromRef, reducedMotion = false }: CyberNeb
     let parY = 0
 
     const tick = () => {
-      const root = parallaxFromRef.current
-      // Read smoothed parallax (already lerped by BootScreen) from CSS vars
-      const cs = root ? getComputedStyle(root) : null
-      const mx = cs ? parseFloat(cs.getPropertyValue('--mx') || '0.5') : 0.5
-      const my = cs ? parseFloat(cs.getPropertyValue('--my') || '0.5') : 0.5
-      // Smooth our own copy too — guards against the rare case the boot
-      // unmounted the CSS var read mid-frame
+      // Read smoothed parallax (already lerped by BootScreen) directly
+      // from the shared ref — NO getComputedStyle in RAF (forces full
+      // style recalc on a perspective-rooted tree, was the main cause
+      // of mobile flicker on every layer except .sevenStage).
+      const par = parallaxRef.current
+      const mx = par?.x ?? 0.5
+      const my = par?.y ?? 0.5
       parX += ((mx - 0.5) - parX) * 0.05
       parY += ((my - 0.5) - parY) * 0.05
       gl.uniform2f(uPar, parX, parY)
@@ -233,7 +239,7 @@ export function CyberNebula({ parallaxFromRef, reducedMotion = false }: CyberNeb
       gl.deleteShader(fs)
       gl.deleteBuffer(buf)
     }
-  }, [parallaxFromRef, reducedMotion])
+  }, [parallaxRef, reducedMotion])
 
   return <canvas ref={canvasRef} className={styles.nebula} aria-hidden="true" />
 }

@@ -29,8 +29,23 @@
 import { useEffect, useRef } from 'react'
 import styles from './CasinoField.module.css'
 
+/**
+ * Shared parallax state object — written by BootScreen's RAF, read by us.
+ * Reading off a ref instead of `getComputedStyle()` avoids forcing style
+ * recalc on a tree that has perspective + animated CSS vars + mix-blend
+ * children. On iOS Safari that recalc was eating ~6ms / frame and showing
+ * up as visible flicker on every layer except .sevenStage (which has
+ * will-change: transform, filter pinning it to a stable layer).
+ */
+export interface ParallaxState {
+  x: number
+  y: number
+  tx: number
+  ty: number
+}
+
 interface CasinoFieldProps {
-  parallaxFromRef: React.RefObject<HTMLElement | null>
+  parallaxRef: React.RefObject<ParallaxState>
   reducedMotion?: boolean
 }
 
@@ -284,7 +299,7 @@ function drawHalo(
 
 // ── Component ──────────────────────────────────────────────────────
 
-export function CasinoField({ parallaxFromRef, reducedMotion = false }: CasinoFieldProps) {
+export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef(0)
   const symbolsRef = useRef<OrbitSymbol[]>(makeSymbols())
@@ -331,11 +346,11 @@ export function CasinoField({ parallaxFromRef, reducedMotion = false }: CasinoFi
       last = now
       const tSec = (now - startTime) / 1000
 
-      // Read parallax target (already lerped by BootScreen)
-      const root = parallaxFromRef.current
-      const cs = root ? getComputedStyle(root) : null
-      const mx = cs ? parseFloat(cs.getPropertyValue('--mx') || '0.5') : 0.5
-      const my = cs ? parseFloat(cs.getPropertyValue('--my') || '0.5') : 0.5
+      // Read parallax target (already lerped by BootScreen) directly off
+      // the shared ref — NO getComputedStyle in RAF (forces style recalc).
+      const par = parallaxRef.current
+      const mx = par?.x ?? 0.5
+      const my = par?.y ?? 0.5
       const offsetX = (mx - 0.5) * vmin * 0.16
       const offsetY = (my - 0.5) * vmin * 0.10
 
@@ -390,7 +405,7 @@ export function CasinoField({ parallaxFromRef, reducedMotion = false }: CasinoFi
       window.removeEventListener('resize', resize)
       cancelAnimationFrame(rafRef.current)
     }
-  }, [parallaxFromRef, reducedMotion])
+  }, [parallaxRef, reducedMotion])
 
   return <canvas ref={canvasRef} className={styles.field} aria-hidden="true" />
 }
