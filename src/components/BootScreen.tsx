@@ -49,6 +49,12 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const bootDivRef = useRef<HTMLDivElement>(null)
   const mouseLerpRef = useRef({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 })
   const parallaxRafRef = useRef(0)
+  // Gyroscope calibration baseline — captured on first reading so resting
+  // phone pose maps to (0.5, 0.5). Avoids the "7 lurches sideways" feel
+  // recruiters get when they pick up the phone in landscape.
+  const gyroBaselineRef = useRef<{ beta: number; gamma: number } | null>(null)
+  const lastInputAtRef = useRef(performance.now())
+  const inputModeRef = useRef<'idle' | 'mouse' | 'touch' | 'gyro'>('idle')
 
   const { boot, audio } = portfolioConfig
   const loadingSteps: string[] = boot.loadingSteps ?? []
@@ -64,17 +70,69 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     [],
   )
 
-  // Mouse 3D parallax — lerp smooth RAF loop, direct DOM mutation (zero re-renders)
+  // 3D parallax — mobile-first, multi-input (gyro > touch > mouse > ambient breath)
+  // All inputs converge on a normalized (tx, ty) ∈ [0,1] target, lerped to (x, y)
+  // and written to CSS vars `--mx` / `--my`. Zero React re-renders.
   useEffect(() => {
     const m = mouseLerpRef.current
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
+    // ── Mouse (desktop) ────────────────────────────────────────────────
     const handleMouse = (e: MouseEvent) => {
       m.tx = e.clientX / window.innerWidth
       m.ty = e.clientY / window.innerHeight
+      lastInputAtRef.current = performance.now()
+      inputModeRef.current = 'mouse'
     }
 
+    // ── Touch (mobile drag — finger steers Lucky 7) ────────────────────
+    const handleTouch = (e: TouchEvent) => {
+      const t = e.touches[0] || e.changedTouches[0]
+      if (!t) return
+      m.tx = clamp01(t.clientX / window.innerWidth)
+      m.ty = clamp01(t.clientY / window.innerHeight)
+      lastInputAtRef.current = performance.now()
+      inputModeRef.current = 'touch'
+    }
+
+    // ── Gyroscope (mobile tilt — phone IS the joystick) ────────────────
+    // beta  = front/back tilt  ([-180, 180], ~0 when phone flat)
+    // gamma = left/right tilt  ([-90, 90])
+    // We grab the first reading as the baseline (resting pose) so any
+    // device orientation feels neutral, then map ±25° → full range.
+    const TILT_RANGE_DEG = 25
+    const handleOrient = (e: DeviceOrientationEvent) => {
+      const beta = e.beta ?? 0
+      const gamma = e.gamma ?? 0
+      if (!gyroBaselineRef.current) {
+        gyroBaselineRef.current = { beta, gamma }
+      }
+      const baseline = gyroBaselineRef.current
+      const dBeta = beta - baseline.beta   // forward/back delta
+      const dGamma = gamma - baseline.gamma // left/right delta
+      m.tx = clamp01(0.5 + dGamma / (TILT_RANGE_DEG * 2))
+      m.ty = clamp01(0.5 + dBeta / (TILT_RANGE_DEG * 2))
+      lastInputAtRef.current = performance.now()
+      inputModeRef.current = 'gyro'
+    }
+
+    // ── RAF tick: lerp + idle ambient breathing ────────────────────────
     const tick = () => {
+      const now = performance.now()
+      const idleFor = now - lastInputAtRef.current
+
+      // After 1.5s of no input, gently breathe with sin/cos so the 7
+      // never goes still — matters on mobile where the user's not
+      // hovering a mouse.
+      if (idleFor > 1500) {
+        const t = now * 0.0006
+        const ambX = 0.5 + Math.sin(t) * 0.10
+        const ambY = 0.5 + Math.cos(t * 0.85) * 0.08
+        m.tx = lerp(m.tx, ambX, 0.04)
+        m.ty = lerp(m.ty, ambY, 0.04)
+      }
+
       m.x = lerp(m.x, m.tx, 0.055)
       m.y = lerp(m.y, m.ty, 0.055)
       const el = bootDivRef.current
@@ -86,10 +144,31 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     }
 
     window.addEventListener('mousemove', handleMouse, { passive: true })
+    window.addEventListener('touchstart', handleTouch, { passive: true })
+    window.addEventListener('touchmove', handleTouch, { passive: true })
+    // DeviceOrientation auto-attached on browsers that don't gate it
+    // (Android, Chrome desktop). iOS 13+ requires permission flow which
+    // we trigger on tap (see handleTap below) — the listener attaches
+    // there once permission is granted.
+    const supportsGyro = 'DeviceOrientationEvent' in window
+    const needsPermission =
+      supportsGyro &&
+      // @ts-expect-error iOS 13+ permission API not in lib.dom
+      typeof DeviceOrientationEvent.requestPermission === 'function'
+    if (supportsGyro && !needsPermission) {
+      window.addEventListener('deviceorientation', handleOrient, { passive: true })
+    }
+    // Expose for the tap handler to attach post-permission
+    ;(bootDivRef as unknown as { gyroAttach?: () => void }).gyroAttach = () => {
+      window.addEventListener('deviceorientation', handleOrient, { passive: true })
+    }
     parallaxRafRef.current = requestAnimationFrame(tick)
 
     return () => {
       window.removeEventListener('mousemove', handleMouse)
+      window.removeEventListener('touchstart', handleTouch)
+      window.removeEventListener('touchmove', handleTouch)
+      window.removeEventListener('deviceorientation', handleOrient)
       cancelAnimationFrame(parallaxRafRef.current)
     }
   }, [])
@@ -149,6 +228,24 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     // CRITICAL: user gesture for AudioContext unlock (iOS/Safari)
     await unlockAudioContext()
     initSoundManager(audio)
+
+    // iOS 13+ DeviceOrientation requires explicit permission, only
+    // requestable from a user gesture. Best moment is the same tap that
+    // unlocks audio. Silently fall back to mouse/touch if denied.
+    try {
+      // @ts-expect-error iOS 13+ permission API not in lib.dom
+      const reqPerm = DeviceOrientationEvent?.requestPermission
+      if (typeof reqPerm === 'function') {
+        const result = await reqPerm()
+        if (result === 'granted') {
+          const attach = (bootDivRef as unknown as { gyroAttach?: () => void }).gyroAttach
+          attach?.()
+        }
+      }
+    } catch {
+      // permission denied or unavailable — touch parallax still works
+    }
+
     bus.emit('boot:tap')
 
     // Scanline flash + static burst (200ms)

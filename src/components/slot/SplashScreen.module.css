@@ -14,6 +14,10 @@
   /* Slow fade-in over the boot shield for a soft handoff */
   opacity: 0;
   animation: splashFadeIn 1.6s ease-out 0.05s forwards;
+  /* Mobile: kill rubber-band scroll + tap-highlight; tap-anywhere starts slot */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 /* ── Noise turbulence overlay (SVG feTurbulence) ── */

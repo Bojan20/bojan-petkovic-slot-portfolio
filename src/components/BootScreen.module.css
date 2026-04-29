@@ -21,6 +21,12 @@
   cursor: crosshair;
   user-select: none;
   perspective: 1800px;
+  /* Mobile: capture all touch input for parallax + suppress pull-to-refresh,
+     iOS-Safari rubber-banding, and the 300ms tap delay. The whole boot div
+     IS the joystick on mobile, so we own touch entirely. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 /* ── Data stream curtain — monospace hex columns ── */
