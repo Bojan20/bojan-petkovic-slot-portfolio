@@ -51,6 +51,7 @@ import {
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
+import { AriaAnnouncer } from './components/AriaAnnouncer'
 // Heavy panels lazy-loaded — they're keyboard-gated (Shift+A, Konami)
 // or rare-render (PlatformChips post-boot only). Splitting them off
 // drops ~120KB from the main bundle so first paint of the boot screen
@@ -643,6 +644,10 @@ export default function App() {
           peers see the portfolio. Auto-hides at count = 1 (the
           single-viewer common case). */}
       <PresenceChip />
+
+      {/* ARIA live region (P0.5) — visually-hidden polite announcer
+          that mirrors SpeechAnnouncer events to assistive tech. */}
+      <AriaAnnouncer />
     </>
   )
 }
