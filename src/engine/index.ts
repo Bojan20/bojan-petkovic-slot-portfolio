@@ -187,6 +187,13 @@ export {
   opfsFetchOrCache,
 } from './OpfsCache'
 
+export {
+  isImageDecoderSupported,
+  isMimeDecodable,
+  loadAnimatedImage,
+} from './AnimatedImage'
+export type { AnimatedImageHandle } from './AnimatedImage'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
