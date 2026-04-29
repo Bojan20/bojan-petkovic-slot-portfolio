@@ -63,6 +63,9 @@ export interface CortexEventMap {
   'audio:ambient:stop': void
   'audio:mute': void
   'audio:unmute': void
+  // Tonal coherence (P0.6) — fires once per session after 4s of ambient
+  // playback so SoundManager can re-tune procedural synths to match.
+  'audio:key': { rootHz: number; semitone: number; name: string }
 
   // System
   'debug:toggle': void

@@ -245,6 +245,13 @@ export {
 } from './CellMemory'
 export type { CellMemoryEntry } from './CellMemory'
 
+export {
+  scheduleKeyDetection,
+  detectKeyNow,
+  isKeyDetected,
+  resetKeyDetector,
+} from './TonalAnalyzer'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

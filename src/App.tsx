@@ -48,6 +48,7 @@ import {
   startPresence, stopPresence,
   probeXrCapability,
   loadCellMemory,
+  scheduleKeyDetection,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
@@ -332,6 +333,14 @@ export default function App() {
   // module debounces its own writes.
   useEffect(() => {
     void loadCellMemory()
+  }, [])
+
+  // Tonal coherence detector (P0.6) — scheduled when ambient music
+  // starts. Once detected, fires audio:key event for any future
+  // SoundManager retune logic to subscribe to. Idempotent.
+  useEffect(() => {
+    const off = bus.on('audio:ambient:start', () => scheduleKeyDetection())
+    return off
   }, [])
 
   // Environment sensors — ambient light + idle detection.
