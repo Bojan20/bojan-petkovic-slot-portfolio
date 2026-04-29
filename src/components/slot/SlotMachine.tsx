@@ -994,10 +994,27 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     spinToIdx(itemIndex)
   }, [locked, isSpinning, currentItemIdx, spinToIdx])
 
-  // Section change
+  // Section change — wrapped in View Transitions where supported.
+  // The browser captures the OLD frame, runs the React state update,
+  // captures the NEW frame, then cross-dissolves between them with
+  // optional CSS animation hooks (we add a custom slot-section-cross
+  // ::view-transition-old / ::view-transition-new pair in CSS).
+  // On unsupported browsers (anything without document.startViewTransition)
+  // it falls back to a plain setSection call — instant cut, no break.
   const handleSectionChange = useCallback((idx: number) => {
     if (locked || isSpinning || idx === currentSectionIdx) return
-    setSection(idx)
+    const docVt = document as Document & {
+      startViewTransition?: (cb: () => void) => { finished: Promise<void> }
+    }
+    if (typeof docVt.startViewTransition === 'function') {
+      // Tag the body so our @view-transition CSS can scope the animation
+      // to section changes only (vs. any other future VT we might add).
+      document.body.setAttribute('data-vt', 'section-change')
+      const vt = docVt.startViewTransition(() => setSection(idx))
+      vt.finished.finally(() => document.body.removeAttribute('data-vt'))
+    } else {
+      setSection(idx)
+    }
   }, [locked, isSpinning, currentSectionIdx, setSection])
 
   // ── TOUCH HANDLING ──
