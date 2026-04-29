@@ -1,0 +1,99 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Platform chips — subtle floating top-right
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.row {
+  position: fixed;
+  top: clamp(10px, 1.6vw, 22px);
+  right: clamp(10px, 1.6vw, 22px);
+  z-index: 980;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  font-family: var(--f-mono);
+}
+
+.chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(8, 10, 22, 0.78);
+  border: 1px solid rgba(120, 200, 240, 0.22);
+  border-radius: 999px;
+  color: rgba(220, 230, 250, 0.85);
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.18s;
+}
+
+.chip:hover {
+  border-color: rgba(120, 200, 240, 0.55);
+  background: rgba(14, 18, 36, 0.88);
+  color: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+}
+
+.chip:active {
+  transform: translateY(0);
+}
+
+.chipBadge {
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: rgba(8, 10, 22, 0.65);
+  border: 1px solid rgba(255, 200, 80, 0.40);
+  border-radius: 999px;
+  color: rgba(255, 220, 130, 0.95);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(255, 200, 80);
+  box-shadow: 0 0 6px rgba(255, 200, 80, 0.7);
+}
+
+.toast {
+  pointer-events: none;
+  position: absolute;
+  top: 110%;
+  right: 0;
+  padding: 5px 9px;
+  background: rgba(34, 232, 255, 0.18);
+  border: 1px solid rgba(34, 232, 255, 0.55);
+  border-radius: 4px;
+  color: rgba(220, 245, 255, 0.95);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: toastIn 1.6s ease-out forwards;
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.55);
+}
+
+@keyframes toastIn {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  70%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}

@@ -21,7 +21,7 @@
 import { useEffect, useRef } from 'react'
 import styles from './CyberNebula.module.css'
 import type { ParallaxState } from './CasinoField'
-import { audioLevelsRef } from '../../engine'
+import { audioLevelsRef, getQualityMode } from '../../engine'
 
 interface CyberNebulaProps {
   /** Shared parallax state — read directly, no getComputedStyle on hot path */
@@ -201,7 +201,11 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     // Mobile gets the lite shader (2-octave fbm, no second swirl). The
     // full shader drops frames on iPhone 11-class GPUs which manifests
     // as visible flicker rather than smooth slowdown.
-    const isMobile = isCoarsePointer
+    // Adaptive quality (low battery / slow network / saveData) ALSO
+    // forces the lite shader on desktop so the user's machine doesn't
+    // burn cycles when battery is critical.
+    const liteMode = getQualityMode() === 'lite'
+    const isMobile = isCoarsePointer || liteMode
     const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC)
     const fs = compile(gl, gl.FRAGMENT_SHADER, isMobile ? FRAG_SRC_LITE : FRAG_SRC)
     if (!vs || !fs) return

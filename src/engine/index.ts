@@ -71,6 +71,21 @@ export {
 } from './HapticOrchestra'
 export type { HapticPattern } from './HapticOrchestra'
 
+export {
+  enableWakeLock,
+  disableWakeLock,
+  startPageVisibilityHandler,
+  stopPageVisibilityHandler,
+  registerAudioForVisibilityPause,
+  isPageVisible,
+  isWebShareSupported,
+  sharePortfolio,
+  startAdaptiveQuality,
+  getQualityMode,
+  subscribeQualityMode,
+} from './PlatformPolish'
+export type { ShareOptions, QualityMode } from './PlatformPolish'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

@@ -30,10 +30,15 @@ import {
   attachAnalyser, disposeAnalyser,
   listenForKonami,
   startHapticOrchestra, disposeHapticOrchestra,
+  enableWakeLock, disableWakeLock,
+  startPageVisibilityHandler, stopPageVisibilityHandler,
+  registerAudioForVisibilityPause,
+  startAdaptiveQuality,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { DevOverlay } from './components/DevOverlay'
+import { PlatformChips } from './components/PlatformChip'
 import { useAudioStore } from './store'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -89,6 +94,33 @@ export default function App() {
   useEffect(() => {
     startHapticOrchestra()
     return () => disposeHapticOrchestra()
+  }, [])
+
+  // ── Platform polish: page visibility, wake lock, adaptive quality ──
+  // Single mount-time effect — all four APIs are no-ops on unsupported
+  // browsers, never throws, never spams console.
+  useEffect(() => {
+    startPageVisibilityHandler()
+    void startAdaptiveQuality()
+    return () => {
+      stopPageVisibilityHandler()
+      disableWakeLock()
+    }
+  }, [])
+
+  // Wake lock + ambient audio visibility-pause — both wired the moment
+  // the audio element is created. Wake lock is requested on boot:tap
+  // (the canonical "user is engaging" gesture).
+  useEffect(() => {
+    const a = audioRef.current
+    if (!a) return
+    const off = registerAudioForVisibilityPause(a)
+    return off
+  }, [])
+
+  useEffect(() => {
+    const off = bus.on('boot:tap', () => enableWakeLock())
+    return off
   }, [])
 
   // ── Voice command: mute / unmute ────────────────────────────────────
@@ -308,6 +340,9 @@ export default function App() {
 
       {/* Konami dev overlay — ↑↑↓↓←→←→BA to toggle, or ?dev URL flag */}
       <DevOverlay visible={devOverlay} onClose={() => setDevOverlay(false)} phase={phase} />
+
+      {/* Platform chips — Share + Lite-mode badge top-right (post-boot) */}
+      <PlatformChips visible={phase !== 'boot'} />
 
       {/* Pull-to-refresh — active in boot/splash, suppressed during slot
           interaction (slot has its own swipe gestures for section + reel) */}
