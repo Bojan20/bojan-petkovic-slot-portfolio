@@ -171,3 +171,37 @@
 .tabLabel {
   line-height: 1;
 }
+
+/* ─── Kinetic typography (P3.4) ──────────────────────────────────
+   Per-character cascade reveal on the active label. Each char gets
+   a staggered animation-delay derived from its --i index so the
+   eye reads a wave across the label when a section flips active. */
+
+.tabChar {
+  display: inline-block;
+  /* Initial state — invisible, slight Y push. CSS animation
+     overrides this on .tabLabelKinetic. */
+  opacity: 0.6;
+  transform: translateY(0);
+}
+
+.tabLabelKinetic .tabChar {
+  /* Re-runs every time the parent flips to active because a button
+     class toggle is treated as an animation trigger. */
+  animation: tabCharRise 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+
+@keyframes tabCharRise {
+  0%   { opacity: 0;    transform: translateY(0.5em);  filter: blur(3px); }
+  60%  { opacity: 1;    transform: translateY(-0.04em); filter: blur(0); }
+  100% { opacity: 1;    transform: translateY(0);       filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabLabelKinetic .tabChar {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
