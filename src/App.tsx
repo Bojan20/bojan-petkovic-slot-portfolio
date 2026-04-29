@@ -37,6 +37,8 @@ import {
   attachMediaSession, disposeMediaSession,
   startGamepadInput, stopGamepadInput,
   initSpeechAnnouncer, disposeSpeechAnnouncer,
+  startAmbientLightSensor, stopAmbientLightSensor,
+  startIdleDetector, stopIdleDetector,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
@@ -163,6 +165,38 @@ export default function App() {
       disposeSpeechAnnouncer()
     }
   }, [])
+
+  // Environment sensors — ambient light + idle detection.
+  // AmbientLightSensor needs no user gesture but the Permissions API
+  // probe is async; we start it pre-tap so by the time the user is on
+  // the splash the --ambient-lux CSS var is already populated.
+  // IdleDetector watches mouse/touch/keys and emits user:idle after 30s.
+  // We pause ambient music on idle (battery + courtesy if recruiter
+  // walked away) and auto-resume the moment they come back.
+  useEffect(() => {
+    void startAmbientLightSensor()
+    startIdleDetector(30_000)
+
+    const offIdle = bus.on('user:idle', () => {
+      const a = audioRef.current
+      if (a && !a.paused) a.pause()
+    })
+    const offActive = bus.on('user:active', () => {
+      const a = audioRef.current
+      // Only resume if we were past the boot screen (don't auto-play
+      // pre-tap; that violates the AudioContext-unlock contract).
+      if (a && a.paused && phase !== 'boot') {
+        a.play().catch(() => {})
+      }
+    })
+
+    return () => {
+      stopAmbientLightSensor()
+      stopIdleDetector()
+      offIdle()
+      offActive()
+    }
+  }, [phase])
 
   // ── Voice command: mute / unmute ────────────────────────────────────
   // SlotMachine handles spin/next/back/jackpot itself (those need its

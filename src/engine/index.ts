@@ -136,6 +136,17 @@ export {
   announce,
 } from './SpeechAnnouncer'
 
+export {
+  isAmbientLightSupported,
+  startAmbientLightSensor,
+  stopAmbientLightSensor,
+  getCurrentLux,
+  getCurrentLuxNorm,
+  startIdleDetector,
+  stopIdleDetector,
+  isUserIdle,
+} from './EnvironmentSensors'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

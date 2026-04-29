@@ -78,6 +78,15 @@ export interface CortexEventMap {
   'voice:command:unmute': void
   'voice:command:jackpot': void
 
+  // Environment sensors — ambient light + idle detection
+  // env:lux fires whenever the AmbientLightSensor reports a reading.
+  // user:idle / user:active fire when the IdleDetector crosses the
+  // 30-second threshold (configurable). Subscribers can pause music,
+  // dim visuals, or surface a "still there?" prompt.
+  'env:lux': { lux: number; norm: number }
+  'user:idle': void
+  'user:active': void
+
   // Catch-all for dynamic events
   [key: `custom:${string}`]: unknown
 }

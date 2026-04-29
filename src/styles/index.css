@@ -124,6 +124,43 @@ body[data-vt='section-change']::view-transition-new(root) {
 }
 
 /* ────────────────────────────────────────────────────────────────
+   ENVIRONMENT SENSORS — ambient light contrast + idle dim
+   ────────────────────────────────────────────────────────────────
+   `--ambient-lux` is set on :root by EnvironmentSensors.ts every time
+   the AmbientLightSensor reports (0..1 normalized). Default 0.5 so
+   browsers without the sensor get a balanced look — never undefined.
+   Bright rooms (lux ≈ 1000+, norm > 0.75) lift body brightness so the
+   screen reads against ambient glare; dim rooms (norm < 0.20) keep
+   the deep cinematic feel without further dimming. */
+:root {
+  --ambient-lux: 0.5;
+}
+body {
+  /* Map ambient lux norm (0..1) → brightness 0.92..1.10 — barely
+     perceptible at the extremes but unmistakably more comfortable
+     across environments. clamp() keeps the curve tasteful. */
+  filter: brightness(calc(0.92 + var(--ambient-lux) * 0.18));
+  transition: filter 1200ms ease;
+}
+
+/* User idle (30s+ of no input) → dim chrome, freeze cursor magnet,
+   pause CSS-driven idle ambient. App.tsx pauses ambient music in
+   parallel. The 600ms ease keeps the dim from feeling abrupt. */
+body[data-idle] {
+  filter: brightness(0.62) saturate(0.9);
+}
+body[data-idle] *::after,
+body[data-idle] *::before {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
    MOBILE FLICKER ELIMINATION
    ────────────────────────────────────────────────────────────────
    Samsung Internet + Chrome on Android repaint position:fixed
