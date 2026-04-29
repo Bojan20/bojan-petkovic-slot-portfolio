@@ -49,10 +49,25 @@ export function registerServiceWorker(): void {
         console.warn('[SW] registration failed:', err)
       })
 
-    // After the user accepts an update (skipWaiting() called somewhere),
-    // reload so the new bundle takes over for all open clients.
+    // After the user accepts an update (skipWaiting() called via
+    // activatePendingUpdate), reload so the new bundle takes over.
+    //
+    // CRITICAL: skip the FIRST controllerchange — that's the initial
+    // install on a fresh visit when no prior controller existed.
+    // Reloading there causes the "page loads then reloads itself"
+    // antipattern that makes the portfolio feel broken.
+    //
+    // We only want to reload when a *real* update lands: an existing
+    // controller has been replaced by a new one mid-session.
+    let wasControlled = !!navigator.serviceWorker.controller
     let reloaded = false
     navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!wasControlled) {
+        // First-time install — claim() fires controllerchange but the
+        // page is already running on the new bundle. No reload needed.
+        wasControlled = true
+        return
+      }
       if (reloaded) return
       reloaded = true
       window.location.reload()

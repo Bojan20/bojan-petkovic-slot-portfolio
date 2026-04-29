@@ -31,12 +31,17 @@ const SHELL_URLS = [
 ]
 
 // ── Install: pre-cache the shell ───────────────────────────────────
+//
+// IMPORTANT: do NOT call self.skipWaiting() here. Auto-skip-waiting
+// causes new versions to take over open tabs immediately and forces
+// a reload — confusing for any user mid-session. Updates should
+// install in "waiting" state and only activate when the user
+// explicitly accepts via SKIP_WAITING (handled below).
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_URLS))
-      .then(() => self.skipWaiting()),
+      .then((cache) => cache.addAll(SHELL_URLS)),
   )
 })
 
