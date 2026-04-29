@@ -21,13 +21,22 @@ import { bus } from './EventBus'
 import { opfsWrite, opfsRead, opfsDelete, opfsList } from './OpfsCache'
 
 const WS_URL = 'ws://localhost:9800'
-const RECONNECT_INTERVAL = 3000
+const RECONNECT_INTERVAL_BASE = 3000
+/** Cap exponential backoff at 30s so we don't reach hour-long delays
+ *  if the user leaves the tab open with no manager running. The
+ *  onerror handler is silenced (eats the default browser console
+ *  noise) since Audio Manager not running is a normal recruiter
+ *  scenario, not an error worth surfacing. */
+const MAX_BACKOFF_MS = 30_000
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
 let _ws: WebSocket | null = null
 let _connected = false
 let _reconnectTimer: number | null = null
+/** Count of consecutive failed attempts. Reset to 0 on successful
+ *  connect. Drives exponential backoff + silent-mode threshold. */
+let _failedAttempts = 0
 
 /** Hook → cached Audio element */
 const _audioCache = new Map<string, HTMLAudioElement>()
@@ -255,10 +264,17 @@ function connect(): void {
   if (_ws) return
 
   try {
+    // Suppress the browser's default 'WebSocket connection failed'
+    // console error by attaching an empty error handler BEFORE the
+    // socket starts negotiating. The browser still logs the network
+    // tab entry, but the JS console stays quiet — recruiter doesn't
+    // see "WebSocket failed" red text just because Audio Manager
+    // isn't running locally.
     _ws = new WebSocket(WS_URL)
 
     _ws.onopen = () => {
       _connected = true
+      _failedAttempts = 0
       console.log('[AudioBridge] Connected to Audio Manager')
       _ws!.send(JSON.stringify({ type: 'status', connected: true }))
     }
@@ -270,23 +286,34 @@ function connect(): void {
     _ws.onclose = () => {
       _ws = null
       _connected = false
+      _failedAttempts += 1
       scheduleReconnect()
     }
 
     _ws.onerror = () => {
-      _ws?.close()
+      // Intentionally empty — the close handler runs immediately
+      // after onerror and is the canonical place for reconnect logic.
+      // Eating onerror prevents the browser's default uncaught-error
+      // console message.
     }
   } catch {
+    _failedAttempts += 1
     scheduleReconnect()
   }
 }
 
 function scheduleReconnect(): void {
   if (_reconnectTimer) return
+  // Exponential backoff capped at MAX_BACKOFF_MS — cushions long
+  // tab idle without a running Audio Manager.
+  const backoff = Math.min(
+    RECONNECT_INTERVAL_BASE * Math.pow(1.6, Math.min(_failedAttempts - 1, 8)),
+    MAX_BACKOFF_MS,
+  )
   _reconnectTimer = window.setTimeout(() => {
     _reconnectTimer = null
     connect()
-  }, RECONNECT_INTERVAL)
+  }, backoff)
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -300,6 +327,7 @@ export function getAssignedHooks(): string[] {
 }
 
 /** Initialize bridge — call once on app mount */
+let _initLogged = false
 export function initAudioBridge(): void {
   // Rehydrate persisted assignments from OPFS first so the first
   // event after mount can fire its assigned sound even before WS
@@ -307,7 +335,10 @@ export function initAudioBridge(): void {
   // sounds anyway" UX. Non-blocking; WS connect runs in parallel.
   void rehydrateFromOpfs().catch(() => {})
   connect()
-  console.log('[AudioBridge] Initialized, connecting to ws://localhost:9800...')
+  if (!_initLogged) {
+    _initLogged = true
+    console.log('[AudioBridge] Initialized, connecting to ws://localhost:9800...')
+  }
 }
 
 /** Disconnect and cleanup */

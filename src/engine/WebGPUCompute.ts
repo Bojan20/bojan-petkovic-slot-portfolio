@@ -504,8 +504,16 @@ export async function createWebGPUField(
 
   // Watch for device loss — driver hiccups, GPU process restart.
   // Mark the pipeline lost; the next frame becomes a no-op.
+  //
+  // 'destroyed' reason is the EXPECTED outcome of our own
+  // device.destroy() call (HMR, StrictMode unmount, dispose()).
+  // Logging it as device-loss creates noise on every hot reload.
   device.lost.then((info) => {
     lost = true
+    if (info.reason === 'destroyed') {
+      // Self-initiated tear-down — no log, no metrics. Silent.
+      return
+    }
     console.info('[WebGPUField] device lost:', info.reason, info.message)
   }).catch(() => {})
 

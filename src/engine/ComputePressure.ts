@@ -49,6 +49,11 @@ export function isComputePressureSupported(): boolean {
 
 let _observer: PressureObserverLike | null = null
 let _lastLevel: PressureLevel = 'nominal'
+/** StrictMode safety — incremented on each start/stop pair so the
+ *  async `observe()` resolution can detect that the start it belongs
+ *  to has already been torn down and self-cancel without surfacing
+ *  AbortError to the console. */
+let _generation = 0
 
 /** Map a level to a 0..1 numeric load suitable for shader uniforms. */
 function levelToLoad(level: PressureLevel): number {
@@ -73,14 +78,22 @@ export async function startComputePressure(sampleInterval = 1000): Promise<boole
   if (!isComputePressureSupported()) return false
   if (_observer) return true
 
+  // Capture the generation that THIS start call belongs to. If the
+  // generation changes (caller stops + restarts) while observe()
+  // resolves, we know the active call has been torn down and
+  // self-cancel cleanly — no AbortError leaks.
+  const myGen = ++_generation
+
+  let observer: PressureObserverLike
   try {
     const Ctor = (window as unknown as { PressureObserver: PressureObserverCtor }).PressureObserver
-    _observer = new Ctor((records) => {
+    observer = new Ctor((records) => {
+      // Drop late records that arrive after a tear-down.
+      if (myGen !== _generation) return
       const last = records[records.length - 1]
       if (!last) return
       if (last.state === _lastLevel) return
       _lastLevel = last.state
-      // CSS surface — gives layers a 0..1 to scale by
       document.documentElement.style.setProperty(
         '--perf-pressure',
         levelToLoad(last.state).toFixed(2),
@@ -94,17 +107,40 @@ export async function startComputePressure(sampleInterval = 1000): Promise<boole
         load: levelToLoad(last.state),
       })
     })
-    await _observer.observe('cpu', { sampleInterval })
+  } catch (err) {
+    console.info('[ComputePressure] construct failed:', err)
+    return false
+  }
+
+  try {
+    await observer.observe('cpu', { sampleInterval })
+    // After await: if our generation is stale, the caller already
+    // stopped us. Disconnect the orphan observer and bail silently.
+    if (myGen !== _generation) {
+      try { observer.disconnect() } catch { /* ignore */ }
+      return false
+    }
+    _observer = observer
     return true
   } catch (err) {
+    // AbortError under StrictMode double-mount: caller stopped us
+    // mid-await. Silent — the new start will succeed.
+    const name = (err as DOMException)?.name
+    if (name === 'AbortError' || name === 'NotAllowedError') {
+      try { observer.disconnect() } catch { /* ignore */ }
+      return false
+    }
     console.info('[ComputePressure] observe failed:', err)
-    _observer = null
+    try { observer.disconnect() } catch { /* ignore */ }
     return false
   }
 }
 
 /** Stop observing + clear CSS vars. */
 export function stopComputePressure(): void {
+  // Bump generation so any in-flight observe() promise self-cancels
+  // when it resolves.
+  _generation++
   if (!_observer) return
   try { _observer.disconnect() } catch { /* ignore */ }
   _observer = null
