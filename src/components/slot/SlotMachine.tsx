@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { bus, playReelAccent, playPaylineTravel, playJackpotBloom, vibrate, recordVisit } from '../../engine'
-import { useSlotStore } from '../../store'
+import { useSlotStore, useAudioStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
 import { TabBar } from './TabBar'
@@ -65,6 +65,38 @@ function excitementToWinType(e: number): 'small' | 'medium' | 'big' | 'jackpot' 
   if (e >= 0.40) return 'medium'
   if (e >= 0.20) return 'small'
   return null
+}
+
+/**
+ * Near-miss gate (P0.4). When the spun-to row would be a jackpot
+ * (excitement ≥ 0.85), 25% of the time we steer to an adjacent
+ * non-jackpot row instead. The recruiter sees a "rich" project but
+ * not the perfect 5/5 — the standard psychological multiplier from
+ * 50 years of slot research.
+ *
+ * This is disclosed in the DevOverlay and disabled when
+ * `audioStore.nearMissEnabled` is false. Pure function — caller
+ * passes the toggle state.
+ *
+ * @param targetIdx the row the user spun to
+ * @param sectionIdx current section
+ * @param enabled near-miss bias toggle
+ * @returns the adjusted index (or original if no near-miss applies)
+ */
+const NEAR_MISS_PROBABILITY = 0.25
+function nearMissAdjust(targetIdx: number, sectionIdx: number, enabled: boolean): number {
+  if (!enabled) return targetIdx
+  const e = rowExcitement(sectionIdx, targetIdx)
+  if (e < 0.85) return targetIdx               // not a jackpot row
+  if (Math.random() > NEAR_MISS_PROBABILITY) return targetIdx  // 75% jackpot proceeds
+  // Find the nearest adjacent index that's NOT also a jackpot row.
+  const arr = getDataForSection(sectionIdx)
+  const len = arr.length
+  for (const offset of [-1, 1, -2, 2]) {
+    const candidate = ((targetIdx + offset) % len + len) % len
+    if (rowExcitement(sectionIdx, candidate) < 0.85) return candidate
+  }
+  return targetIdx  // every adjacent is also jackpot — proceed without bias
 }
 
 function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
@@ -362,6 +394,12 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       if (takeoverTlRef.current || takeoverCleanupRef.current) return
       setSpinning(true)
       setSpinPhase('windup')
+
+      // P0.4 — apply near-miss gate before the row is committed. With
+      // bias enabled, jackpot rows get redirected to an adjacent non-
+      // jackpot row 25% of the time. Disclosed in the DevOverlay.
+      const nearMissOn = useAudioStore.getState().nearMissEnabled
+      newIdx = nearMissAdjust(newIdx, currentSectionIdx, nearMissOn)
 
       // Set target data IMMEDIATELY so it's ready under the blur
       // When columns land and blur clears, the correct symbols are already there

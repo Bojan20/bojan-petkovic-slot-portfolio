@@ -37,6 +37,7 @@ import {
   stopReelCapture,
   isReelCapturing,
 } from '../engine'
+import { useAudioStore } from '../store'
 
 interface DevOverlayProps {
   visible: boolean
@@ -58,6 +59,35 @@ interface UiSnapshot {
   mid: number
   treble: number
   events: Array<{ event: string; ts: number }>
+}
+
+/**
+ * NearMissDisclosure — UX-honesty surface for P0.4.
+ *
+ * The slot machine biases ~25% of would-be jackpot landings to land
+ * one cell off jackpot — the standard slot-research engagement
+ * multiplier. Because this isn't gambling we can use the psychology,
+ * but we disclose it openly here and let the recruiter disable it.
+ */
+function NearMissDisclosure() {
+  const enabled = useAudioStore((s) => s.nearMissEnabled)
+  const toggle = useAudioStore((s) => s.toggleNearMiss)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+      <div style={{ fontSize: 10, lineHeight: 1.4, opacity: 0.75 }}>
+        Anticipation: <b>ON</b>. Near-miss bias: <b>{enabled ? '25%' : 'OFF'}</b> on
+        jackpot rows. Disclosed because this isn't gambling.
+      </div>
+      <button
+        className={styles.btn}
+        type="button"
+        onClick={() => toggle()}
+        style={{ alignSelf: 'flex-start', fontSize: 10, padding: '3px 9px' }}
+      >
+        {enabled ? 'DISABLE BIAS' : 'ENABLE BIAS'}
+      </button>
+    </div>
+  )
 }
 
 export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
@@ -314,6 +344,12 @@ export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
               title={isReelCaptureSupported() ? 'Toggle screen recording (Ctrl/Cmd+Shift+R)' : 'getDisplayMedia unsupported'}
             >● REEL</button>
           </div>
+        </div>
+
+        {/* ── Slot psychology disclosures (P0.4) ── */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>Slot Psychology</div>
+          <NearMissDisclosure />
         </div>
 
         {/* ── Capability matrix — what this browser supports ── */}

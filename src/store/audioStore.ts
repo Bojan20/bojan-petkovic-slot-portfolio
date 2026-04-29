@@ -30,6 +30,15 @@ interface AudioStore {
    * can keep music + sfx and silence just the narration.
    */
   announcerEnabled: boolean
+  /**
+   * P0.4 — Near-miss engine toggle. When `true` (default), the slot
+   * machine occasionally lands a jackpot-eligible row one cell off-
+   * jackpot. This is the standard slot-machine engagement multiplier,
+   * disclosed in the dev overlay. Set to `false` to disable bias —
+   * slot then always lands on whatever row the user spun to.
+   * Probability is fixed at 0.25 (25%) when enabled.
+   */
+  nearMissEnabled: boolean
 
   // — Actions —
   setMasterVolume: (vol: number) => void
@@ -43,6 +52,8 @@ interface AudioStore {
   toggleCinematicMode: () => void
   setAnnouncerEnabled: (on: boolean) => void
   toggleAnnouncer: () => void
+  setNearMissEnabled: (on: boolean) => void
+  toggleNearMiss: () => void
 }
 
 export const useAudioStore = create<AudioStore>()(
@@ -55,6 +66,7 @@ export const useAudioStore = create<AudioStore>()(
       ambientPlaying: false,
       cinematicMode: true,
       announcerEnabled: true,
+      nearMissEnabled: true,
 
       setMasterVolume: (vol) => set({ masterVolume: clamp01(vol) }),
       setMusicVolume: (vol) => set({ musicVolume: clamp01(vol) }),
@@ -66,6 +78,8 @@ export const useAudioStore = create<AudioStore>()(
       toggleCinematicMode: () => set((s) => ({ cinematicMode: !s.cinematicMode })),
       setAnnouncerEnabled: (on) => set({ announcerEnabled: on }),
       toggleAnnouncer: () => set((s) => ({ announcerEnabled: !s.announcerEnabled })),
+      setNearMissEnabled: (on) => set({ nearMissEnabled: on }),
+      toggleNearMiss: () => set((s) => ({ nearMissEnabled: !s.nearMissEnabled })),
     }),
     {
       name: 'bp-slot-audio',
@@ -76,6 +90,7 @@ export const useAudioStore = create<AudioStore>()(
         isMuted: s.isMuted,
         cinematicMode: s.cinematicMode,
         announcerEnabled: s.announcerEnabled,
+        nearMissEnabled: s.nearMissEnabled,
       }),
     }
   )
