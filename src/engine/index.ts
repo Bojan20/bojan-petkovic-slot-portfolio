@@ -194,6 +194,44 @@ export {
 } from './AnimatedImage'
 export type { AnimatedImageHandle } from './AnimatedImage'
 
+export {
+  isWebSerialSupported,
+  connectSerialDevice,
+  disconnectSerialDevice,
+  startSerialAutoBind,
+  stopSerialAutoBind,
+  isSerialConnected,
+} from './SerialInput'
+
+export {
+  isHeartRateSupported,
+  connectHeartRateMonitor,
+  disconnectHeartRateMonitor,
+  isHeartRateConnected,
+  getCurrentBpm,
+  getCurrentBpmNorm,
+} from './HeartRate'
+
+export {
+  isWebTransportSupported,
+  isBroadcastChannelSupported,
+  startPresence,
+  stopPresence,
+  getPresenceCount,
+  getPresenceTier,
+  getSelfId,
+} from './Presence'
+
+export {
+  isWebXrSupported,
+  probeXrCapability,
+  getXrCapability,
+  enterImmersive,
+  exitImmersive,
+  isImmersiveActive,
+} from './WebXrMode'
+export type { XrCapability } from './WebXrMode'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

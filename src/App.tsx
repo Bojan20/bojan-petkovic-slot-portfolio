@@ -43,6 +43,10 @@ import {
   startReelCapture, stopReelCapture, isReelCapturing,
   connectHidDevice, startHidAutoBind, stopHidAutoBind,
   opfsFetchOrCache,
+  connectSerialDevice, startSerialAutoBind, stopSerialAutoBind,
+  connectHeartRateMonitor,
+  startPresence, stopPresence,
+  probeXrCapability,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { SlotAudioManager } from './components/SlotAudioManager'
@@ -254,6 +258,20 @@ export default function App() {
         void connectHidDevice([]).catch((err) => {
           console.warn('[App] HID connect failed:', err)
         })
+      } else if (e.code === 'KeyY') {
+        // Ctrl/Cmd+Shift+Y — pair a USB-Serial device (Arduino lever,
+        // RP2040, ESP32 with line protocol firmware).
+        e.preventDefault()
+        void connectSerialDevice(9600).catch((err) => {
+          console.warn('[App] Serial connect failed:', err)
+        })
+      } else if (e.code === 'KeyB') {
+        // Ctrl/Cmd+Shift+B — pair a BLE heart-rate monitor (Polar,
+        // Wahoo, Garmin, etc.). Pulse drives --heart-bpm + --heart-norm.
+        e.preventDefault()
+        void connectHeartRateMonitor().catch((err) => {
+          console.warn('[App] HR monitor connect failed:', err)
+        })
       }
     }
     window.addEventListener('keydown', handler)
@@ -269,6 +287,33 @@ export default function App() {
     return () => {
       void stopHidAutoBind()
     }
+  }, [])
+
+  // WebSerial auto-bind — same pattern as HID. Re-bind any port the
+  // user previously authorized. Default 9600 baud (Arduino classic).
+  useEffect(() => {
+    void startSerialAutoBind(9600)
+    return () => {
+      void stopSerialAutoBind()
+    }
+  }, [])
+
+  // Presence layer — BroadcastChannel between same-origin tabs +
+  // optional WebTransport relay (none configured by default). Emits
+  // custom:presence:count whenever peer set changes. Safe no-op when
+  // BroadcastChannel is unsupported.
+  useEffect(() => {
+    void startPresence(undefined)
+    return () => {
+      void stopPresence()
+    }
+  }, [])
+
+  // WebXR capability probe — non-blocking. Sets --xr-supported on
+  // :root so a "View in VR" badge can show on capable devices, emits
+  // custom:xr:capability with vr/ar booleans for components to react.
+  useEffect(() => {
+    void probeXrCapability()
   }, [])
 
   // Environment sensors — ambient light + idle detection.
