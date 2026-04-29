@@ -147,6 +147,16 @@ export {
   isUserIdle,
 } from './EnvironmentSensors'
 
+export {
+  isCompressionStreamSupported,
+  isFileSystemAccessSupported,
+  captureSnapshot,
+  exportSnapshot,
+  importSnapshot,
+  applySnapshot,
+} from './SnapshotExport'
+export type { PortfolioSnapshotV1 } from './SnapshotExport'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

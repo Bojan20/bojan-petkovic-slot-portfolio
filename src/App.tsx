@@ -39,6 +39,7 @@ import {
   initSpeechAnnouncer, disposeSpeechAnnouncer,
   startAmbientLightSensor, stopAmbientLightSensor,
   startIdleDetector, stopIdleDetector,
+  exportSnapshot, importSnapshot,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
@@ -164,6 +165,33 @@ export default function App() {
       off()
       disposeSpeechAnnouncer()
     }
+  }, [])
+
+  // Portfolio snapshot keybindings — Ctrl/Cmd+Shift+S = export,
+  // Ctrl/Cmd+Shift+L = restore. Uses Compression Streams + File
+  // System Access API where available; falls back to anchor download
+  // / synthetic <input type=file> on Firefox/Safari. The shortcut
+  // intentionally requires both Ctrl+Shift so it can't collide with
+  // browser default save (Ctrl+S) or any in-app text input.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey
+      if (!mod || !e.shiftKey || e.repeat) return
+      // KeyS / KeyL — use code so layout doesn't matter (AZERTY safe)
+      if (e.code === 'KeyS') {
+        e.preventDefault()
+        void exportSnapshot().catch((err) => {
+          console.warn('[App] snapshot export failed:', err)
+        })
+      } else if (e.code === 'KeyL') {
+        e.preventDefault()
+        void importSnapshot().catch((err) => {
+          console.warn('[App] snapshot import failed:', err)
+        })
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   }, [])
 
   // Environment sensors — ambient light + idle detection.
