@@ -27,6 +27,46 @@ function getDataForSection(sectionIdx: number) {
   }
 }
 
+/**
+ * Row excitement (P0.3 — Anticipation Reels).
+ *
+ * Returns 0..1 indicating how "rich" the landing row is. For projects
+ * we count scope coverage (music + sfx + integration + qa) plus the
+ * demo flag — a project that did all four sound disciplines AND has a
+ * demo earns a full score and triggers Jackpot mode. For sections
+ * without a meaningful "win condition" we return 0.
+ *
+ * Used in two places:
+ *   1. Last reel deceleration timing — high excitement extends the
+ *      final-reel delay by up to 600ms, creating a literal "will it
+ *      land on jackpot?" anticipation moment.
+ *   2. slot:win event payload — the win type (small/medium/big/jackpot)
+ *      cascades automatically through SpeechAnnouncer, HapticOrchestra,
+ *      and SpatialAudio, all of which already key off slot:win.
+ */
+function rowExcitement(sectionIdx: number, itemIdx: number): number {
+  const secId = SECTIONS[sectionIdx]?.id
+  if (secId !== 'projects') return 0
+  const p = PROJECTS[itemIdx]
+  if (!p) return 0
+  let score = 0
+  if (p.scope.music)       score += 1
+  if (p.scope.sfx)         score += 1
+  if (p.scope.integration) score += 1
+  if (p.scope.qa)          score += 1
+  if (p.demo)              score += 1
+  return score / 5  // 0..1
+}
+
+/** Map an excitement score to a slot:win type bucket. */
+function excitementToWinType(e: number): 'small' | 'medium' | 'big' | 'jackpot' | null {
+  if (e >= 0.85) return 'jackpot'
+  if (e >= 0.60) return 'big'
+  if (e >= 0.40) return 'medium'
+  if (e >= 0.20) return 'small'
+  return null
+}
+
 function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
   const half = 3
   const n = STRIP_ROWS
@@ -368,8 +408,16 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         })
       }, 140)
 
-      // Landing delays (staggered per column)
-      const delays = [560, 720, 860, 1000, 1140].slice(0, numCols)
+      // Landing delays (staggered per column).
+      // P0.3 ANTICIPATION REELS: high-excitement rows extend the final
+      // reel's delay by up to +600ms. The 4 already-stopped reels stand
+      // still while reel 5 stretches its deceleration — recruiter feels
+      // the "will it land on jackpot?" tension before it does.
+      const excitement = rowExcitement(currentSectionIdx, newIdx)
+      const baseDelays = [560, 720, 860, 1000, 1140].slice(0, numCols)
+      const delays = baseDelays.map((d, i) =>
+        i === numCols - 1 ? d + Math.round(excitement * 600) : d,
+      )
 
       delays.forEach((d, i) => {
         setTimeout(() => {
@@ -438,6 +486,23 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
               // NOTE: setSpinning(false) is NOT called here — spin stays locked
               // until payline takeover is dismissed (cleanup calls setSpinning(false))
               tickJackpot()
+
+              // P0.3 — emit slot:win with the bucket derived from row
+              // excitement. SpeechAnnouncer, HapticOrchestra, and
+              // SpatialAudio already subscribe to slot:win and react
+              // appropriately ("Jackpot! Big winner!", vibration burst,
+              // jackpot bloom audio), so this single emission cascades
+              // the win moment across all output layers.
+              const winType = excitementToWinType(excitement)
+              if (winType) {
+                const amount =
+                  winType === 'jackpot' ? 1337 :
+                  winType === 'big'     ? 500  :
+                  winType === 'medium'  ? 200  :
+                                          50
+                bus.emit('slot:win', { type: winType, amount })
+              }
+
               // ── AAA CENTER ROW WIN ANIMATION ──
               animateCenterRow()
             }, 280)
