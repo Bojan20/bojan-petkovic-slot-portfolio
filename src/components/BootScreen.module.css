@@ -485,42 +485,22 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* ── Nameplate / Title Marquee — TOP of cabinet ──
-   On a physical slot machine the game title sits at the very top of
-   the cabinet above the reels. Same logic here: identity first,
-   then the game (the 7), then the CTA.
-
-   Design rules (senior game artist):
-   · Name in generous letter-spacing — breathes, doesn't crowd
-   · Thin gold divider — casino-machine hairline separator
-   · Role in tight mono — technical, credible, secondary register
-   · No heavy panel — translucent strip so the nebula bleeds through
-   · Fade-in from Y -12px so it feels like it descends into place     */
+/* ── Nameplate — floating clean, no container, no panel ──
+   Pure text on the nebula. The glow IS the design.               */
 .nameplate {
   position: absolute;
-  top: clamp(28px, 4.5vh, 56px);
+  top: clamp(32px, 5vh, 64px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
-  padding: clamp(12px, 1.5vh, 20px) clamp(40px, 7vw, 100px) clamp(14px, 1.7vh, 22px);
-  /* Translucent dark strip — nebula bleeds through, text readable */
-  background: linear-gradient(
-    180deg,
-    rgba(2, 6, 20, 0.78) 0%,
-    rgba(2, 6, 20, 0.60) 100%
-  );
-  border-bottom: 1px solid rgba(201, 162, 39, 0.35);
-  backdrop-filter: blur(14px) saturate(1.8);
-  -webkit-backdrop-filter: blur(14px) saturate(1.8);
   pointer-events: none;
   z-index: 8;
   opacity: 0;
   filter: blur(8px);
-  width: 100%;
-  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .nameplateName {
@@ -542,20 +522,18 @@
   margin-right: calc(-1 * clamp(8px, 3vw, 36px));
 }
 
-/* Gold hairline separator — like physical machine inlay */
+/* Gold hairline — feathers out, breathes between name and role */
 .nameplateDivider {
   display: block;
-  width: clamp(160px, 28vw, 380px);
+  width: clamp(120px, 20vw, 280px);
   height: 1px;
-  margin: clamp(6px, 0.9vh, 12px) 0;
+  margin: clamp(5px, 0.8vh, 10px) 0;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(201, 162, 39, 0.22) 12%,
-    rgba(201, 162, 39, 0.85) 35%,
-    rgba(255, 240, 160, 1.0) 50%,
-    rgba(201, 162, 39, 0.85) 65%,
-    rgba(201, 162, 39, 0.22) 88%,
+    rgba(201, 162, 39, 0.55) 25%,
+    rgba(255, 235, 130, 0.95) 50%,
+    rgba(201, 162, 39, 0.55) 75%,
     transparent 100%
   );
 }

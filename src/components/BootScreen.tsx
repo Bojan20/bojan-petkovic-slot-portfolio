@@ -504,7 +504,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       >
         <span className={styles.nameplateName}>BOJAN PETKOVIĆ</span>
         <span className={styles.nameplateDivider} aria-hidden="true" />
-        <span className={styles.nameplateRole}>AUDIO DESIGNER · GAME SFX · 8+ YEARS</span>
+        <span className={styles.nameplateRole}>AUDIO DESIGNER</span>
       </div>
 
       {/* Version bar removed — no CORTEX branding */}
