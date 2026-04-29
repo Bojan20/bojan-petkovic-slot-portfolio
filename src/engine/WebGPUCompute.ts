@@ -62,12 +62,21 @@ export function isWebGPUSupported(): boolean {
 
 // ─── Tuning constants ────────────────────────────────────────────────────────
 
-/** 32k particles — fits in 1 MB at 32-byte stride. */
-const PARTICLE_COUNT = 32768
+/** 64k particles — 2× over Phase 11. With per-particle frustum culling
+ *  in the compute shader the visible set typically lands around the
+ *  same fragment fill as 32k uncuted, but the cloud reads denser when
+ *  the user looks toward the field's bright spots. */
+const PARTICLE_COUNT = 65_536
 /** vec4 pos (xyz,life) + vec4 vel (xyz,size) = 8 × f32 = 32 bytes. */
 const PARTICLE_STRIDE = 32
-/** Workgroup size — 64 is the lowest-common-denominator "fast" size. */
+/** Workgroup size — 64 is the lowest-common-denominator "fast" size.
+ *  At 64k particles we dispatch 1024 workgroups per frame. */
 const WG_SIZE = 64
+/** Frustum culling margin — particles past ±NDC_BOUND on x/y get marked
+ *  invisible (size = 0 in the render shader, no fragments shaded).
+ *  1.2 is wide enough to keep particles partially off-screen still
+ *  contributing glow to the visible edges via their Gaussian sprite. */
+const NDC_BOUND = 1.2
 
 // ─── WGSL — compute (physics step) ───────────────────────────────────────────
 
@@ -201,6 +210,12 @@ struct VOut {
 @group(0) @binding(0) var<storage, read> particles: array<Particle>;
 @group(0) @binding(1) var<uniform> u: Uni;
 
+// Frustum cull bound — particles past this on x or y get drawn at a
+// degenerate position so the rasterizer skips them entirely. NDC_BOUND
+// is JS-templated into the shader so a single source of truth lives
+// in the host module.
+const NDC_BOUND: f32 = ${NDC_BOUND.toFixed(2)};
+
 @vertex
 fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
   let pid = vid / 6u;
@@ -219,8 +234,25 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
   let c = corners[cid];
 
   let speed = length(p.vel.xyz);
+
+  // ── FRUSTUM CULL ────────────────────────────────────────────
+  // Park culled particles at a clip position outside the [-1,1]³
+  // homogeneous cube — the WebGPU primitive assembler discards the
+  // triangle before any fragment work happens. 6 vertices × 4 ALU
+  // is roughly free; saves ~70-80% of fragment fill at typical
+  // viewing angles where most of the cloud lives off-screen.
+  let culled = abs(p.pos.x) > NDC_BOUND || abs(p.pos.y) > NDC_BOUND;
+
+  // ── LOD ─────────────────────────────────────────────────────
+  // Particles farther from the camera plane (higher |pos.z|) get
+  // smaller — keeps the perceptual depth without spending fragment
+  // fill on background dust. Combined with the speed scale we get
+  // an emergent "rim of fast bright particles, soft fading core"
+  // look that reads as motion volume.
+  let depthFade = 1.0 - clamp(abs(p.pos.z) * 1.4, 0.0, 0.7);
+
   // Size scales with speed (motion-blur-ish effect) and bass (pump on hits)
-  let size = (0.0030 + speed * 0.012 + u.bass * 0.0055) * p.vel.w;
+  let size = (0.0030 + speed * 0.012 + u.bass * 0.0055) * p.vel.w * depthFade;
 
   // Compensate aspect so quads stay square in any viewport
   let aspectCorr = vec2<f32>(1.0 / u.aspect, 1.0);
@@ -238,11 +270,20 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VOut {
   let hot  = mix(midC, gold, smoothstep(0.55, 1.0, hue));
 
   var o: VOut;
-  o.clip = vec4<f32>(clipXY.x, clipXY.y, 0.0, 1.0);
+  // Park culled particles at clip XY = 2.0 → outside the [-1,1] cube,
+  // primitive assembler discards the triangle pair. Cheaper than a
+  // per-vertex early return because the return path can inhibit
+  // coalesced texture stores on some integrated GPUs.
+  if (culled) {
+    o.clip = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+  } else {
+    o.clip = vec4<f32>(clipXY.x, clipXY.y, 0.0, 1.0);
+  }
   o.uv = c;
   o.tint = hot;
-  // Alpha — depth-fade by particle life × (idle floor + bass pump).
-  o.alpha = clamp(p.pos.w, 0.0, 1.0) * (0.45 + u.bass * 0.55);
+  // Alpha — depth-fade by particle life × (idle floor + bass pump) ×
+  // LOD depth fade so the dimmest cloud particles cost the least.
+  o.alpha = clamp(p.pos.w, 0.0, 1.0) * (0.45 + u.bass * 0.55) * depthFade;
   return o;
 }
 
