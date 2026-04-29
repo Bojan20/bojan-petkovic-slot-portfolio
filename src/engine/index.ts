@@ -165,6 +165,16 @@ export {
   getReelDurationMs,
 } from './PortfolioReel'
 
+export {
+  isWebHidSupported,
+  connectHidDevice,
+  disconnectHidDevice,
+  startHidAutoBind,
+  stopHidAutoBind,
+  isHidConnected,
+  getActiveHidName,
+} from './HidInput'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

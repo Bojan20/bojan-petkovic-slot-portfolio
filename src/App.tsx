@@ -41,6 +41,7 @@ import {
   startIdleDetector, stopIdleDetector,
   exportSnapshot, importSnapshot,
   startReelCapture, stopReelCapture, isReelCapturing,
+  connectHidDevice, startHidAutoBind, stopHidAutoBind,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { SlotAudioManager } from './components/SlotAudioManager'
@@ -204,10 +205,29 @@ export default function App() {
             console.warn('[App] reel start failed:', err)
           })
         }
+      } else if (e.code === 'KeyH') {
+        // Ctrl/Cmd+Shift+H — pair an HID device (Stream Deck, X-keys,
+        // Arduino as HID, generic gamepad). Picker is mandatory; user
+        // can cancel without consequence.
+        e.preventDefault()
+        void connectHidDevice([]).catch((err) => {
+          console.warn('[App] HID connect failed:', err)
+        })
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // WebHID auto-bind — re-attach to any device the user previously
+  // paired (navigator.hid.getDevices) and listen for plug events
+  // mid-session. Initial pairing is user-initiated via Ctrl+Shift+H
+  // (the picker is a mandatory user-gesture). No-op on Firefox/Safari.
+  useEffect(() => {
+    void startHidAutoBind()
+    return () => {
+      void stopHidAutoBind()
+    }
   }, [])
 
   // Environment sensors — ambient light + idle detection.
