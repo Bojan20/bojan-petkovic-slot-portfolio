@@ -69,6 +69,15 @@ export interface CortexEventMap {
   'fps:drop': { fps: number }
   'fps:recover': void
 
+  // Voice Control — handsfree commands (Web Speech API)
+  // Subscribers in SlotMachine + audioStore translate these to actions.
+  'voice:command:spin': void
+  'voice:command:next': void
+  'voice:command:back': void
+  'voice:command:mute': void
+  'voice:command:unmute': void
+  'voice:command:jackpot': void
+
   // Catch-all for dynamic events
   [key: `custom:${string}`]: unknown
 }

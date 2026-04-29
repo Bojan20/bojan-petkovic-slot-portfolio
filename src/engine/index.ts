@@ -40,6 +40,16 @@ export {
 } from './AudioReactive'
 export type { AudioLevels } from './AudioReactive'
 
+export {
+  isVoiceSupported,
+  isVoiceListening,
+  startVoiceControl,
+  stopVoiceControl,
+  toggleVoiceControl,
+  onVoiceStatus,
+} from './VoiceControl'
+export type { VoiceCommand, VoiceStatus } from './VoiceControl'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

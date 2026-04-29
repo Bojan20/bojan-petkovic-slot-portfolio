@@ -28,6 +28,8 @@ interface AudioStore {
   setMusicVolume: (vol: number) => void
   setSfxVolume: (vol: number) => void
   toggleMute: () => void
+  /** Explicit mute setter (voice control "mute" / "unmute" commands). */
+  setMuted: (muted: boolean) => void
   setAmbientPlaying: (playing: boolean) => void
   setCinematicMode: (on: boolean) => void
   toggleCinematicMode: () => void
@@ -47,6 +49,7 @@ export const useAudioStore = create<AudioStore>()(
       setMusicVolume: (vol) => set({ musicVolume: clamp01(vol) }),
       setSfxVolume: (vol) => set({ sfxVolume: clamp01(vol) }),
       toggleMute: () => set((s) => ({ isMuted: !s.isMuted })),
+      setMuted: (muted) => set({ isMuted: muted }),
       setAmbientPlaying: (playing) => set({ ambientPlaying: playing }),
       setCinematicMode: (on) => set({ cinematicMode: on }),
       toggleCinematicMode: () => set((s) => ({ cinematicMode: !s.cinematicMode })),

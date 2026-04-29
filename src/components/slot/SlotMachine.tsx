@@ -1050,6 +1050,27 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleSpin, handleSectionChange, currentSectionIdx, currentItemIdx, spinToIdx])
 
+  // ── Voice command subscribers ───────────────────────────────────────
+  // Bridges Web Speech API → existing nav/spin handlers. Voice commands
+  // are dispatched as bus events from VoiceControl.ts; here we translate
+  // each into the same handler the keyboard / pointer paths use, so
+  // every code path goes through the same locked/spinning guards.
+  useEffect(() => {
+    const offSpin = bus.on('voice:command:spin', () => handleSpin())
+    const offNext = bus.on('voice:command:next', () =>
+      handleSectionChange((currentSectionIdx + 1) % SECTIONS.length))
+    const offBack = bus.on('voice:command:back', () =>
+      handleSectionChange((currentSectionIdx - 1 + SECTIONS.length) % SECTIONS.length))
+    // "jackpot" easter egg — bumps the jackpot ticker visibly + emits the
+    // win event so the casino-shower / SFX hook can react. Doesn't actually
+    // award credits (it's a demo gesture, not a casino).
+    const offJackpot = bus.on('voice:command:jackpot', () => {
+      tickJackpot()
+      bus.emit('slot:win', { type: 'jackpot', amount: 1000 })
+    })
+    return () => { offSpin(); offNext(); offBack(); offJackpot() }
+  }, [handleSpin, handleSectionChange, currentSectionIdx, tickJackpot])
+
   const section = SECTIONS[currentSectionIdx]!
 
   // stripTop: positions cell[3] at center of the 3-row window

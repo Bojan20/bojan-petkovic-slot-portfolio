@@ -26,6 +26,8 @@ import { CasinoShower } from './components/slot/CasinoShower'
 import { PullToRefresh } from './components/PullToRefresh'
 import { bus, initAudioBridge, disposeAudioBridge, attachAnalyser, disposeAnalyser } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
+import { VoiceIndicator } from './components/VoiceIndicator'
+import { useAudioStore } from './store'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
@@ -60,6 +62,25 @@ export default function App() {
   // Tear down audio analyser on unmount (HMR-safe)
   useEffect(() => {
     return () => disposeAnalyser()
+  }, [])
+
+  // ── Voice command: mute / unmute ────────────────────────────────────
+  // SlotMachine handles spin/next/back/jackpot itself (those need its
+  // local handlers + state guards). Audio mute is app-level so we
+  // subscribe here and call the audioStore directly.
+  useEffect(() => {
+    const setMuted = useAudioStore.getState().setMuted
+    const offMute = bus.on('voice:command:mute', () => {
+      setMuted(true)
+      const a = audioRef.current
+      if (a) a.muted = true
+    })
+    const offUnmute = bus.on('voice:command:unmute', () => {
+      setMuted(false)
+      const a = audioRef.current
+      if (a) a.muted = false
+    })
+    return () => { offMute(); offUnmute() }
   }, [])
 
   // Start ambient music + wire FFT analyser the MOMENT user taps boot.
@@ -254,6 +275,9 @@ export default function App() {
 
       {/* Slot Audio Manager — Shift+A to toggle */}
       <SlotAudioManager />
+
+      {/* Voice control — handsfree commands (mic icon bottom-left, V key) */}
+      <VoiceIndicator />
 
       {/* Pull-to-refresh — active in boot/splash, suppressed during slot
           interaction (slot has its own swipe gestures for section + reel) */}
