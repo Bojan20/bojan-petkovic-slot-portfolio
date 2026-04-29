@@ -127,7 +127,8 @@ function fireNextAction(): void {
  */
 let _lastButtonsHash = 0
 
-function buttonsHash(view: DataView): number {
+/** Exported for testing. Stable hash over the first 8 button bytes. */
+export function buttonsHash(view: DataView): number {
   let h = 0
   const len = Math.min(view.byteLength, 8)
   for (let i = 0; i < len; i++) {
@@ -136,7 +137,8 @@ function buttonsHash(view: DataView): number {
   return h >>> 0
 }
 
-function anyByteNonZero(view: DataView): boolean {
+/** Exported for testing. True if any of the first 8 bytes is non-zero. */
+export function anyByteNonZero(view: DataView): boolean {
   const len = Math.min(view.byteLength, 8)
   for (let i = 0; i < len; i++) {
     if (view.getUint8(i) !== 0) return true

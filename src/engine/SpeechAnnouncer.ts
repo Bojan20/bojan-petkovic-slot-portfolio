@@ -60,7 +60,7 @@ export function isSpeechSynthSupported(): boolean {
  * We weight by lang prefix (en-GB cinematic > en-US > other en > non-en),
  * then by name match against known smooth-male engines.
  */
-function scoreVoice(v: SpeechSynthesisVoice): number {
+export function scoreVoice(v: SpeechSynthesisVoice): number {
   let s = 0
   const name = v.name.toLowerCase()
   const lang = v.lang.toLowerCase()
