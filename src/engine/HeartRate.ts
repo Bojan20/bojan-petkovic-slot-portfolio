@@ -93,8 +93,10 @@ function getBluetooth(): BluetoothLike | null {
  * Parse the BLE Heart Rate Measurement characteristic payload.
  * Bit 0 of the flags byte: 0 = uint8 bpm, 1 = uint16 bpm.
  * Spec: https://www.bluetooth.com/specifications/specs/heart-rate-service-1-0/
+ *
+ * Exported for unit testing. Pure function over a DataView.
  */
-function parseHeartRate(view: DataView): number {
+export function parseHeartRate(view: DataView): number {
   if (view.byteLength === 0) return 0
   const flags = view.getUint8(0)
   const is16Bit = (flags & 0x01) === 0x01
@@ -111,8 +113,10 @@ function parseHeartRate(view: DataView): number {
  * → 0, 180 bpm (peak cardio) → 1, clamped at the ends. This is the
  * value visual layers should react to — pure bpm doesn't normalize
  * across the room from people whose resting rates differ.
+ *
+ * Exported for unit testing. Pure function.
  */
-function normalizeBpm(bpm: number): number {
+export function normalizeBpm(bpm: number): number {
   if (bpm <= 60) return 0
   if (bpm >= 180) return 1
   return (bpm - 60) / 120

@@ -49,6 +49,7 @@ import {
   probeXrCapability,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
+import { PresenceChip } from './components/PresenceChip'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { DevOverlay } from './components/DevOverlay'
@@ -592,6 +593,11 @@ export default function App() {
           reel is being captured via Ctrl/Cmd+Shift+R. Auto-hides when
           recording stops or saves. */}
       <RecIndicator />
+
+      {/* Presence chip — top-right "● N VIEWING" when multiple tabs /
+          peers see the portfolio. Auto-hides at count = 1 (the
+          single-viewer common case). */}
+      <PresenceChip />
     </>
   )
 }

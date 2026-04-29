@@ -1,0 +1,67 @@
+/**
+ * PresenceChip — top-right "● 2 viewing" indicator that appears
+ * whenever multiple same-origin tabs (or, eventually, WebTransport
+ * peers) are present. Sits to the LEFT of the REC indicator so the
+ * two never overlap when a recording is in progress with multiple
+ * viewers.
+ */
+
+.chip {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  border-radius: 999px;
+  background: rgba(0, 30, 40, 0.78);
+  border: 1px solid rgba(34, 232, 255, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(34, 232, 255, 0.12),
+    0 6px 20px rgba(34, 232, 255, 0.18);
+  font: 700 11px var(--f-mono, monospace);
+  letter-spacing: 0.18em;
+  color: rgb(220, 250, 255);
+  z-index: 9998;  /* one below RecIndicator */
+  pointer-events: none;
+  user-select: none;
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  /* Soft entrance — slide-in from right when count rises above 1 */
+  animation: chipIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Shift left when a recording is in progress so the two chips stack */
+body[data-recording] .chip {
+  right: 130px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(34, 232, 255);
+  box-shadow: 0 0 6px rgba(34, 232, 255, 0.7);
+  animation: chipPulse 2200ms ease-in-out infinite;
+}
+
+.tier {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  opacity: 0.6;
+}
+
+@keyframes chipIn {
+  0%   { transform: translateX(40px); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+@keyframes chipPulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip { animation: none; }
+  .dot  { animation: none; opacity: 0.92; }
+}

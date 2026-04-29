@@ -70,7 +70,7 @@ let _lastNorm = 0
  *   ~1000 lux → 0.78  (bright office / overcast outside)
  *   ~10000+   → 1.00  (direct sunlight, capped)
  */
-function normalizeLux(lux: number): number {
+export function normalizeLux(lux: number): number {
   if (lux <= 0) return 0
   // log10(lux) maps 1→0, 10→1, 100→2, 1000→3, 10000→4. Divide by 4 to
   // get 0..1 over the practical range, clamp at the ends.

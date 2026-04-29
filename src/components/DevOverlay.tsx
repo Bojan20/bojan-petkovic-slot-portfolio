@@ -15,8 +15,23 @@
 import { useEffect, useRef, useState } from 'react'
 import styles from './DevOverlay.module.css'
 import { perfRef, startPerfMonitor } from '../engine/PerfMonitor'
-import { audioLevelsRef } from '../engine'
-import { bus } from '../engine'
+import {
+  audioLevelsRef,
+  bus,
+  connectHidDevice,
+  connectSerialDevice,
+  connectHeartRateMonitor,
+  isWebHidSupported,
+  isWebSerialSupported,
+  isHeartRateSupported,
+  isWebGPUSupported,
+  isImageDecoderSupported,
+  isOpfsSupported,
+  isReelCaptureSupported,
+  isAmbientLightSupported,
+  isSpeechSynthSupported,
+  isWebXrSupported,
+} from '../engine'
 
 interface DevOverlayProps {
   visible: boolean
@@ -236,6 +251,61 @@ export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
               <div className={styles.bandBar} style={{ height: `${Math.round(snap.treble * 100)}%` }} />
               <div className={styles.bandLabel}>TREB</div>
             </div>
+          </div>
+        </div>
+
+        {/* ── Hardware bridges (Phase 16, 20, 21) ── */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>Hardware</div>
+          <div className={styles.hwRow}>
+            <button
+              className={styles.btn}
+              type="button"
+              disabled={!isWebHidSupported()}
+              onClick={() => { void connectHidDevice([]) }}
+              title={isWebHidSupported() ? 'Pair HID device (Stream Deck, X-keys, etc.)' : 'WebHID unsupported'}
+            >HID</button>
+            <button
+              className={styles.btn}
+              type="button"
+              disabled={!isWebSerialSupported()}
+              onClick={() => { void connectSerialDevice(9600) }}
+              title={isWebSerialSupported() ? 'Pair USB-Serial Arduino lever' : 'WebSerial unsupported'}
+            >SERIAL</button>
+            <button
+              className={styles.btn}
+              type="button"
+              disabled={!isHeartRateSupported()}
+              onClick={() => { void connectHeartRateMonitor() }}
+              title={isHeartRateSupported() ? 'Pair BLE heart-rate monitor' : 'WebBluetooth unsupported'}
+            >HR ♥</button>
+          </div>
+        </div>
+
+        {/* ── Capability matrix — what this browser supports ── */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>Capabilities</div>
+          <div className={styles.capGrid}>
+            {([
+              ['WebGPU',     isWebGPUSupported()],
+              ['ImgDecoder', isImageDecoderSupported()],
+              ['OPFS',       isOpfsSupported()],
+              ['Reel cap',   isReelCaptureSupported()],
+              ['AmbLight',   isAmbientLightSupported()],
+              ['Speech',     isSpeechSynthSupported()],
+              ['WebHID',     isWebHidSupported()],
+              ['WebSerial',  isWebSerialSupported()],
+              ['Bluetooth',  isHeartRateSupported()],
+              ['WebXR',      isWebXrSupported()],
+            ] as Array<[string, boolean]>).map(([name, ok]) => (
+              <span
+                key={name}
+                className={`${styles.capPill} ${ok ? styles.capOk : styles.capNo}`}
+                title={ok ? 'Supported on this browser' : 'Unsupported / disabled'}
+              >
+                {ok ? '✓' : '✕'} {name}
+              </span>
+            ))}
           </div>
         </div>
 

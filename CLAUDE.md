@@ -27,11 +27,31 @@ App.tsx (phase: boot → splash → entering → slot)
  └─ SlotAudioManager (Shift+A) — standalone audio control panel
 
 CORTEX Engine (pub/sub backbone)
- ├─ EventBus      — typed, 44 events + wildcards, sync dispatch
- ├─ SoundManager  — Web Audio, 6 procedural synths, 3-tier gain
- ├─ AudioBridge   — ws://localhost:9800, 40 hookId→event mappings
- ├─ Sequencer     — async step executor, cancellable
- └─ portfolioConfig — master config (boot/audio/sequences/timing)
+ ├─ EventBus           — typed, 50+ events + wildcards, sync dispatch
+ ├─ SoundManager       — Web Audio, 6 procedural synths, 3-tier gain
+ ├─ AudioBridge        — ws://localhost:9800, 40 hookId→event mappings
+ ├─ AudioReactive      — FFT analyser, levelsRef bass/mid/treble
+ ├─ Sequencer          — async step executor, cancellable
+ ├─ HapticOrchestra    — navigator.vibrate event-driven patterns
+ ├─ PlatformPolish     — wake lock, visibility, share, adaptive quality
+ ├─ MediaSession       — OS lock-screen media controls
+ ├─ GamepadInput       — Xbox/PS/Switch → slot actions + parallax
+ ├─ MidiInput          — Web MIDI keyboard playable slot
+ ├─ DocumentPiP        — floating "now showing" card (Phase 8.3)
+ ├─ HoudiniPaint       — CSS Paint API procedural substrate
+ ├─ WebGPUCompute      — 64k particle GPGPU field + cull + LOD
+ ├─ SpeechAnnouncer    — Web Speech TTS casino announcer
+ ├─ EnvironmentSensors — AmbientLight + IdleDetector
+ ├─ SnapshotExport     — gzip snapshot via Compression Streams + FS Access
+ ├─ PortfolioReel      — getDisplayMedia + MediaRecorder screen capture
+ ├─ HidInput           — WebHID generic device input + auto-rebind
+ ├─ OpfsCache          — Origin Private FS asset cache
+ ├─ AnimatedImage      — WebCodecs ImageDecoder wrapper
+ ├─ SerialInput        — WebSerial Arduino lever line protocol
+ ├─ HeartRate          — WebBluetooth BLE HR Service consumer
+ ├─ Presence           — BroadcastChannel + WebTransport tier
+ ├─ WebXrMode          — VR/AR capability probe + immersive entry
+ └─ portfolioConfig    — master config (boot/audio/sequences/timing)
 
 Features
  ├─ reel/  — pure math: shuffleCells, buildReelStrip (20-cell strip)
@@ -64,9 +84,46 @@ Data · Types · Styles
 
 `takeoverCleanupRef.current()` MUST call `setSpinning(false)` or user is locked out.
 
-## EventBus (44 events)
-Boot(6) · Splash(8) · Transition(2) · Slot(7) · Audio(8) · System(3) + wildcards (`splash:*`).
-Dispatch is **synchronous**. Handler errors are swallowed (check `bus.getLog()` or DEV console).
+## Keybindings (post-boot, all platforms)
+
+| Combo                    | Action                                              |
+|--------------------------|-----------------------------------------------------|
+| ↑↑↓↓←→←→BA               | Toggle dev overlay (Konami)                         |
+| Shift+A                  | Toggle SlotAudioManager panel                       |
+| Esc / X                  | Close dev overlay                                   |
+| V                        | Toggle voice control                                |
+| Ctrl/Cmd+Shift+S         | Save portfolio snapshot (.json.gz)                  |
+| Ctrl/Cmd+Shift+L         | Load portfolio snapshot                             |
+| Ctrl/Cmd+Shift+R         | Toggle screen-recording reel (WebM, 5min cap)       |
+| Ctrl/Cmd+Shift+H         | Pair HID device (Stream Deck, X-keys, Arduino HID)  |
+| Ctrl/Cmd+Shift+Y         | Pair USB-Serial device (Arduino lever, RP2040)      |
+| Ctrl/Cmd+Shift+B         | Pair BLE heart-rate monitor                         |
+
+## Capability matrix (graceful no-op on missing platforms)
+
+| API                  | Chromium | Safari    | Firefox | Notes                              |
+|----------------------|----------|-----------|---------|------------------------------------|
+| WebGPU               | 113+     | 17+       | flag    | quantum field; nebula falls back   |
+| ImageDecoder         | 94+      | 17+       | no      | <AnimatedImage> falls back to <img>|
+| OPFS                 | 86+      | 17+       | 111+    | falls back to network              |
+| AmbientLightSensor   | 109+     | no        | no      | --ambient-lux defaults to 0.5      |
+| getDisplayMedia      | 72+      | 13+       | 66+     | reel capture                       |
+| WebHID               | 89+      | no        | no      | round-robin action mapping         |
+| WebSerial            | 89+      | no        | no      | line-protocol firmware             |
+| WebBluetooth         | 56+      | no        | no      | HTTPS / localhost only             |
+| WebTransport         | 113+     | TP        | flag    | optional tier; BC fallback         |
+| WebXR                | 79+      | VisionOS  | flag    | probe + enterImmersive             |
+| Speech Synthesis     | yes      | yes       | yes     | Daniel/Alex/Arthur preferred       |
+| Compression Stream   | 80+      | 16.4+     | 113+    | snapshot gzip                      |
+
+DevOverlay (↑↑↓↓←→←→BA) shows live capability pills + connect buttons
+for HID/Serial/HR so a dev can sanity-check support without a console.
+
+## EventBus (50+ events)
+Boot(6) · Splash(8) · Transition(2) · Slot(7) · Audio(8) · Voice(6) · System(3) ·
+Env(3: env:lux, user:idle, user:active) · Custom(snapshot/reel/hid/serial/heart/
+presence/xr — opt-in via `custom:` prefix). Dispatch is **synchronous**. Handler
+errors are swallowed (check `bus.getLog()` or DEV console).
 
 ## Core invariants
 1. AudioContext unlock requires user gesture — `boot:tap` is the canonical moment

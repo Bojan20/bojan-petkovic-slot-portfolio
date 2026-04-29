@@ -232,3 +232,47 @@
   cursor: pointer;
   user-select: none;
 }
+
+/* ─── Hardware connect row (Phase 16/20/21) ─────────────────────── */
+.hwRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.hwRow .btn {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+}
+
+/* ─── Capability matrix pills ───────────────────────────────────── */
+.capGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  margin-top: 4px;
+}
+.capPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.capOk {
+  background: rgba(80, 240, 130, 0.18);
+  color: rgb(180, 250, 200);
+  border: 1px solid rgba(80, 240, 130, 0.35);
+}
+.capNo {
+  background: rgba(200, 80, 80, 0.14);
+  color: rgba(255, 180, 180, 0.78);
+  border: 1px solid rgba(200, 80, 80, 0.25);
+}
