@@ -21,6 +21,7 @@
 import { useEffect, useRef } from 'react'
 import styles from './CyberNebula.module.css'
 import type { ParallaxState } from './CasinoField'
+import { audioLevelsRef } from '../../engine'
 
 interface CyberNebulaProps {
   /** Shared parallax state — read directly, no getComputedStyle on hot path */
@@ -55,6 +56,14 @@ varying vec2 v_uv;
 uniform float u_time;
 uniform vec2  u_res;
 uniform vec2  u_par;
+// Audio reactive uniforms — FFT band amplitudes 0..1, smoothed by
+// AudioReactive.ts EMA. Drive nebula breathing + hue cycle + sparkle:
+//   u_bass   → tendril intensity pulses on the kick (drop = scene opens)
+//   u_mid    → palette hue sweep speed scales with mids (vocal energy)
+//   u_treble → star sparkle density scales with cymbals
+uniform float u_bass;
+uniform float u_mid;
+uniform float u_treble;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -98,12 +107,21 @@ void main() {
     ? 'float n2 = fbm(p * 3.5 + vec2(-t * 0.6, t * 0.4));'
     : 'float n2 = n1 * 0.6;'}
 
-  // Tendril mask — bright filaments where layers align
-  float tendril = pow(smoothstep(0.40, 0.95, n1 * 0.7 + n2 * 0.3), 1.4);
+  // Tendril mask — bright filaments where layers align.
+  // Bass amplitude pumps the smoothstep edge inward → on a kick the
+  // bright filaments swell and "open up" toward the camera. Subtle on
+  // the lo edge (-0.08) so the visual remains tasteful, not seizure-y.
+  float bassPump = u_bass * 0.18;
+  float tendril = pow(smoothstep(0.40 - bassPump, 0.95 - bassPump * 0.5, n1 * 0.7 + n2 * 0.3), 1.4);
+  // Tendril intensity is also bass-modulated so the brightest filaments
+  // glow harder on heavy hits (capped to keep highlights from clipping).
+  float tendrilIntensity = 0.85 + u_bass * 0.55;
 
-  // Distance-from-center radial falloff so the edges stay deep black
+  // Distance-from-center radial falloff so the edges stay deep black.
+  // Bass also subtly extends the "lit" radius — feels like the music
+  // is filling the volume of the scene.
   float r = length(p);
-  float vignette = smoothstep(1.05, 0.18, r);
+  float vignette = smoothstep(1.05 + u_bass * 0.10, 0.18, r);
 
   // 3-color palette mix
   vec3 col_cyan   = vec3(0.13, 0.91, 1.00);
@@ -111,17 +129,23 @@ void main() {
   vec3 col_gold   = vec3(0.94, 0.85, 0.47);
   vec3 col_deep   = vec3(0.012, 0.014, 0.030);
 
-  // Hue cycle — drift smoothly through cyan → violet → gold
-  float hue = sin(u_time * 0.06) * 0.5 + 0.5;
+  // Hue cycle — base drift through cyan → violet → gold, with mid-band
+  // amplitude SPEEDING up the cycle so vocals/leads push the palette.
+  float hueRate = 0.06 + u_mid * 0.20;
+  float hue = sin(u_time * hueRate) * 0.5 + 0.5;
   vec3 mid = mix(col_cyan, col_violet, smoothstep(0.0, 0.55, hue));
   vec3 hot = mix(mid, col_gold, smoothstep(0.55, 1.0, hue));
 
   vec3 color = col_deep;
   color = mix(color, mid * 0.6, n1 * 0.55 * vignette);
-  color = mix(color, hot, tendril * 0.85 * vignette);
+  color = mix(color, hot, tendril * tendrilIntensity * vignette);
 
-  // Faint sparkle from a pure hash — "stars in the void"
-  float spark = step(0.997, hash(floor(p * 580.0))) * vignette * 0.7;
+  // Faint sparkle from a pure hash — "stars in the void".
+  // Treble band amplitude (cymbals/hats) lowers the threshold AND boosts
+  // brightness → percussion literally lights the stars.
+  float sparkThresh = 0.997 - u_treble * 0.012;
+  float sparkBoost = 0.7 + u_treble * 1.1;
+  float spark = step(sparkThresh, hash(floor(p * 580.0))) * vignette * sparkBoost;
   color += spark * vec3(1.0);
 
   gl_FragColor = vec4(color, 1.0);
@@ -207,6 +231,9 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     const uTime = gl.getUniformLocation(prog, 'u_time')
     const uRes = gl.getUniformLocation(prog, 'u_res')
     const uPar = gl.getUniformLocation(prog, 'u_par')
+    const uBass = gl.getUniformLocation(prog, 'u_bass')
+    const uMid = gl.getUniformLocation(prog, 'u_mid')
+    const uTreble = gl.getUniformLocation(prog, 'u_treble')
 
     // ── Resize handling — DPR aware, capped at 1.5 desktop / 0.75 mobile ──
     // On phones the GPU memory bandwidth + fragment shader complexity
@@ -247,6 +274,21 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
 
       const tSec = (performance.now() - startTimeRef.current) / 1000
       gl.uniform1f(uTime, reducedMotion ? 0.5 : tSec)
+
+      // Audio reactive — read live FFT band levels (0..1, smoothed by
+      // AudioReactive.ts EMA). When the analyser hasn't been attached
+      // yet (pre-tap, or on browsers that block WebAudio), levelsRef
+      // stays at zeros → shader renders the static neutral state.
+      // Reduced-motion users get zeros too — no audio-driven motion.
+      if (reducedMotion) {
+        gl.uniform1f(uBass, 0)
+        gl.uniform1f(uMid, 0)
+        gl.uniform1f(uTreble, 0)
+      } else {
+        gl.uniform1f(uBass, audioLevelsRef.bass)
+        gl.uniform1f(uMid, audioLevelsRef.mid)
+        gl.uniform1f(uTreble, audioLevelsRef.treble)
+      }
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 

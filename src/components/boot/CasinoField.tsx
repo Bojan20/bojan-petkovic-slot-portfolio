@@ -28,6 +28,7 @@
 
 import { useEffect, useRef } from 'react'
 import styles from './CasinoField.module.css'
+import { audioLevelsRef } from '../../engine'
 
 /**
  * Shared parallax state object — written by BootScreen's RAF, read by us.
@@ -390,12 +391,22 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
       const offsetX = (mx - 0.5) * vmin * 0.16
       const offsetY = (my - 0.5) * vmin * 0.10
 
+      // Audio reactive: bass amplitude bumps the orbit radius outward
+      // (symbols "fly out" on a kick), and treble accelerates the
+      // self-tumble rotation (cymbals = spinning chips). Subtle so it
+      // never breaks the orbital reading — we want music PRESENCE, not
+      // a visualizer dance.
+      const bass = reducedMotion ? 0 : audioLevelsRef.bass
+      const treble = reducedMotion ? 0 : audioLevelsRef.treble
+      const bassPush = 1 + bass * 0.18
+      const tumbleBoost = 1 + treble * 1.2
+
       ctx.clearRect(0, 0, cw, ch)
 
       for (const s of symbols) {
-        // Home position on rotating ring + parallax offset
+        // Home position on rotating ring + parallax offset, audio-pushed
         const a = s.a0 + tSec * s.speed
-        const r = s.r0 * vmin
+        const r = s.r0 * vmin * bassPush
         const homeX = cx + offsetX + Math.cos(a) * r
         const homeY = cy + offsetY + Math.sin(a) * r
 
@@ -409,8 +420,8 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
         s.x += s.vx * dt
         s.y += s.vy * dt
 
-        // Self-rotation
-        s.rot += s.rotSpeed * dt
+        // Self-rotation, treble-boosted
+        s.rot += s.rotSpeed * dt * tumbleBoost
 
         // Render: cached sprite (halo + symbol body), self-rotated
         const sprite = getSprite(s)

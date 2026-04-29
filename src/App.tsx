@@ -24,7 +24,7 @@ import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
 import { PullToRefresh } from './components/PullToRefresh'
-import { bus, initAudioBridge, disposeAudioBridge } from './engine'
+import { bus, initAudioBridge, disposeAudioBridge, attachAnalyser, disposeAnalyser } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -57,16 +57,39 @@ export default function App() {
     return () => disposeAudioBridge()
   }, [])
 
+  // Tear down audio analyser on unmount (HMR-safe)
+  useEffect(() => {
+    return () => disposeAnalyser()
+  }, [])
+
+  // Start ambient music + wire FFT analyser the MOMENT user taps boot.
+  // boot:tap is the canonical AudioContext-unlock gesture, so it's the
+  // earliest legal point to (a) play() the music and (b) construct the
+  // MediaElementSource → AnalyserNode pipeline. Doing it here (vs.
+  // boot:complete) means CyberNebula's shader gets a few seconds of
+  // live FFT data while the boot loader finishes — the nebula visibly
+  // pulses to the music BEFORE the splash transition.
+  useEffect(() => {
+    const off = bus.on('boot:tap', () => {
+      const audio = audioRef.current
+      if (!audio) return
+      audio.play().catch(() => {})
+      attachAnalyser(audio)
+    })
+    return off
+  }, [])
+
   // Boot complete → transition to splash
   const handleBootComplete = useCallback(() => {
     setPhase('splash')
-
-    // Start ambient music immediately (audio is unlocked from boot tap)
+    // Belt-and-braces: if the bus listener missed (e.g. handler error),
+    // ensure music is playing and analyser is wired here as well.
+    // Both calls are idempotent.
     const audio = audioRef.current
     if (audio) {
       audio.play().catch(() => {})
+      attachAnalyser(audio)
     }
-
     bus.emit('splash:start')
   }, [])
 

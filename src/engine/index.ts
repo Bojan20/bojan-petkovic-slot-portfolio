@@ -32,6 +32,14 @@ export {
   getAssignedHooks,
 } from './AudioBridge'
 
+export {
+  attachAnalyser,
+  disposeAnalyser,
+  isAnalyserActive,
+  levelsRef as audioLevelsRef,
+} from './AudioReactive'
+export type { AudioLevels } from './AudioReactive'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
