@@ -18,6 +18,7 @@ import {
   isWebShareSupported,
   sharePortfolio,
   subscribeQualityMode,
+  gamepadStateRef,
   type QualityMode,
 } from '../engine'
 import { activatePendingUpdate, isUpdateAvailable } from '../sw-register'
@@ -42,6 +43,7 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
     typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
   const [updateReady, setUpdateReady] = useState(() => isUpdateAvailable())
+  const [gamepadName, setGamepadName] = useState<string>('')
 
   useEffect(() => {
     const off = subscribeQualityMode((m) => setMode(m))
@@ -71,6 +73,19 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
     return off
   }, [])
 
+  // Gamepad detection — surface a controller chip when one is plugged
+  // in (or paired via Bluetooth). Recruiter sees the portfolio knows
+  // about their controller.
+  useEffect(() => {
+    const off = bus.on('custom:gamepad' as 'custom:gamepad', (p) => {
+      const payload = (p ?? {}) as { connected?: boolean; name?: string }
+      setGamepadName(payload.connected ? (payload.name || 'Gamepad') : '')
+    })
+    // Initial check (in case it's already connected before mount)
+    if (gamepadStateRef.connected) setGamepadName(gamepadStateRef.name)
+    return off
+  }, [])
+
   if (!visible) return null
 
   const onShare = async () => {
@@ -89,6 +104,15 @@ export function PlatformChips({ visible }: PlatformChipsProps) {
         <span className={styles.chipBadge} title="Offline — running from cache">
           <span className={styles.dot} />
           Offline ⚡
+        </span>
+      )}
+      {gamepadName && (
+        <span
+          className={styles.chipBadge}
+          title={`Controller connected: ${gamepadName}\nA = spin · B = mute · D-pad/RB-LB = nav · L-stick = parallax · Start = dev`}
+        >
+          <span className={styles.dot} />
+          🎮 Gamepad
         </span>
       )}
       {mode === 'lite' && (

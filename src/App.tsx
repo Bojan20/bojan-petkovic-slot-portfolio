@@ -35,6 +35,7 @@ import {
   registerAudioForVisibilityPause,
   startAdaptiveQuality,
   attachMediaSession, disposeMediaSession,
+  startGamepadInput, stopGamepadInput,
 } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
@@ -91,6 +92,27 @@ export default function App() {
   useEffect(() => {
     const off = listenForKonami(() => setDevOverlay((v) => !v))
     return off
+  }, [])
+
+  // Gamepad polling + event subscribers — Xbox/PS/Switch controllers
+  // play the slot natively. A=spin, B=mute, D-pad/RB-LB=nav, Start=dev,
+  // left stick=parallax cursor (steers Lucky 7 alongside mouse/gyro).
+  useEffect(() => {
+    startGamepadInput()
+    // Custom events emitted by GamepadInput that don't have direct
+    // routing yet — translate them here.
+    const offMute = bus.on('custom:mute_toggle' as 'custom:mute_toggle', () => {
+      const a = audioRef.current
+      const next = !useAudioStore.getState().isMuted
+      useAudioStore.getState().setMuted(next)
+      if (a) a.muted = next
+    })
+    const offDebug = bus.on('debug:toggle', () => setDevOverlay((v) => !v))
+    return () => {
+      stopGamepadInput()
+      offMute()
+      offDebug()
+    }
   }, [])
 
   // Haptic orchestra — translates app events to vibration patterns.

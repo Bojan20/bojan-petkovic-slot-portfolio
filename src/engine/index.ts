@@ -93,6 +93,13 @@ export {
 } from './MediaSession'
 export type { MediaTrackInfo } from './MediaSession'
 
+export {
+  startGamepadInput,
+  stopGamepadInput,
+  setStickCursorWriter,
+  gamepadStateRef,
+} from './GamepadInput'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

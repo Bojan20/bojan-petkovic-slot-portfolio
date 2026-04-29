@@ -1076,6 +1076,23 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     return off
   }, [])
 
+  // ── Gamepad item nav (D-pad up/down) — same path as ArrowUp/Down ──
+  useEffect(() => {
+    const offUp = bus.on('custom:item_prev' as 'custom:item_prev', () => {
+      if (locked || isSpinning) return
+      const arr = getDataForSection(currentSectionIdx)
+      const newIdx = (currentItemIdx - 1 + arr.length) % arr.length
+      spinToIdx(newIdx)
+    })
+    const offDown = bus.on('custom:item_next' as 'custom:item_next', () => {
+      if (locked || isSpinning) return
+      const arr = getDataForSection(currentSectionIdx)
+      const newIdx = (currentItemIdx + 1) % arr.length
+      spinToIdx(newIdx)
+    })
+    return () => { offUp(); offDown() }
+  }, [locked, isSpinning, currentSectionIdx, currentItemIdx, spinToIdx])
+
   // ── Voice command subscribers ───────────────────────────────────────
   // Bridges Web Speech API → existing nav/spin handlers. Voice commands
   // are dispatched as bus events from VoiceControl.ts; here we translate
