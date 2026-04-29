@@ -24,9 +24,10 @@ import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
 import { PullToRefresh } from './components/PullToRefresh'
-import { bus, initAudioBridge, disposeAudioBridge, attachAnalyser, disposeAnalyser } from './engine'
+import { bus, initAudioBridge, disposeAudioBridge, attachAnalyser, disposeAnalyser, listenForKonami } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 import { VoiceIndicator } from './components/VoiceIndicator'
+import { DevOverlay } from './components/DevOverlay'
 import { useAudioStore } from './store'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -35,6 +36,12 @@ export default function App() {
   const [phase, setPhase] = useState<AppPhase>('boot')
   const [showerActive, setShowerActive] = useState(false)
   const [introLocked, setIntroLocked] = useState(true)
+  // DevOverlay visibility — toggled by Konami code (↑↑↓↓←→←→BA)
+  // OR by ?dev URL flag (lets recruiters open it directly via shared link).
+  const [devOverlay, setDevOverlay] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).has('dev')
+  })
   const slotWrapRef = useRef<HTMLDivElement>(null)
   const splashRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -62,6 +69,13 @@ export default function App() {
   // Tear down audio analyser on unmount (HMR-safe)
   useEffect(() => {
     return () => disposeAnalyser()
+  }, [])
+
+  // Konami code listener — ↑↑↓↓←→←→BA toggles the dev overlay.
+  // Re-typing the sequence toggles it OFF (also: Esc, X button).
+  useEffect(() => {
+    const off = listenForKonami(() => setDevOverlay((v) => !v))
+    return off
   }, [])
 
   // ── Voice command: mute / unmute ────────────────────────────────────
@@ -278,6 +292,9 @@ export default function App() {
 
       {/* Voice control — handsfree commands (mic icon bottom-left, V key) */}
       <VoiceIndicator />
+
+      {/* Konami dev overlay — ↑↑↓↓←→←→BA to toggle, or ?dev URL flag */}
+      <DevOverlay visible={devOverlay} onClose={() => setDevOverlay(false)} phase={phase} />
 
       {/* Pull-to-refresh — active in boot/splash, suppressed during slot
           interaction (slot has its own swipe gestures for section + reel) */}

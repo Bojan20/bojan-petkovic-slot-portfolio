@@ -57,6 +57,10 @@ export {
   playJackpotBloom,
 } from './SpatialAudio'
 
+export { listenForKonami } from './KonamiCode'
+export { startPerfMonitor, disposePerfMonitor, perfRef } from './PerfMonitor'
+export type { PerfSnapshot } from './PerfMonitor'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
