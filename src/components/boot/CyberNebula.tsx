@@ -203,11 +203,22 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
         transferControlToOffscreen?: () => OffscreenCanvas
       }).transferControlToOffscreen === 'function'
 
-    if (supportsOffscreen) {
+    // HMR / StrictMode guard — transferControlToOffscreen can only be
+    // called ONCE per canvas. A second call (which happens on Vite HMR
+    // re-mount or React 19 StrictMode double-invocation) throws
+    // InvalidStateError. We mark the canvas with a custom dataset
+    // flag the first time and bail to the in-thread fallback if we
+    // see it again.
+    type TransferableCanvas = HTMLCanvasElement & {
+      transferControlToOffscreen: () => OffscreenCanvas
+      __cortexTransferred?: true
+    }
+
+    if (supportsOffscreen && !(canvas as TransferableCanvas).__cortexTransferred) {
       try {
-        const offscreen = (canvas as HTMLCanvasElement & {
-          transferControlToOffscreen: () => OffscreenCanvas
-        }).transferControlToOffscreen()
+        const tc = canvas as TransferableCanvas
+        tc.__cortexTransferred = true
+        const offscreen = tc.transferControlToOffscreen()
 
         const worker = new NebulaWorker()
         workerRef.current = worker
@@ -271,13 +282,22 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     // ─────────────────────────────────────────────────────────────
     // FALLBACK: in-thread render path (Safari < 16.4, Firefox < 105,
     // browsers that throw on OffscreenCanvas transfer)
+    // React StrictMode double-mounts — on the 2nd mount the canvas
+    // control was already transferred, so getContext throws
+    // InvalidStateError. Bail gracefully in that case.
     // ─────────────────────────────────────────────────────────────
-    const gl = canvas.getContext('webgl', {
-      alpha: false,
-      antialias: false,
-      preserveDrawingBuffer: isCoarsePointer,
-      powerPreference: 'low-power',
-    })
+    let gl: WebGLRenderingContext | null = null
+    try {
+      gl = canvas.getContext('webgl', {
+        alpha: false,
+        antialias: false,
+        preserveDrawingBuffer: isCoarsePointer,
+        powerPreference: 'low-power',
+      })
+    } catch {
+      console.info('[CyberNebula] getContext threw (canvas already transferred) — skipping fallback')
+      return
+    }
     if (!gl) {
       console.info('[CyberNebula] WebGL unavailable — falling back to CSS gradient')
       return

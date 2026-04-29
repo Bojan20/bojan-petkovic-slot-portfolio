@@ -157,8 +157,9 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3<u32>) {
   force = force + jitter * (u.treble * 1.4);
 
   // 5. Parallax pull — gentle convergence toward where the user is looking
-  let target = vec3<f32>((u.parX - 0.5) * 1.0, (0.5 - u.parY) * 0.7, 0.0);
-  force = force + (target - p.pos.xyz) * 0.04;
+  // NOTE: 'target' is a WGSL reserved identifier; renamed to 'tgt'.
+  let tgt = vec3<f32>((u.parX - 0.5) * 1.0, (0.5 - u.parY) * 0.7, 0.0);
+  force = force + (tgt - p.pos.xyz) * 0.04;
 
   // Integrate (semi-implicit Euler), damp, decay life
   p.vel = vec4<f32>(p.vel.xyz + force * u.dt, p.vel.w);
