@@ -459,14 +459,8 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         />
       </div>
 
-      {/* Clean progress bar — no CORTEX/NEURAL labels */}
-      <div className={styles.loadBar} aria-hidden="true">
-        <div
-          ref={hudBarFillRef}
-          className={styles.hudBarFill}
-          style={{ transform: `scaleX(${progress})` }}
-        />
-      </div>
+      {/* Progress bar removed — clean composition; the CONTINUE button
+          appearing IS the "load done" signal. No separate strip needed. */}
 
       {/* CONTINUE — holographic ring pulse when ready */}
       <div className={styles.continueWrap}>
