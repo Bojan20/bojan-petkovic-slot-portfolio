@@ -865,3 +865,46 @@
     transform: translateY(0) !important;
   }
 }
+
+/* ─── DOLLY ZOOM (P3.2) ──────────────────────────────────────────
+   Cinematic Vertigo / Hitchcock push on tap-to-unlock. The 7
+   grows ~10% (juri ka kameri) while every other foreground
+   element recedes + blurs (camera pulling away from them).
+   Reads as "the cabinet is pulling the camera in."
+   480ms cubic-bezier ease — total runtime fits inside the boot
+   exit fade window so the moment is visible, not stolen by fade. */
+
+.bootDolly .sevenStage {
+  animation: sevenDolly 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, filter;
+}
+
+@keyframes sevenDolly {
+  0%   { transform: scale(1)    translateZ(0);    filter: brightness(1)    saturate(1); }
+  60%  { transform: scale(1.06) translateZ(0);    filter: brightness(1.14) saturate(1.10); }
+  100% { transform: scale(1.10) translateZ(0);    filter: brightness(1.22) saturate(1.18); }
+}
+
+.bootDolly .tagline,
+.bootDolly .nameplate,
+.bootDolly .continueWrap,
+.bootDolly .dataStream {
+  animation: subjectsRecede 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes subjectsRecede {
+  0%   { opacity: 1;    transform: scale(1);     filter: blur(0);   }
+  100% { opacity: 0.18; transform: scale(0.92);  filter: blur(2.6px); }
+}
+
+/* Reduced motion — bootDolly class is never applied (BootScreen.tsx
+   gates on reducedMotion) so this is a defensive double-gate only. */
+@media (prefers-reduced-motion: reduce) {
+  .bootDolly .sevenStage,
+  .bootDolly .tagline,
+  .bootDolly .nameplate,
+  .bootDolly .continueWrap,
+  .bootDolly .dataStream {
+    animation: none !important;
+  }
+}

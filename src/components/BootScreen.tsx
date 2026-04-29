@@ -80,6 +80,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const [progress, setProgress] = useState(0)
   const [loadingDone, setLoadingDone] = useState(false)
   const [exiting, setExiting] = useState(false)
+  const [dolly, setDolly] = useState(false)
   const [burst, setBurst] = useState(false)
   // stepIdx / typed removed — typewriter HUD stripped
   const tappedRef = useRef(false)
@@ -323,6 +324,13 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
     bus.emit('boot:tap')
 
+    // P3.2 — DOLLY ZOOM (Vertigo / Hitchcock effect).
+    // Trigger the cinematic push immediately on tap so it overlaps
+    // the 180ms haptic windup. The 7 grows ~10% while every other
+    // element recedes + blurs, reading as "the cabinet is pulling
+    // the camera in." Reduced-motion users skip the dolly entirely.
+    if (!reducedMotion) setDolly(true)
+
     // Haptic choreography on tap — three-stage rising pattern that
     // feels like "engaging" a mechanism: short pulse → micro-pause →
     // confirm thud. Mobile only; desktop ignores silently.
@@ -374,8 +382,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       }
     }
 
-    // Exit after burst
-    setTimeout(() => setExiting(true), 180)
+    // Exit phase — pushed to 420ms so the dolly zoom (480ms total)
+    // gets visible runtime before the bootExit fade overlays it.
+    setTimeout(() => setExiting(true), reducedMotion ? 180 : 420)
 
     setTimeout(() => {
       bus.emit('boot:complete')
@@ -399,7 +408,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   return (
     <div
       ref={bootDivRef}
-      className={`${styles.boot} ${exiting ? styles.bootExit : ''}`}
+      className={`${styles.boot} ${dolly ? styles.bootDolly : ''} ${exiting ? styles.bootExit : ''}`}
       onClick={handleTap}
       role="button"
       tabIndex={0}
