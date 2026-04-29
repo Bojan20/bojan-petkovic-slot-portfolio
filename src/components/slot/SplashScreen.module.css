@@ -20,6 +20,31 @@
   overscroll-behavior: none;
 }
 
+/* ── Holographic grid floor — perspective rising from bottom ── */
+.gridFloor {
+  position: absolute;
+  bottom: -8%;
+  left: -50%;
+  width: 200%;
+  height: 55%;
+  background-image:
+    linear-gradient(90deg, rgba(34, 232, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg,  rgba(34, 232, 255, 0.055) 1px, transparent 1px);
+  background-size: 72px 72px;
+  transform: perspective(480px) rotateX(66deg);
+  transform-origin: bottom center;
+  pointer-events: none;
+  z-index: 1;
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%);
+  animation: gridFlow 5s linear infinite;
+}
+
+@keyframes gridFlow {
+  from { background-position: 0 0; }
+  to   { background-position: 0 72px; }
+}
+
 /* ── Noise turbulence overlay (SVG feTurbulence) ── */
 .noiseLayer {
   position: absolute;
@@ -492,6 +517,61 @@
 
 @keyframes tapFadeOut {
   to { opacity: 0; pointer-events: none; }
+}
+
+/* ── Countdown ring — SVG circle stroke fills over 3s to auto-enter ── */
+.countdownRing {
+  position: absolute;
+  bottom: clamp(22px, 4.5vh, 50px);
+  left: 50%;
+  translate: -50% 0;
+  width: clamp(44px, 7vw, 60px);
+  height: clamp(44px, 7vw, 60px);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.countdownRingVisible {
+  opacity: 1;
+}
+
+.countdownTrack {
+  fill: none;
+  stroke: rgba(201, 162, 39, 0.10);
+  stroke-width: 1.5;
+}
+
+.countdownFill {
+  fill: none;
+  stroke: var(--g300, #c9a227);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px rgba(201, 162, 39, 0.55));
+  transition: stroke-dasharray 0.016s linear;
+}
+
+/* ── Tap ripple — concentric wave on click/tap ── */
+.tapRipple {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(201, 162, 39, 0.7);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.3);
+  animation: rippleOut 0.95s ease-out forwards;
+  z-index: 100;
+}
+
+@keyframes rippleOut {
+  to {
+    transform: translate(-50%, -50%) scale(4.5);
+    opacity: 0;
+    border-color: rgba(201, 162, 39, 0);
+  }
 }
 
 /* Enter button */

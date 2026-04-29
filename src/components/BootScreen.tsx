@@ -60,9 +60,9 @@ interface BootScreenProps {
 }
 
 /* ── Data stream columns ─ seeded randomness keeps SSR/CSR parity ── */
-const HEX_CHARS = '0123456789ABCDEF'
-const STREAM_COLS = 24
-const STREAM_ROWS = 48
+const HEX_CHARS = '0123456789ABCDEF∑Ω∆Φ∏√∞≈'
+const STREAM_COLS = 38
+const STREAM_ROWS = 56
 
 function seeded(seed: number): number {
   const x = Math.sin(seed * 9301 + 49297) * 49297
@@ -74,7 +74,7 @@ function buildStreamText(col: number): string {
   for (let r = 0; r < STREAM_ROWS; r++) {
     const idx = Math.floor(seeded(col * 101 + r * 7) * HEX_CHARS.length)
     out += HEX_CHARS[idx]
-    if (r % 4 === 3) out += ' '
+    if (r % 3 === 2) out += ' '
     out += '\n'
   }
   return out
@@ -107,12 +107,16 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const loadingSteps: string[] = boot.loadingSteps ?? []
 
   // Pre-compute data stream columns once
+  // Some columns flagged as "bright" (Matrix cursor), some as "glitch"
   const streamColumns = useMemo(
     () => Array.from({ length: STREAM_COLS }, (_, i) => ({
       text: buildStreamText(i),
-      delay: `${seeded(i * 13) * 4}s`,
-      duration: `${3.5 + seeded(i * 17) * 3.5}s`,
+      delay: `${seeded(i * 13) * 5}s`,
+      duration: `${2.8 + seeded(i * 17) * 3.8}s`,
       left: `${(i / STREAM_COLS) * 100}%`,
+      bright: i % 9 === 0 || i % 13 === 0,       // ~2-3 bright "cursor" cols
+      glitch: i % 7 === 3,                         // ~5 glitch cols
+      glitchDelay: `${seeded(i * 29) * 8}s`,
     })),
     [],
   )
@@ -412,11 +416,16 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         {streamColumns.map((c, i) => (
           <pre
             key={i}
-            className={styles.streamCol}
+            className={[
+              styles.streamCol,
+              c.bright ? styles.streamColBright : '',
+              c.glitch ? styles.streamColGlitch : '',
+            ].filter(Boolean).join(' ')}
             style={{
               left: c.left,
               animationDelay: c.delay,
               animationDuration: c.duration,
+              ...(c.glitch ? { '--glitch-delay': c.glitchDelay } as React.CSSProperties : {}),
             }}
           >
             {c.text}

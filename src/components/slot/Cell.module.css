@@ -1,4 +1,6 @@
 .cell {
+  --cx: 0;
+  --cy: 0;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -15,7 +17,52 @@
   box-shadow:
     inset 0 0 12px rgba(0, 0, 0, 0.6),
     0 1px 0 rgba(201, 162, 39, 0.08);
-  transition: opacity 0.22s, filter 0.22s, box-shadow 0.3s, border-color 0.3s;
+  /* 3D tilt transition — snaps back smoothly on mouse leave */
+  transition:
+    transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.22s,
+    filter 0.22s,
+    box-shadow 0.3s,
+    border-color 0.3s;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* 3D perspective tilt — driven by --cx/--cy set from onMouseMove */
+.cell:hover {
+  transform:
+    perspective(700px)
+    rotateX(calc(var(--cy) * -9deg))
+    rotateY(calc(var(--cx) * 9deg))
+    translateZ(6px);
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(201, 162, 39, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(201, 162, 39, 0.10);
+  border-color: rgba(212, 168, 75, 0.55);
+}
+
+/* Cursor spotlight — radial glow that follows mouse position */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  background: radial-gradient(
+    circle at
+      calc(var(--cx) * 50% + 50%)
+      calc(var(--cy) * 50% + 50%),
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(201, 162, 39, 0.04) 30%,
+    transparent 65%
+  );
+  transition: opacity 0.15s ease;
+}
+
+.cell:hover .spotlight {
+  opacity: 1;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

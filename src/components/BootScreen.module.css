@@ -67,6 +67,29 @@
   100% { transform: translateY(120%); opacity: 0; }
 }
 
+/* Bright "Matrix cursor" columns — 2-3x more luminous */
+.streamColBright {
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.9), 0 0 14px rgba(34, 232, 255, 0.5);
+  opacity: 0.22 !important;
+}
+
+/* Glitch columns — randomly tremor + hue shift on a staggered cycle */
+.streamColGlitch {
+  animation-name: streamFall, streamGlitch;
+  animation-timing-function: linear, steps(2);
+  animation-duration: inherit, 0.28s;
+  animation-iteration-count: infinite, infinite;
+  animation-delay: inherit, var(--glitch-delay, 0s);
+}
+
+@keyframes streamGlitch {
+  0%   { transform: translateX(0) scaleX(1); color: var(--neon-cyan); }
+  25%  { transform: translateX(-3px) scaleX(1.04); color: rgba(255, 0, 150, 0.7); }
+  75%  { transform: translateX(2px) scaleX(0.97); color: rgba(255, 220, 0, 0.7); }
+  100% { transform: translateX(0) scaleX(1); color: var(--neon-cyan); }
+}
+
 /* ── CRT Scanline overlay (drifts slowly downward) ── */
 .boot::before {
   content: '';

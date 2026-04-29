@@ -17,6 +17,9 @@ import gsap from 'gsap'
 import styles from './SplashScreen.module.css'
 import { bus } from '../../engine'
 
+/** Circumference of countdown ring (r=42, 2πr ≈ 263.9) */
+const RING_CIRC = 2 * Math.PI * 42
+
 interface SplashScreenProps {
   onEnter: () => void
 }
@@ -58,6 +61,7 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     const lineRef = useRef<HTMLDivElement>(null)
     const coreRef = useRef<HTMLDivElement>(null)
     const [ready, setReady] = useState(false)
+    const [countdown, setCountdown] = useState(0) // 0..1 over 3s
     const enteredRef = useRef(false)
 
     // Merge forwarded ref with local ref
@@ -150,22 +154,47 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
       return () => { tl.kill() }
     }, [])
 
-    // Auto-enter to slot 3 s after splash finishes its entrance
+    // Countdown ring — fills over 3s after splash is ready, then auto-enters
     useEffect(() => {
       if (!ready) return
-      const t = setTimeout(() => {
-        if (!enteredRef.current) {
+      const dur = 3000
+      const start = performance.now()
+      let raf: number
+      const tick = () => {
+        const p = Math.min((performance.now() - start) / dur, 1)
+        setCountdown(p)
+        if (p < 1) {
+          raf = requestAnimationFrame(tick)
+        } else if (!enteredRef.current) {
           enteredRef.current = true
           onEnter()
         }
-      }, 3000)
-      return () => clearTimeout(t)
+      }
+      raf = requestAnimationFrame(tick)
+      return () => cancelAnimationFrame(raf)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ready])
 
-    // Handler — just calls parent, no local exit animation (App controls it)
-    const handleEnter = useCallback(() => {
+    // Handler — tap ripple + enter
+    const handleEnter = useCallback((e?: React.MouseEvent<HTMLDivElement>) => {
       if (enteredRef.current) return
+
+      // Tap ripple — concentric gold rings from click point
+      if (e && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const y = e.clientY - rect.top
+        for (let i = 0; i < 3; i++) {
+          const ripple = document.createElement('div')
+          ripple.className = styles.tapRipple ?? 'tapRipple'
+          ripple.style.left = `${x}px`
+          ripple.style.top = `${y}px`
+          ripple.style.animationDelay = `${i * 0.12}s`
+          containerRef.current.appendChild(ripple)
+          setTimeout(() => ripple.remove(), 1100)
+        }
+      }
+
       enteredRef.current = true
       onEnter()
     }, [onEnter])
@@ -182,7 +211,10 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     }, [handleEnter])
 
     return (
-      <div ref={setRefs} className={styles.splash} onClick={handleEnter}>
+      <div ref={setRefs} className={styles.splash} onClick={(e) => handleEnter(e)}>
+        {/* Holographic grid floor — perspective grid rising from bottom */}
+        <div className={styles.gridFloor} aria-hidden="true" />
+
         {/* Animated SVG turbulence noise — ambient cyberpunk grain */}
         <svg className={styles.noiseLayer} aria-hidden="true">
           <filter id="splashTurb">
@@ -260,6 +292,21 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
 
           <div ref={lineRef} className={styles.line} />
         </div>
+
+        {/* Countdown ring — SVG circle fills over 3s, signals auto-enter */}
+        <svg
+          className={`${styles.countdownRing} ${ready ? styles.countdownRingVisible : ''}`}
+          viewBox="0 0 100 100"
+          aria-hidden="true"
+        >
+          <circle className={styles.countdownTrack} cx="50" cy="50" r="42" />
+          <circle
+            className={styles.countdownFill}
+            cx="50" cy="50" r="42"
+            strokeDasharray={`${countdown * RING_CIRC} ${RING_CIRC}`}
+            style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+          />
+        </svg>
       </div>
     )
   },

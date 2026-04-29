@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import type { CellData } from '../../types'
 import styles from './Cell.module.css'
 
@@ -21,6 +22,20 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
     }
   }
 
+  // 3D perspective tilt on hover — cursor position → rotateX/Y vars
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const cx = ((e.clientX - rect.left) / rect.width - 0.5) * 2   // -1..+1
+    const cy = ((e.clientY - rect.top) / rect.height - 0.5) * 2   // -1..+1
+    e.currentTarget.style.setProperty('--cx', cx.toFixed(3))
+    e.currentTarget.style.setProperty('--cy', cy.toFixed(3))
+  }, [])
+
+  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.setProperty('--cx', '0')
+    e.currentTarget.style.setProperty('--cy', '0')
+  }, [])
+
   const bgStyle = data.color ? { background: data.color } : {}
 
   return (
@@ -28,6 +43,8 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
       className={cls}
       style={{ height: `${height}px`, boxSizing: 'border-box' }}
       onClick={handleClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       data-cell-type={data.type}
       {...(isCenter ? { 'data-center-cell': '' } : {})}
     >
@@ -35,6 +52,8 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
       <div className={styles.colorBg} style={bgStyle} />
       {/* Holographic shimmer sweep (activated on hover via CSS) */}
       <div className={styles.shimmer} aria-hidden />
+      {/* Cursor spotlight — follows mouse position via --cx/--cy */}
+      <div className={styles.spotlight} aria-hidden />
       {/* Neon animated outline SVG (shown on center winning cell) */}
       {isCenter && (
         <svg className={styles.neonOutline} aria-hidden>
