@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import App from './App'
+import { registerServiceWorker } from './sw-register'
 
 // Seed the phase attribute so body CSS vars apply immediately (avoids FOUC)
 document.body.setAttribute('data-phase', 'boot')
@@ -11,3 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// Service worker — production only. Registers after window.load so it
+// never competes with the first paint. Second visit becomes instant.
+registerServiceWorker()
