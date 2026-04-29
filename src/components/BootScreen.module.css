@@ -712,10 +712,65 @@
    want to penalize laptops in narrow windows.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @media (hover: none) and (pointer: coarse) {
+  /* ──────────────────────────────────────────────────────────────
+     ROOT CAUSE FIX (2026-04-29)
+     ──────────────────────────────────────────────────────────────
+     "Everything except the seven flickers" had two compounding causes:
+
+     A) Custom property writes (--mx/--my) on .boot → Blink/WebKit
+        invalidate the computed-style cascade for every descendant. Only
+        elements promoted to their own GPU layer (will-change, 3D
+        transform) escape the resulting paint storm. .sevenStage was
+        the only promoted child → only one not flickering.
+        FIX (JS): writes hoisted onto .sevenStage itself (BootScreen.tsx).
+
+     B) Even after (A), Samsung Internet's compositor implicitly demotes
+        non-promoted siblings of a heavily-promoted layer to a low-
+        priority software-composited bucket (chromium #828363 family,
+        viget "kill the flash"). Manifests as flicker on every
+        non-promoted element. FIX: explicitly promote every persistent
+        boot child to its own layer below.
+     ────────────────────────────────────────────────────────────── */
+
+  /* Contain style/paint propagation from .boot itself so any residual
+     attribute or class change on the host doesn't sweep the subtree. */
+  .boot {
+    contain: layout paint style;
+  }
+
+  /* Promote every persistent visual layer in the boot scene. Each gets
+     its own GPU compositor layer so a paint on one doesn't invalidate
+     the others. The properties are deliberately minimal (translateZ +
+     backface-visibility) — this is the cheapest, most-portable promote.
+     Canvas children (.nebula, .casinoField) are promoted in their own
+     CSS modules. */
+  .dataStream,
+  .hud,
+  .hudBar,
+  .hudBarFill,
+  .mfgBar,
+  .versionBar,
+  .continueWrap,
+  .holoRing,
+  .tapBtn,
+  .hologramName,
+  .tapHint {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
   /* Drop mix-blend-mode that fights mobile compositor */
   .dataStream {
     mix-blend-mode: normal;
     opacity: 0.18;
+  }
+
+  /* Kill the one-shot burst's screen blend on mobile (it's brief but
+     would still composite over a now-promoted .sevenStage). */
+  .systemBurst {
+    mix-blend-mode: normal;
+    opacity: 0.85;
   }
 
   /* Pin canvas layers so the compositor can't move them around between

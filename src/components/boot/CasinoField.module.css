@@ -16,3 +16,12 @@
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+/* Mobile: hard layer hint so Samsung Internet/Mali doesn't demote the
+   canvas to software composite when sibling layers churn. */
+@media (hover: none) and (pointer: coarse) {
+  .field {
+    will-change: transform;
+    isolation: isolate;
+  }
+}

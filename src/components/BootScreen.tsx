@@ -90,6 +90,14 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const tappedRef = useRef(false)
   const startTimeRef = useRef(0)
   const bootDivRef = useRef<HTMLDivElement>(null)
+  // CRITICAL: parallax CSS vars (--mx, --my) are written here, NOT on .boot.
+  // The vars are consumed only by .sevenStage (BootScreen.module.css:182-187),
+  // and writing them to .boot invalidated style for every descendant that
+  // shares the root compositor layer → mobile flicker on everything except
+  // the seven (which is the only element with its own GPU layer via
+  // will-change + 3D transform). Hoisting the writes onto sevenStage scopes
+  // the invalidation to the already-promoted layer.
+  const sevenStageRef = useRef<HTMLDivElement>(null)
   const hudBarFillRef = useRef<HTMLDivElement>(null)
   // Shared parallax state — written by our RAF, read directly by canvas
   // children (CyberNebula, CasinoField). Sharing via ref instead of CSS
@@ -191,7 +199,12 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
       m.x = lerp(m.x, m.tx, 0.055)
       m.y = lerp(m.y, m.ty, 0.055)
-      const el = bootDivRef.current
+      // Write to .sevenStage (already a promoted GPU layer), NOT .boot.
+      // Writing custom properties to .boot invalidates the computed-style
+      // cascade for every non-promoted descendant → forced repaint of HUD,
+      // mfgBar, holoRing, dataStream, etc. on every frame. Scoping the
+      // write to the promoted layer keeps invalidation off the main layer.
+      const el = sevenStageRef.current
       if (el) {
         el.style.setProperty('--mx', m.x.toFixed(4))
         el.style.setProperty('--my', m.y.toFixed(4))
@@ -440,8 +453,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       {/* Manufacturer gold bar */}
       <div className={styles.mfgBar} />
 
-      {/* Fullscreen Lucky 7 — blur focus loader */}
+      {/* Fullscreen Lucky 7 — blur focus loader.
+          ref carries the parallax CSS-var writes (--mx/--my) so they
+          stay scoped to this element's already-promoted GPU layer. */}
       <div
+        ref={sevenStageRef}
         className={styles.sevenStage}
         style={{ '--seven-progress': progress } as React.CSSProperties}
         aria-hidden="true"

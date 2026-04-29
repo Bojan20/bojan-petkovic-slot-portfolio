@@ -154,10 +154,18 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     const canvas = canvasRef.current
     if (!canvas) return
 
+    // Samsung Internet + Mali GPU: when preserveDrawingBuffer is false, the
+    // driver reallocates the back buffer between frames, and on certain
+    // Adreno/Mali revisions the realloc races with the compositor → visible
+    // flicker on the WebGL surface (chromium #828363, pixijs #5121).
+    // preserveDrawingBuffer:true forces the driver to keep a single buffer,
+    // which costs a tiny bit of memory but eliminates the flicker race.
+    // Desktop is unaffected — keep false for slightly lower memory there.
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
     const gl = canvas.getContext('webgl', {
       alpha: false,
       antialias: false,
-      preserveDrawingBuffer: false,
+      preserveDrawingBuffer: isCoarsePointer,
       powerPreference: 'low-power',
     })
     if (!gl) {
@@ -169,7 +177,7 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     // Mobile gets the lite shader (2-octave fbm, no second swirl). The
     // full shader drops frames on iPhone 11-class GPUs which manifests
     // as visible flicker rather than smooth slowdown.
-    const isMobile = window.matchMedia('(pointer: coarse)').matches
+    const isMobile = isCoarsePointer
     const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC)
     const fs = compile(gl, gl.FRAGMENT_SHADER, isMobile ? FRAG_SRC_LITE : FRAG_SRC)
     if (!vs || !fs) return

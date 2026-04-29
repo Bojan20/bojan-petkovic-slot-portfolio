@@ -18,10 +18,14 @@
 
 /* Mobile: drop mix-blend-mode (Safari compositor flickers when blending
    a WebGL canvas under animated CSS-var children) + slightly raise
-   opacity so the nebula still carries the scene without the screen blend. */
+   opacity so the nebula still carries the scene without the screen blend.
+   Add will-change as a hard hint so Samsung Internet/Mali doesn't demote
+   this layer to software composite when sibling layers churn. */
 @media (hover: none) and (pointer: coarse) {
   .nebula {
     mix-blend-mode: normal;
     opacity: 0.78;
+    will-change: transform;
+    isolation: isolate;
   }
 }
