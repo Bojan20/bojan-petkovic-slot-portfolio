@@ -49,6 +49,7 @@ import {
   probeXrCapability,
   loadCellMemory,
   scheduleKeyDetection,
+  startPersonaInference, stopPersonaInference,
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
@@ -341,6 +342,17 @@ export default function App() {
   useEffect(() => {
     const off = bus.on('audio:ambient:start', () => scheduleKeyDetection())
     return off
+  }, [])
+
+  // Persona inference (P1.8) — start tracking on boot:complete so the
+  // 30s warmup begins counting from a meaningful "user is engaged"
+  // moment. Emits custom:persona:inferred when the label changes.
+  useEffect(() => {
+    const off = bus.on('boot:complete', () => startPersonaInference())
+    return () => {
+      off()
+      stopPersonaInference()
+    }
   }, [])
 
   // Environment sensors — ambient light + idle detection.

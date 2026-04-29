@@ -252,6 +252,15 @@ export {
   resetKeyDetector,
 } from './TonalAnalyzer'
 
+export {
+  startPersonaInference,
+  stopPersonaInference,
+  getCurrentPersona,
+  getCurrentFeatures,
+  forceReclassify,
+} from './PersonaInference'
+export type { Persona } from './PersonaInference'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

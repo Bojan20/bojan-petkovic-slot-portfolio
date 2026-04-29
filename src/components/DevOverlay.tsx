@@ -36,7 +36,10 @@ import {
   startReelCapture,
   stopReelCapture,
   isReelCapturing,
+  getCurrentPersona,
+  forceReclassify,
 } from '../engine'
+import type { Persona } from '../engine'
 import { useAudioStore } from '../store'
 
 interface DevOverlayProps {
@@ -86,6 +89,56 @@ function NearMissDisclosure() {
       >
         {enabled ? 'DISABLE BIAS' : 'ENABLE BIAS'}
       </button>
+    </div>
+  )
+}
+
+/**
+ * PersonaPanel — surfaces the live persona inference (P1.8).
+ *
+ * After 30s of session activity, PersonaInference begins emitting
+ * `custom:persona:inferred`. We poll `getCurrentPersona()` at 1Hz +
+ * subscribe to the event so changes appear instantly.
+ */
+function PersonaPanel() {
+  const [persona, setPersona] = useState<Persona>('balanced')
+  const [scores, setScores] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    setPersona(getCurrentPersona())
+    const off = bus.on('custom:persona:inferred', (p) => {
+      const payload = p as { persona: Persona; scores: Record<string, number> }
+      setPersona(payload.persona)
+      setScores(payload.scores)
+    })
+    // 1Hz poll for the score breakdown (won't fire until first inference)
+    const id = setInterval(() => {
+      const c = forceReclassify()
+      setScores(c.scores)
+    }, 1000)
+    return () => { off(); clearInterval(id) }
+  }, [])
+
+  const PERSONA_LABELS: Record<Persona, string> = {
+    audio_designer:    '🎚️  AUDIO DESIGNER',
+    engineer:          '⚙️  ENGINEER',
+    em_recruiter:      '👔 EM / RECRUITER',
+    curiosity_browser: '📖 CURIOSITY',
+    balanced:          '· BALANCED',
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em' }}>
+        {PERSONA_LABELS[persona]}
+      </div>
+      <div style={{ fontSize: 9, opacity: 0.65, lineHeight: 1.6 }}>
+        {Object.entries(scores)
+          .sort(([, a], [, b]) => b - a)
+          .map(([k, v]) => `${k.split('_')[0]} ${v.toFixed(1)}`)
+          .join(' · ')
+        }
+      </div>
     </div>
   )
 }
@@ -350,6 +403,12 @@ export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Slot Psychology</div>
           <NearMissDisclosure />
+        </div>
+
+        {/* ── Persona inference (P1.8) ── */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>Persona</div>
+          <PersonaPanel />
         </div>
 
         {/* ── Capability matrix — what this browser supports ── */}

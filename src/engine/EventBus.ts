@@ -85,6 +85,13 @@ export interface CortexEventMap {
   'voice:command:load': void
   'voice:command:record': void
 
+  // Persona inference (P1.8) — passive recruiter classifier
+  'custom:persona:inferred': {
+    persona: 'audio_designer' | 'engineer' | 'em_recruiter' | 'curiosity_browser' | 'balanced'
+    scores: Record<string, number>
+    features: unknown
+  }
+
   // Cell memory (P0.2) — visited-state tracking
   // Fires whenever a cell becomes the center (winning row) and its
   // visit count is bumped. Subscribers can react with a "welcome
