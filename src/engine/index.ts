@@ -267,6 +267,13 @@ export {
 } from './PersonaInference'
 export type { Persona } from './PersonaInference'
 
+export {
+  transition as spinPhaseTransition,
+  isSpinLocked,
+  isLanded,
+} from './SpinPhaseMachine'
+export type { SpinEvent } from './SpinPhaseMachine'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
