@@ -631,3 +631,35 @@
     opacity: 0.92;
   }
 }
+
+/* ─── Affinity halo (P1.9) ──────────────────────────────────────
+   Pulses when ANOTHER cell with overlapping tools/color is hovered.
+   Reads as "everything connects" — the recruiter discovers cross-
+   section relationships without explanation. */
+.affinityHalo {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 30%,
+      rgba(34, 232, 255, 0.18) 80%,
+      rgba(34, 232, 255, 0.0) 100%
+    );
+  border: 1px solid rgba(34, 232, 255, 0.45);
+  mix-blend-mode: screen;
+  animation: affinityPulse 1100ms ease-in-out infinite;
+}
+@keyframes affinityPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.015); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .affinityHalo {
+    animation: none;
+    opacity: 0.6 !important;
+  }
+}

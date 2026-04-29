@@ -49,6 +49,30 @@ export function CellBackground() {
   // user discovering it now, second is when they came back.
   const showVisited = isCenter && visitCount >= 2
 
+  // Affinity pulse (P1.9) — when ANOTHER cell is hovered and shares
+  // tools or color with this one, this cell briefly pulses to surface
+  // the connection. Self-emission ignored (we don't pulse the source).
+  const [affinity, setAffinity] = useState(0)
+
+  useEffect(() => {
+    const offStart = bus.on('custom:cell:hover:start', (p) => {
+      const myTools = data.tools ?? []
+      const overlap = p.tools.filter((t) => myTools.includes(t)).length
+      const colorMatch = p.color === data.color ? 1 : 0
+      // Score: shared tool count plus a small bonus for matching palette.
+      // Cap at 1 since the value drives a CSS opacity / scale transform.
+      const score = Math.min(1, overlap * 0.4 + colorMatch * 0.3)
+      // Don't self-pulse — Cell broadcasts its own id, we filter
+      if (score > 0 && p.cellId) {
+        setAffinity(score)
+      }
+    })
+    const offEnd = bus.on('custom:cell:hover:end', () => {
+      setAffinity(0)
+    })
+    return () => { offStart(); offEnd() }
+  }, [data.tools, data.color])
+
   return (
     <>
       {/* Ambient color layer — per-project palette */}
@@ -62,6 +86,14 @@ export function CellBackground() {
         <svg className={styles.neonOutline} aria-hidden>
           <rect x="1.5" y="1.5" width="calc(100% - 3px)" height="calc(100% - 3px)" rx="4" ry="4" />
         </svg>
+      )}
+      {/* Affinity halo (P1.9) — subtle pulse on shared tools/color */}
+      {affinity > 0 && (
+        <div
+          className={styles.affinityHalo}
+          style={{ opacity: affinity }}
+          aria-hidden
+        />
       )}
       {/* Visited badge (P0.2) — gentle "you've been here" hint */}
       {showVisited && (

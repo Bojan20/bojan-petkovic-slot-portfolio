@@ -98,6 +98,12 @@ export interface CortexEventMap {
   // back" cue or simply re-render the visited badge.
   'custom:cell:visited': { cellKey: string; visitCount: number; isFirstVisit: boolean }
 
+  // Cell affinity graph (P1.9) — hover broadcast
+  // Cell.tsx fires :hover begin/end so other cells with overlapping
+  // tools / matching color can pulse their affinity highlight.
+  'custom:cell:hover:start': { tools: string[]; color: string; cellId: string }
+  'custom:cell:hover:end':   { cellId: string }
+
   // Environment sensors — ambient light + idle detection
   // env:lux fires whenever the AmbientLightSensor reports a reading.
   // user:idle / user:active fire when the IdleDetector crosses the

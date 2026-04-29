@@ -16,12 +16,13 @@
  * subcomponents directly from `./cell` and assemble manually.
  */
 
-import { useCallback } from 'react'
+import { useCallback, useId } from 'react'
 import type { CellData } from '../../types'
 import styles from './Cell.module.css'
 import { CellContext } from './cell/CellContext'
 import { CellBackground } from './cell/CellBackground'
 import { CellContent } from './cell/CellContent'
+import { bus } from '../../engine'
 
 interface CellProps {
   data: CellData
@@ -30,6 +31,7 @@ interface CellProps {
 }
 
 export function Cell({ data, height, onGameCellClick }: CellProps) {
+  const cellId = useId()
   const isCenter = data.center
   const cls = [
     styles.cell,
@@ -54,10 +56,22 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
     e.currentTarget.style.setProperty('--cy', cy.toFixed(3))
   }, [])
 
+  const handleMouseEnter = useCallback(() => {
+    // Broadcast affinity hover (P1.9) — other cells with shared tools
+    // or matching project color pulse a highlight. Subscribers self-
+    // cull (cells without overlap ignore the event).
+    bus.emit('custom:cell:hover:start', {
+      tools: data.tools ?? [],
+      color: data.color,
+      cellId,
+    })
+  }, [data.tools, data.color, cellId])
+
   const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.currentTarget.style.setProperty('--cx', '0')
     e.currentTarget.style.setProperty('--cy', '0')
-  }, [])
+    bus.emit('custom:cell:hover:end', { cellId })
+  }, [cellId])
 
   return (
     <CellContext.Provider value={{ data, isCenter }}>
@@ -66,6 +80,7 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
         style={{ height: `${height}px`, boxSizing: 'border-box' }}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         data-cell-type={data.type}
         {...(isCenter ? { 'data-center-cell': '' } : {})}
