@@ -7,6 +7,7 @@
   "scripts": {
     "studio": "node studio-server.mjs",
     "smart-edit": "node smart-edit.mjs",
+    "cinematic": "node cinematic.mjs",
     "simulate": "node record-simulator.mjs",
     "make": "node src/make-reel.mjs",
     "make:vertical": "node src/make-reel.mjs --format=vertical",
@@ -18,6 +19,7 @@
     "clean": "rm -rf output/* captures/raw-*.mp4"
   },
   "dependencies": {
-    "playwright": "^1.59.1"
+    "playwright": "^1.59.1",
+    "tesseract.js": "^5.1.1"
   }
 }
