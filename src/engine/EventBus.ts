@@ -77,6 +77,10 @@ export interface CortexEventMap {
   'voice:command:mute': void
   'voice:command:unmute': void
   'voice:command:jackpot': void
+  // Session-capture voice commands (Phase 32)
+  'voice:command:save': void
+  'voice:command:load': void
+  'voice:command:record': void
 
   // Environment sensors — ambient light + idle detection
   // env:lux fires whenever the AmbientLightSensor reports a reading.

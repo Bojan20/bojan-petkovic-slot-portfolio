@@ -115,10 +115,17 @@ const VOCABULARY: Array<{ patterns: string[]; cmd: VoiceCommand }> = [
   { patterns: ['previous', 'back', 'go back'], cmd: 'back' },
   { patterns: ['next', 'forward', 'go next'], cmd: 'next' },
   { patterns: ['jackpot', 'win', 'big win'], cmd: 'jackpot' },
+  // Session capture commands (Phase 32) — voice control parity with
+  // the keybindings (Ctrl+Shift+S/L/R) and DevOverlay buttons.
+  { patterns: ['save snapshot', 'save session', 'export'], cmd: 'save' },
+  { patterns: ['load snapshot', 'restore session', 'import'], cmd: 'load' },
+  { patterns: ['record reel', 'start recording', 'stop recording', 'record'], cmd: 'record' },
   { patterns: ['spin', 'go', 'play', 'roll'], cmd: 'spin' },
 ]
 
-export type VoiceCommand = 'spin' | 'next' | 'back' | 'mute' | 'unmute' | 'jackpot'
+export type VoiceCommand =
+  | 'spin' | 'next' | 'back' | 'mute' | 'unmute' | 'jackpot'
+  | 'save' | 'load' | 'record'
 
 const DEBOUNCE_MS = 600
 

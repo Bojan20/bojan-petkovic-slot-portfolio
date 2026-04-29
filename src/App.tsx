@@ -357,6 +357,27 @@ export default function App() {
     }
   }, [phase])
 
+  // ── Voice commands: session capture (save / load / record) ─────────
+  // Recruiter says "save snapshot", "load snapshot", or "record" and
+  // the same code path as the keybindings runs. Stays parallel to
+  // mute/unmute below — we keep voice subscriptions colocated.
+  useEffect(() => {
+    const offSave = bus.on('voice:command:save', () => {
+      void exportSnapshot().catch(() => {})
+    })
+    const offLoad = bus.on('voice:command:load', () => {
+      void importSnapshot().catch(() => {})
+    })
+    const offRec = bus.on('voice:command:record', () => {
+      if (isReelCapturing()) {
+        void stopReelCapture().catch(() => {})
+      } else {
+        void startReelCapture(audioRef.current).catch(() => {})
+      }
+    })
+    return () => { offSave(); offLoad(); offRec() }
+  }, [])
+
   // ── Voice command: mute / unmute ────────────────────────────────────
   // SlotMachine handles spin/next/back/jackpot itself (those need its
   // local handlers + state guards). Audio mute is app-level so we
