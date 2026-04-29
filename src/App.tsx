@@ -23,6 +23,7 @@ import { BootScreen } from './components/BootScreen'
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
+import { PullToRefresh } from './components/PullToRefresh'
 import { bus, initAudioBridge, disposeAudioBridge } from './engine'
 import { SlotAudioManager } from './components/SlotAudioManager'
 
@@ -230,6 +231,10 @@ export default function App() {
 
       {/* Slot Audio Manager — Shift+A to toggle */}
       <SlotAudioManager />
+
+      {/* Pull-to-refresh — active in boot/splash, suppressed during slot
+          interaction (slot has its own swipe gestures for section + reel) */}
+      <PullToRefresh enabled={phase !== 'slot'} />
     </>
   )
 }

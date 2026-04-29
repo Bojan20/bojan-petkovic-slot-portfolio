@@ -1,0 +1,142 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PullToRefresh — custom mobile gesture indicator
+
+   Native pull-to-refresh is disabled across the app (boot has
+   touch-action: none for parallax, splash has overscroll-behavior: none).
+   This component re-implements P2R on top with a CORTEX-branded chevron
+   that respects the same gesture pattern users expect on iOS / Android.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, calc(-100% + var(--p2r-pull, 0px)));
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 24px 10px;
+  min-width: 180px;
+  pointer-events: none;
+  font-family: var(--f-mono);
+  background: linear-gradient(180deg, rgba(8, 6, 16, 0.92) 0%, rgba(2, 3, 8, 0.85) 100%);
+  border: 1px solid rgba(34, 232, 255, 0.4);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow:
+    0 6px 22px rgba(0, 0, 0, 0.85),
+    0 0 30px rgba(34, 232, 255, 0.18),
+    inset 0 -1px 0 rgba(34, 232, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Disabled by default — JS toggles via inline style or class */
+  opacity: 0;
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+}
+
+.indicatorVisible {
+  opacity: 1;
+}
+
+.indicatorReleasing {
+  /* Snap-back when user releases below threshold — handled by JS */
+  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.indicatorRefreshing {
+  /* While reload is firing, lock to threshold height + pulse */
+  animation: refreshPulse 0.9s ease-in-out infinite;
+}
+
+/* ── Chevron — rotates with pull progress, becomes gold at threshold ── */
+.chevron {
+  width: 28px;
+  height: 28px;
+  position: relative;
+  /* --p2r-progress is 0..1 — drives rotation (0 = pointing down, 1 = pointing up) */
+  transform: rotate(calc(var(--p2r-progress, 0) * -180deg));
+  transition: transform 0.06s linear;
+}
+
+.chevron::before,
+.chevron::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(34, 232, 255, calc(0.5 + var(--p2r-progress, 0) * 0.5)),
+    rgba(240, 216, 120, calc(0.4 + var(--p2r-progress, 0) * 0.6))
+  );
+  box-shadow: 0 0 6px rgba(34, 232, 255, calc(var(--p2r-progress, 0) * 0.7)),
+              0 0 12px rgba(240, 216, 120, calc(var(--p2r-progress, 0) * 0.5));
+  transform-origin: 1px 1px;
+}
+
+.chevron::before {
+  left: 5px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.chevron::after {
+  right: 5px;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+/* When threshold met, chevron color/glow lock to gold */
+.chevronArmed::before,
+.chevronArmed::after {
+  background: linear-gradient(90deg, #fff8e0, #f0d878 50%, #fff8e0);
+  box-shadow: 0 0 10px #f0d878, 0 0 20px rgba(240, 216, 120, 0.6);
+}
+
+/* ── Label ── */
+.label {
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(34, 232, 255, 0.85);
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.5);
+  white-space: nowrap;
+}
+
+.labelArmed {
+  color: #fff8e0;
+  text-shadow: 0 0 8px #f0d878, 0 0 16px rgba(240, 216, 120, 0.6);
+}
+
+/* ── Refreshing state — spinner replaces chevron ── */
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(34, 232, 255, 0.25);
+  border-top-color: var(--neon-cyan);
+  border-radius: 50%;
+  animation: spinnerSpin 0.7s linear infinite;
+}
+
+@keyframes spinnerSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes refreshPulse {
+  0%, 100% { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.85), 0 0 30px rgba(34, 232, 255, 0.18); }
+  50%      { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.85), 0 0 50px rgba(34, 232, 255, 0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator,
+  .indicatorReleasing,
+  .indicatorRefreshing,
+  .chevron,
+  .spinner {
+    animation: none !important;
+    transition: opacity 0.1s ease !important;
+  }
+}
