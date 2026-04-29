@@ -9,8 +9,37 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { bus, unlockAudioContext, initSoundManager, portfolioConfig } from '../engine'
+import {
+  bus,
+  unlockAudioContext,
+  initSoundManager,
+  playSynthById,
+  portfolioConfig,
+} from '../engine'
 import styles from './BootScreen.module.css'
+
+/** Stable IGT-style serial — varies per session but deterministic per page-load */
+function generateSerial(): string {
+  const seg = (n: number) => Math.floor(Math.random() * Math.pow(36, n))
+    .toString(36).toUpperCase().padStart(n, '0')
+  return `SN-${seg(4)}-${seg(3)}`
+}
+
+/** Detect once: does the user prefer reduced motion (vestibular safety) */
+function getPrefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/** Mobile detection — drives the visibility of the finger-tap cue */
+function isMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  return (
+    'ontouchstart' in window ||
+    (navigator.maxTouchPoints ?? 0) > 0 ||
+    window.matchMedia('(pointer: coarse)').matches
+  )
+}
 
 interface BootScreenProps {
   onComplete: () => void
@@ -47,8 +76,12 @@ export function BootScreen({ onComplete }: BootScreenProps) {
   const tappedRef = useRef(false)
   const startTimeRef = useRef(0)
   const bootDivRef = useRef<HTMLDivElement>(null)
+  const hudBarFillRef = useRef<HTMLDivElement>(null)
   const mouseLerpRef = useRef({ x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 })
   const parallaxRafRef = useRef(0)
+  const reducedMotion = useMemo(() => getPrefersReducedMotion(), [])
+  const mobile = useMemo(() => isMobile(), [])
+  const serial = useMemo(() => generateSerial(), [])
   // Gyroscope calibration baseline — captured on first reading so resting
   // phone pose maps to (0.5, 0.5). Avoids the "7 lurches sideways" feel
   // recruiters get when they pick up the phone in landscape.
@@ -124,8 +157,9 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
       // After 1.5s of no input, gently breathe with sin/cos so the 7
       // never goes still — matters on mobile where the user's not
-      // hovering a mouse.
-      if (idleFor > 1500) {
+      // hovering a mouse. Skipped entirely under prefers-reduced-motion
+      // so vestibular-sensitive users get a static frame.
+      if (!reducedMotion && idleFor > 1500) {
         const t = now * 0.0006
         const ambX = 0.5 + Math.sin(t) * 0.10
         const ambY = 0.5 + Math.cos(t * 0.85) * 0.08
@@ -220,6 +254,24 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => clearTimeout(t)
   }, [typed, stepIdx, loadingSteps])
 
+  // ── Ready signal: fires once when load reaches 100% ────────────────
+  // Two cues so the recruiter perceives "ready" before they consciously
+  // scan the screen for it:
+  //   1) Audio: subtle shimmer ping (only if AudioContext already alive
+  //      — boot synths haven't been unlocked yet here; ping is silent
+  //      until tap, but we kick it just in case the user pre-tapped.)
+  //   2) Visual: energy surge animation on the loading bar — gold flash
+  //      that signals "anticipation" before they see CONTINUE button.
+  useEffect(() => {
+    if (!loadingDone) return
+    const fill = hudBarFillRef.current
+    if (fill) {
+      fill.setAttribute('data-energy-surge', 'true')
+      const cleanup = setTimeout(() => fill.removeAttribute('data-energy-surge'), 700)
+      return () => clearTimeout(cleanup)
+    }
+  }, [loadingDone])
+
   // Tap handler — unlock audio + fire system-online burst
   const handleTap = useCallback(async () => {
     if (tappedRef.current || !loadingDone) return
@@ -248,9 +300,51 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
     bus.emit('boot:tap')
 
+    // Ready ping — subtle shimmer chime now that the AudioContext is
+    // freshly unlocked. Played at low volume so it sits under the
+    // boot:tap synth without competing.
+    try { playSynthById('sfx_shimmer', 0.22) } catch { /* synth unavailable */ }
+
     // Scanline flash + static burst (200ms)
     setBurst(true)
     setTimeout(() => setBurst(false), 280)
+
+    // ── Particle burst — 36 sparks fly outward from center ──
+    // Skipped under prefers-reduced-motion. Spawned imperatively (DOM
+    // append + CSS keyframe) instead of React state to avoid rerenders
+    // and to let the layer self-clean after 1.2s.
+    if (!reducedMotion) {
+      const root = bootDivRef.current
+      if (root) {
+        const layer = document.createElement('div')
+        layer.className = styles.burstLayer ?? 'burstLayer'
+        layer.setAttribute('aria-hidden', 'true')
+        const N = 36
+        for (let i = 0; i < N; i++) {
+          const sp = document.createElement('span')
+          sp.className = styles.burstParticle ?? 'burstParticle'
+          const angle = (i / N) * Math.PI * 2
+          // Mix radius so explosion isn't a perfect circle — feels organic
+          const distance = 38 + Math.random() * 32 // vmax units
+          const dx = Math.cos(angle) * distance
+          const dy = Math.sin(angle) * distance
+          sp.style.setProperty('--bx', `${dx.toFixed(2)}vmax`)
+          sp.style.setProperty('--by', `${dy.toFixed(2)}vmax`)
+          sp.style.setProperty('--bd', `${(0.55 + Math.random() * 0.35).toFixed(2)}s`)
+          // Tri-color rotation: gold (warm hero), cyan (neon highlight),
+          // ivory (energy core white). Roughly 1:1:1 distribution.
+          const palette = i % 3 === 0
+            ? '#f0d878' // gold
+            : i % 3 === 1
+              ? '#22e8ff' // neon cyan
+              : '#fff8e0' // ivory white
+          sp.style.setProperty('--bc', palette)
+          layer.appendChild(sp)
+        }
+        root.appendChild(layer)
+        setTimeout(() => layer.remove(), 1200)
+      }
+    }
 
     // Exit after burst
     setTimeout(() => setExiting(true), 180)
@@ -259,7 +353,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       bus.emit('boot:complete')
       onComplete()
     }, 900)
-  }, [loadingDone, audio, onComplete])
+  }, [loadingDone, audio, onComplete, reducedMotion])
 
   // Keyboard support
   useEffect(() => {
@@ -330,6 +424,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         </div>
         <div className={styles.hudBar}>
           <div
+            ref={hudBarFillRef}
             className={styles.hudBarFill}
             style={{ transform: `scaleX(${progress})` }}
           />
@@ -347,10 +442,23 @@ export function BootScreen({ onComplete }: BootScreenProps) {
           type="button"
           disabled={!loadingDone}
           aria-hidden={!loadingDone}
+          aria-label="Tap to continue"
         >
           CONTINUE
         </button>
       </div>
+
+      {/* Mobile finger-tap cue — only on touch devices, only post-load */}
+      {mobile && (
+        <div
+          className={`${styles.tapHint} ${loadingDone ? styles.tapHintVisible : ''}`}
+          aria-hidden="true"
+        >
+          <span className={styles.tapHintDot} />
+          <span>Tap anywhere to begin</span>
+          <span className={styles.tapHintDot} />
+        </div>
+      )}
 
       {/* Holographic name — forms from particles as 7 comes into focus */}
       <div
@@ -360,9 +468,14 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         BOJAN PETKOVIĆ
       </div>
 
-      {/* Version bar */}
+      {/* Version bar — IGT-style asset code + live LED */}
       <div className={styles.versionBar}>
-        CORTEX ENGINE v1.0 — PORTFOLIO SYSTEM
+        <span className={styles.versionLed} aria-hidden="true" />
+        <span>CORTEX&nbsp;ENGINE&nbsp;v1.0</span>
+        <span className={styles.versionPipe} aria-hidden="true">·</span>
+        <span className={styles.versionSerial}>{serial}</span>
+        <span className={styles.versionPipe} aria-hidden="true">·</span>
+        <span>PORTFOLIO&nbsp;SYSTEM</span>
       </div>
 
       {/* System-online burst — radial scanline flash + static noise */}

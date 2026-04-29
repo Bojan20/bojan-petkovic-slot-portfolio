@@ -63,7 +63,7 @@
   100% { transform: translateY(120%); opacity: 0; }
 }
 
-/* ── CRT Scanline overlay ── */
+/* ── CRT Scanline overlay (drifts slowly downward) ── */
 .boot::before {
   content: '';
   position: absolute;
@@ -76,8 +76,15 @@
     rgba(34, 232, 255, 0.04) 3px,
     rgba(0, 0, 0, 0.12) 4px
   );
+  background-size: 100% 4px;
   pointer-events: none;
   z-index: 10;
+  animation: scanlineDrift 9s linear infinite;
+}
+
+@keyframes scanlineDrift {
+  0%   { background-position-y: 0; }
+  100% { background-position-y: 4px; }
 }
 
 /* ── Vignette overlay ── */
@@ -228,11 +235,39 @@
   transition: transform 80ms linear;
 }
 
+/* Energy surge — gold flicker that fires once when bar hits 100% (anticipation) */
+.hudBarFill[data-energy-surge="true"] {
+  animation: energySurge 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes energySurge {
+  0% {
+    filter: brightness(1) saturate(1);
+    box-shadow: 0 0 12px var(--neon-cyan-glow), 0 0 20px rgba(240, 216, 120, 0.35);
+  }
+  35% {
+    filter: brightness(2.4) saturate(1.6);
+    box-shadow:
+      0 0 36px rgba(255, 255, 255, 0.9),
+      0 0 70px rgba(240, 216, 120, 0.85),
+      0 0 110px rgba(34, 232, 255, 0.5);
+  }
+  70% {
+    filter: brightness(1.5) saturate(1.2);
+    box-shadow: 0 0 22px rgba(240, 216, 120, 0.6), 0 0 40px rgba(34, 232, 255, 0.4);
+  }
+  100% {
+    filter: brightness(1) saturate(1);
+    box-shadow: 0 0 12px var(--neon-cyan-glow), 0 0 20px rgba(240, 216, 120, 0.35);
+  }
+}
+
 /* ── CONTINUE wrapper ── */
 .continueWrap {
   position: absolute;
   left: 50%;
-  bottom: clamp(56px, 10vh, 100px);
+  /* Lift above iPhone home-indicator safe area */
+  bottom: max(clamp(56px, 10vh, 100px), calc(env(safe-area-inset-bottom, 0px) + 56px));
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
@@ -256,10 +291,41 @@
   transform: translate(-50%, -50%) scale(0.85);
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .holoRingActive {
   animation: holoPulse 2s ease-in-out infinite;
+}
+
+/* Rotating conic-gradient shimmer sweep around the ring perimeter */
+.holoRingActive::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(34, 232, 255, 0.55) 50deg,
+    rgba(255, 248, 224, 0.95) 95deg,
+    rgba(177, 76, 255, 0.55) 140deg,
+    transparent 200deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  padding: 1px;
+  pointer-events: none;
+  opacity: 0.85;
+  animation: holoSpin 3.4s linear infinite;
+}
+
+@keyframes holoSpin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes holoPulse {
@@ -299,7 +365,7 @@
 }
 
 .tapBtnVisible {
-  animation: tapBtnEnter 0.6s ease-out forwards, tapBtnPulse 2s ease-in-out 0.6s infinite;
+  animation: tapBtnEnter 0.6s ease-out forwards, tapBtnPulseStrong 1.6s ease-in-out 0.6s infinite;
 }
 
 @keyframes tapBtnEnter {
@@ -309,27 +375,69 @@
   }
 }
 
-@keyframes tapBtnPulse {
+/* Stronger pulse — pulls the eye to the CTA once load completes */
+@keyframes tapBtnPulseStrong {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(34, 232, 255, 0.18);
-    border-color: rgba(34, 232, 255, 0.35);
+    box-shadow: 0 0 18px rgba(34, 232, 255, 0.22), inset 0 0 8px rgba(34, 232, 255, 0.12);
+    border-color: rgba(34, 232, 255, 0.45);
+    transform: translateY(0) scale(1);
+    color: var(--g-text);
   }
   50% {
-    box-shadow: 0 0 28px var(--neon-cyan-glow), 0 0 40px rgba(177, 76, 255, 0.3);
+    box-shadow:
+      0 0 38px var(--neon-cyan-glow),
+      0 0 80px rgba(177, 76, 255, 0.42),
+      inset 0 0 22px rgba(177, 76, 255, 0.28);
     border-color: var(--neon-cyan);
+    transform: translateY(-1px) scale(1.025);
+    color: #fff;
   }
 }
 
 /* ── Version info (bottom) ── */
 .versionBar {
   position: absolute;
-  bottom: clamp(16px, 3vh, 32px);
+  /* Honor iPhone home-indicator safe area */
+  bottom: max(clamp(16px, 3vh, 32px), env(safe-area-inset-bottom, 16px));
   font-family: var(--f-mono);
   font-size: 9px;
   letter-spacing: 0.25em;
   color: rgba(34, 232, 255, 0.45);
   text-shadow: 0 0 6px rgba(34, 232, 255, 0.3);
   z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Live LED dot — signals "system online" */
+.versionLed {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22e8ff;
+  box-shadow: 0 0 6px #22e8ff, 0 0 12px rgba(34, 232, 255, 0.6);
+  animation: ledBlink 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ledBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.85); }
+}
+
+/* IGT-style serial number — fixed-format pseudo-asset code */
+.versionSerial {
+  opacity: 0.55;
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  color: rgba(240, 216, 120, 0.7);
+  text-shadow: 0 0 5px rgba(240, 216, 120, 0.45);
+}
+
+.versionPipe {
+  opacity: 0.35;
+  color: rgba(34, 232, 255, 0.6);
 }
 
 /* ── System-online burst: radial scanline flash + static noise ── */
@@ -428,4 +536,147 @@
   0%   { opacity: 1; }
   60%  { opacity: 0.4; transform: scale(1.04); filter: blur(4px) hue-rotate(30deg); }
   100% { opacity: 0; transform: scale(1.08); filter: blur(10px) hue-rotate(60deg); }
+}
+
+/* ── Particle burst — radial explosion from center on tap ──
+   36 colored sparks fly outward along even angular distribution.
+   Spawned imperatively in handleTap (see BootScreen.tsx). */
+.burstLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 35;
+}
+
+.burstParticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bc, #fff);
+  box-shadow: 0 0 12px var(--bc, #fff), 0 0 28px var(--bc, #fff);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  animation: burstFly var(--bd, 0.7s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes burstFly {
+  0% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 1;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+      calc(-50% + var(--bx, 0)),
+      calc(-50% + var(--by, 0))
+    ) scale(0.25);
+    opacity: 0;
+  }
+}
+
+/* ── Mobile finger-tap cue — pulses below the CONTINUE button ── */
+.tapHint {
+  position: absolute;
+  left: 50%;
+  bottom: max(clamp(28px, 5.5vh, 56px), calc(env(safe-area-inset-bottom, 0px) + 28px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: rgba(34, 232, 255, 0.6);
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+.tapHintVisible {
+  animation:
+    tapHintIn 0.45s ease-out 0.4s forwards,
+    tapHintFloat 2.4s ease-in-out 0.85s infinite;
+}
+
+@keyframes tapHintIn {
+  to { opacity: 0.85; }
+}
+
+@keyframes tapHintFloat {
+  0%, 100% { transform: translate(-50%, 0); opacity: 0.85; }
+  50%      { transform: translate(-50%, 4px); opacity: 0.55; }
+}
+
+.tapHintDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+  animation: tapHintPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes tapHintPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+    box-shadow: 0 0 8px var(--neon-cyan-glow);
+  }
+  50% {
+    transform: scale(1.7);
+    opacity: 1;
+    box-shadow:
+      0 0 14px var(--neon-cyan-glow),
+      0 0 26px rgba(34, 232, 255, 0.55);
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   prefers-reduced-motion — honor users with vestibular sensitivity
+   (kills all infinite + transform-heavy animations; one-shot keeps OK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (prefers-reduced-motion: reduce) {
+  .streamCol,
+  .caret,
+  .holoRingActive,
+  .tapBtnVisible,
+  .hologramNameVisible,
+  .systemBurst,
+  .burstParticle,
+  .tapHintVisible,
+  .tapHintDot,
+  .versionLed,
+  .bootExit {
+    animation: none !important;
+  }
+  .holoRingActive::before {
+    animation: none !important;
+    opacity: 0;
+  }
+  .boot::before {
+    animation: none !important;
+  }
+  .sevenStage {
+    transform: translate(-50%, -56%) scale(1) !important;
+    filter: drop-shadow(0 0 80px rgba(201, 162, 39, 0.4)) !important;
+    opacity: 1 !important;
+  }
+  .hologramName {
+    opacity: 0.9 !important;
+    filter: none !important;
+    letter-spacing: clamp(4px, 2vw, 20px) !important;
+  }
+  .tapBtnVisible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
 }
