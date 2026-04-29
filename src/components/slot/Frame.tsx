@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import styles from './Frame.module.css'
+import { bus } from '../../engine'
 
 interface FrameProps {
   children: ReactNode
@@ -8,8 +9,37 @@ interface FrameProps {
 }
 
 export function Frame({ children, isSpinning, cellHeight = 0 }: FrameProps) {
+  const frameRef = useRef<HTMLDivElement>(null)
+
+  // P1.11 — cabinet "ripple" deformation on jackpot wins.
+  // When slot:win[jackpot] fires, the frame applies a damped sine-wave
+  // distortion via CSS animation: corner medallions ripple outward,
+  // pillars flex slightly, the whole cabinet feels like a struck bell.
+  // On big/medium wins we fire a smaller flex; small wins are silent
+  // (audio cue carries them).
+  useEffect(() => {
+    const off = bus.on('slot:win', (p) => {
+      const el = frameRef.current
+      if (!el) return
+      // Stagger the class so re-firing during rapid wins re-triggers
+      // the animation instead of being suppressed by CSS dedupe
+      el.classList.remove(styles.rippleJackpot ?? '', styles.rippleBig ?? '')
+      // Force reflow so re-adding the class restarts the animation
+      void el.offsetWidth
+      const cls = p.type === 'jackpot' ? styles.rippleJackpot
+                : p.type === 'big'     ? styles.rippleBig
+                                       : null
+      if (cls) {
+        el.classList.add(cls)
+        setTimeout(() => el.classList.remove(cls), 720)
+      }
+    })
+    return off
+  }, [])
+
   return (
     <div
+      ref={frameRef}
       className={styles.frame}
       style={cellHeight > 0 ? { '--cell-h': `${cellHeight}px` } as React.CSSProperties : undefined}
     >
