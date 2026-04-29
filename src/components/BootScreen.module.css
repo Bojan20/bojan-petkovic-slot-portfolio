@@ -110,7 +110,10 @@
   box-shadow: 0 0 10px rgba(34, 232, 255, 0.5);
 }
 
-/* ── Fullscreen Lucky 7 — blur focus loader + 3D mouse parallax ── */
+/* ── Fullscreen Lucky 7 — blur focus loader + 3D mouse parallax ──
+   Focus curve is non-linear: --seven-focus reaches 1.0 at progress ≈ 0.55
+   so the 7 is sharp by mid-load, then HUD + name assemble around it.
+   Old curve had blur = 48px at p=0 → 7 was invisible until the very end. */
 .sevenStage {
   position: absolute;
   top: 50%;
@@ -124,20 +127,21 @@
   z-index: 4;
   transform-origin: center center;
   transform-style: preserve-3d;
-  --blur-max: 48px;
+  --blur-max: 22px;
+  --seven-focus: clamp(0, calc(var(--seven-progress, 0) * 1.8), 1);
   transform:
     translate(
       calc(-50% + (var(--mx, 0.5) - 0.5) * -55px),
       calc(-56% + (var(--my, 0.5) - 0.5) * -32px)
     )
-    scale(calc(0.65 + var(--seven-progress, 0) * 0.35))
+    scale(calc(0.84 + var(--seven-focus) * 0.16))
     rotateX(calc((var(--my, 0.5) - 0.5) * -9deg))
     rotateY(calc((var(--mx, 0.5) - 0.5) * 14deg));
   filter:
-    blur(calc((1 - var(--seven-progress, 0)) * var(--blur-max)))
-    drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.15 + var(--seven-progress, 0) * 0.4)))
-    drop-shadow(0 0 60px rgba(34, 232, 255, calc(var(--seven-progress, 0) * 0.25)));
-  opacity: calc(0.35 + var(--seven-progress, 0) * 0.65);
+    blur(calc((1 - var(--seven-focus)) * var(--blur-max)))
+    drop-shadow(0 0 120px rgba(201, 162, 39, calc(0.20 + var(--seven-focus) * 0.4)))
+    drop-shadow(0 0 60px rgba(34, 232, 255, calc(var(--seven-focus) * 0.25)));
+  opacity: calc(0.62 + var(--seven-focus) * 0.38);
   will-change: transform, filter;
 }
 
