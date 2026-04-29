@@ -8,14 +8,14 @@ import { TabBar } from './TabBar'
 import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
 import { SpinButton } from './SpinButton'
+import { getStrategy, STRATEGIES } from './sections'
 import styles from './SlotMachine.module.css'
 
-const STRIP_ROWS = 7
-
-function wrap<T>(arr: T[], i: number): T {
-  return arr[((i % arr.length) + arr.length) % arr.length]!
-}
-
+/**
+ * Section-data lookup for code paths outside `getColData` (payline
+ * takeover, hover preview, etc.) that need the raw item arrays.
+ * Strategies own assembly; this helper owns raw-data access.
+ */
 function getDataForSection(sectionIdx: number) {
   switch (sectionIdx) {
     case 0: return PROJECTS
@@ -28,34 +28,14 @@ function getDataForSection(sectionIdx: number) {
 }
 
 /**
- * Row excitement (P0.3 — Anticipation Reels).
- *
- * Returns 0..1 indicating how "rich" the landing row is. For projects
- * we count scope coverage (music + sfx + integration + qa) plus the
- * demo flag — a project that did all four sound disciplines AND has a
- * demo earns a full score and triggers Jackpot mode. For sections
- * without a meaningful "win condition" we return 0.
- *
- * Used in two places:
- *   1. Last reel deceleration timing — high excitement extends the
- *      final-reel delay by up to 600ms, creating a literal "will it
- *      land on jackpot?" anticipation moment.
- *   2. slot:win event payload — the win type (small/medium/big/jackpot)
- *      cascades automatically through SpeechAnnouncer, HapticOrchestra,
- *      and SpatialAudio, all of which already key off slot:win.
+ * Row excitement — delegates to the section strategy (P0.7 refactor).
+ * Strategies without an `rowExcitement` scorer return 0 (no win
+ * condition exists for that section).
  */
 function rowExcitement(sectionIdx: number, itemIdx: number): number {
   const secId = SECTIONS[sectionIdx]?.id
-  if (secId !== 'projects') return 0
-  const p = PROJECTS[itemIdx]
-  if (!p) return 0
-  let score = 0
-  if (p.scope.music)       score += 1
-  if (p.scope.sfx)         score += 1
-  if (p.scope.integration) score += 1
-  if (p.scope.qa)          score += 1
-  if (p.demo)              score += 1
-  return score / 5  // 0..1
+  const strat = getStrategy(secId)
+  return strat?.rowExcitement?.(itemIdx) ?? 0
 }
 
 /** Map an excitement score to a slot:win type bucket. */
@@ -90,98 +70,25 @@ function nearMissAdjust(targetIdx: number, sectionIdx: number, enabled: boolean)
   if (e < 0.85) return targetIdx               // not a jackpot row
   if (Math.random() > NEAR_MISS_PROBABILITY) return targetIdx  // 75% jackpot proceeds
   // Find the nearest adjacent index that's NOT also a jackpot row.
-  const arr = getDataForSection(sectionIdx)
-  const len = arr.length
+  const secId = SECTIONS[sectionIdx]?.id
+  const len = secId ? STRATEGIES[secId].itemCount : 0
+  if (len === 0) return targetIdx
   for (const offset of [-1, 1, -2, 2]) {
     const candidate = ((targetIdx + offset) % len + len) % len
     if (rowExcitement(sectionIdx, candidate) < 0.85) return candidate
   }
-  return targetIdx  // every adjacent is also jackpot — proceed without bias
+  return targetIdx
 }
 
+/**
+ * Build the visible reel grid — delegates to the per-section strategy.
+ * Replaces the old polymorphic if/else over secId. Adding a section
+ * is now `register strategy in sections/index.ts`, no SlotMachine edit.
+ */
 function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
-  const half = 3
-  const n = STRIP_ROWS
-  const arr = getDataForSection(sectionIdx)
-  const secId = SECTIONS[sectionIdx]!.id
-
-  // ── PROJECTS: 5 cols — GAME | SCOPE | WORK | TOOLS | DEMO
-  if (secId === 'projects') {
-    const cols: CellData[][] = [[], [], [], [], []]
-    for (let k = 0; k < n; k++) {
-      const p = wrap(arr as typeof PROJECTS, centerIdx - half + k) as typeof PROJECTS[0]
-      const isC = k === half
-      const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'game',  ico: p.ico, name: p.name, studio: p.studio, color: p.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'scope', scope: p.scope, color: p.color, center: isC })
-      cols[2]!.push({ type: 'detail', text: p.work, color: p.color, center: isC })
-      cols[3]!.push({ type: 'tools', tools: p.tools, color: p.color, center: isC })
-      cols[4]!.push({ type: 'demo',  demo: p.demo, color: p.color, center: isC })
-    }
-    return cols
-  }
-
-  // ── SKILLS: 5 cols — SKILL | LEVEL | DETAILS | TOOLS | DOMAIN
-  if (secId === 'skills') {
-    const cols: CellData[][] = [[], [], [], [], []]
-    for (let k = 0; k < n; k++) {
-      const s = wrap(arr as typeof SKILLS_DATA, centerIdx - half + k) as typeof SKILLS_DATA[0]
-      const isC = k === half
-      const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'simple', ico: s.ico, name: s.name, studio: '', color: s.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'tools',  tools: [s.level], color: s.color, center: isC })
-      cols[2]!.push({ type: 'detail', text: s.desc, color: s.color, center: isC })
-      cols[3]!.push({ type: 'tools',  tools: s.tools, color: s.color, center: isC })
-      cols[4]!.push({ type: 'tools',  tools: [s.domain], color: s.color, center: isC })
-    }
-    return cols
-  }
-
-  // ── ABOUT: 5 cols — PROFILE | CONTEXT | STORY | FACTS | FOCUS
-  if (secId === 'about') {
-    const cols: CellData[][] = [[], [], [], [], []]
-    for (let k = 0; k < n; k++) {
-      const d = wrap(arr as typeof ABOUT_DATA, centerIdx - half + k) as typeof ABOUT_DATA[0]
-      const isC = k === half
-      const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',           color: d.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'detail', text: d.period || '',                            color: d.color, center: isC })
-      cols[2]!.push({ type: 'detail', text: d.desc,                                   color: d.color, center: isC })
-      cols[3]!.push({ type: 'tools',  tools: (d.highlights || []).slice(0, 3),        color: d.color, center: isC })
-      cols[4]!.push({ type: 'tools',  tools: (d.highlights || []).slice(3),           color: d.color, center: isC })
-    }
-    return cols
-  }
-
-  // ── CAREER: 5 cols — COMPANY | PERIOD | ROLE | SCOPE | IMPACT
-  if (secId === 'career') {
-    const cols: CellData[][] = [[], [], [], [], []]
-    for (let k = 0; k < n; k++) {
-      const d = wrap(arr as typeof EXP_DATA, centerIdx - half + k) as typeof EXP_DATA[0]
-      const isC = k === half
-      const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',           color: d.color, center: isC, itemIndex })
-      cols[1]!.push({ type: 'detail', text: d.period || '',                            color: d.color, center: isC })
-      cols[2]!.push({ type: 'detail', text: d.desc,                                   color: d.color, center: isC })
-      cols[3]!.push({ type: 'tools',  tools: (d.highlights || []).slice(0, 2),        color: d.color, center: isC })
-      cols[4]!.push({ type: 'tools',  tools: (d.highlights || []).slice(2),           color: d.color, center: isC })
-    }
-    return cols
-  }
-
-  // ── CONTACT: 5 cols — CHANNEL | TYPE | VALUE | STATUS | NOTE
-  const cols: CellData[][] = [[], [], [], [], []]
-  for (let k = 0; k < n; k++) {
-    const d = wrap(arr as typeof CONTACT_DATA, centerIdx - half + k) as typeof CONTACT_DATA[0]
-    const isC = k === half
-    const itemIndex = ((centerIdx - half + k) % arr.length + arr.length) % arr.length
-    cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',             color: d.color, center: isC, itemIndex })
-    cols[1]!.push({ type: 'detail', text: d.period || '',                              color: d.color, center: isC })
-    cols[2]!.push({ type: 'detail', text: d.desc,                                     color: d.color, center: isC })
-    cols[3]!.push({ type: 'tools',  tools: d.highlights || [],                        color: d.color, center: isC })
-    cols[4]!.push({ type: 'detail', text: d.note || '',                               color: d.color, center: isC })
-  }
-  return cols
+  const secId = SECTIONS[sectionIdx]?.id
+  const strat = getStrategy(secId) ?? STRATEGIES.projects
+  return strat.assemble(centerIdx)
 }
 
 interface SlotMachineProps {
