@@ -46,6 +46,13 @@
   z-index: 1;
   opacity: 0.10;
   mix-blend-mode: screen;
+  /* Pin the whole curtain into a single isolated stacking context so its
+     38 animated children share ONE compositor layer instead of producing
+     38 sibling layers. iOS Safari was moving them in/out of layered
+     rendering each frame — the dominant remaining flicker source on
+     mobile after the pre-2026-04 fixes. */
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 .streamCol {
@@ -708,7 +715,7 @@
   /* Drop mix-blend-mode that fights mobile compositor */
   .dataStream {
     mix-blend-mode: normal;
-    opacity: 0.14;
+    opacity: 0.18;
   }
 
   /* Pin canvas layers so the compositor can't move them around between
@@ -725,9 +732,26 @@
     animation: none;
   }
 
-  /* Reduce data-stream column count visually by hiding glitch columns —
-     the steps(2) glitch animation is the single most expensive infinite
-     animation in this scene on mid-range Androids. */
+  /* Kill the per-column neon text-shadow on mobile — it was forcing a
+     full repaint of each animated <pre> every frame (38 elements × 60fps
+     = ~2280 paint ops/sec just for the curtain). The cyan color alone
+     reads as Matrix without the glow halo. */
+  .streamCol {
+    text-shadow: none;
+  }
+  .streamColBright {
+    text-shadow: none;
+  }
+
+  /* Reduce data-stream column count visually by hiding 2/3 of columns —
+     the curtain still reads as a stream but the compositor has 1/3 the
+     layers to manage. We keep every 3rd column. */
+  .streamCol:not(:nth-child(3n+1)) {
+    display: none;
+  }
+
+  /* Drop glitch animation — steps(2) glitch + dual animations are the
+     single most expensive infinite animation in this scene. */
   .streamColGlitch {
     animation-name: streamFall;
     animation-duration: inherit;

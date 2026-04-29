@@ -39,11 +39,17 @@ void main() {
 `
 
 // Fragment shader — cyberpunk nebula
-//   • 2-octave value noise for the volumetric base
-//   • Worley-ish cell field for highlight tendrils
+//   • value noise for the volumetric base (octaves driven by macro)
 //   • 3-color palette mix cycling slowly via u_time
 //   • Parallax offset shifts the whole field by u_par
-const FRAG_SRC = `
+//
+// Two compile paths:
+//   FRAG_SRC      — desktop: 4-octave fbm + secondary noise swirl
+//   FRAG_SRC_LITE — mobile:  2-octave fbm + no second swirl
+//                   (mobile GPU drops frames on the full path → flicker)
+function buildFrag(opts: { octaves: number; secondSwirl: boolean }): string {
+  const { octaves, secondSwirl } = opts
+  return `
 precision mediump float;
 varying vec2 v_uv;
 uniform float u_time;
@@ -68,7 +74,7 @@ float vnoise(vec2 p) {
 float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.55;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < ${octaves}; i++) {
     v += a * vnoise(p);
     p *= 2.05;
     a *= 0.5;
@@ -85,10 +91,12 @@ void main() {
 
   float t = u_time * 0.025;
 
-  // Two-layer flow — slow drifting fbm over a faster swirl
+  // Primary flow — drifting fbm
   vec2 q = p * 1.6 + vec2(t, -t * 0.7);
   float n1 = fbm(q + fbm(q + t));
-  float n2 = fbm(p * 3.5 + vec2(-t * 0.6, t * 0.4));
+  ${secondSwirl
+    ? 'float n2 = fbm(p * 3.5 + vec2(-t * 0.6, t * 0.4));'
+    : 'float n2 = n1 * 0.6;'}
 
   // Tendril mask — bright filaments where layers align
   float tendril = pow(smoothstep(0.40, 0.95, n1 * 0.7 + n2 * 0.3), 1.4);
@@ -119,6 +127,10 @@ void main() {
   gl_FragColor = vec4(color, 1.0);
 }
 `
+}
+
+const FRAG_SRC      = buildFrag({ octaves: 4, secondSwirl: true })
+const FRAG_SRC_LITE = buildFrag({ octaves: 2, secondSwirl: false })
 
 function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader | null {
   const sh = gl.createShader(type)
@@ -154,8 +166,12 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     }
 
     // ── Compile + link program ──
+    // Mobile gets the lite shader (2-octave fbm, no second swirl). The
+    // full shader drops frames on iPhone 11-class GPUs which manifests
+    // as visible flicker rather than smooth slowdown.
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
     const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC)
-    const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG_SRC)
+    const fs = compile(gl, gl.FRAGMENT_SHADER, isMobile ? FRAG_SRC_LITE : FRAG_SRC)
     if (!vs || !fs) return
     const prog = gl.createProgram()
     if (!prog) return
@@ -184,12 +200,13 @@ export function CyberNebula({ parallaxRef, reducedMotion = false }: CyberNebulaP
     const uRes = gl.getUniformLocation(prog, 'u_res')
     const uPar = gl.getUniformLocation(prog, 'u_par')
 
-    // ── Resize handling — DPR aware, capped at 1.5 desktop / 1.0 mobile ──
+    // ── Resize handling — DPR aware, capped at 1.5 desktop / 0.75 mobile ──
     // On phones the GPU memory bandwidth + fragment shader complexity
-    // makes 1.5x DPR drop frames intermittently — visible as flicker.
-    // 1.0 DPR halves the pixel count and keeps a steady 60fps on iPhone 11+
-    const isMobile = window.matchMedia('(pointer: coarse)').matches
-    const dprCap = isMobile ? 1.0 : 1.5
+    // makes any DPR ≥ 1.0 drop frames intermittently — visible as flicker.
+    // 0.75 DPR roughly quarters the pixel count of 1.5x and keeps a
+    // steady 60fps on iPhone 11+. The nebula is a low-frequency
+    // background; downsampling has near-zero perceptual cost.
+    const dprCap = isMobile ? 0.75 : 1.5
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, dprCap)
       const w = window.innerWidth * dpr

@@ -329,6 +329,42 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
     resize()
     window.addEventListener('resize', resize, { passive: true })
 
+    // ── Per-symbol offscreen sprite cache ──────────────────────────────
+    // Pre-renders halo + symbol body ONCE per (kind, variant, size) into
+    // an offscreen canvas. Per-frame rendering then becomes a single
+    // drawImage call instead of 5+ vector ops + a createRadialGradient
+    // (which allocated a fresh gradient object every frame × 14 symbols
+    // = significant GC churn on mobile, and was contributing to flicker
+    // by intermittently dropping frames during minor GC pauses).
+    //
+    // Self-rotation still works because we apply ctx.rotate() before the
+    // drawImage — only the static base art is cached, the rotation
+    // remains live per-frame.
+    const spriteCache = new Map<string, HTMLCanvasElement>()
+    const getSprite = (s: OrbitSymbol): HTMLCanvasElement => {
+      const key = `${s.kind}-${s.variant}-${s.size}`
+      const hit = spriteCache.get(key)
+      if (hit) return hit
+      const pad = s.size * 2.4 // halo extends ~2.2× radius
+      const dim = Math.ceil(pad * 2)
+      const off = document.createElement('canvas')
+      off.width = dim * dpr
+      off.height = dim * dpr
+      const octx = off.getContext('2d', { alpha: true })
+      if (!octx) return off
+      octx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      octx.translate(pad, pad)
+      drawHalo(octx, s.size, s.kind, s.variant)
+      switch (s.kind) {
+        case 'coin': drawCoin(octx, s.size); break
+        case 'die':  drawDie(octx, s.size, (s.variant % 6) + 1); break
+        case 'chip': drawChip(octx, s.size, s.variant); break
+        case 'star': drawStar(octx, s.size); break
+      }
+      spriteCache.set(key, off)
+      return off
+    }
+
     // Seed positions on home orbit
     const symbols = symbolsRef.current
     const startTime = performance.now()
@@ -376,17 +412,13 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
         // Self-rotation
         s.rot += s.rotSpeed * dt
 
-        // Render: halo, then transform-rotated symbol
+        // Render: cached sprite (halo + symbol body), self-rotated
+        const sprite = getSprite(s)
+        const half = sprite.width / dpr / 2
         ctx.save()
         ctx.translate(s.x, s.y)
-        drawHalo(ctx, s.size, s.kind, s.variant)
         ctx.rotate(s.rot)
-        switch (s.kind) {
-          case 'coin': drawCoin(ctx, s.size); break
-          case 'die':  drawDie(ctx, s.size, (s.variant % 6) + 1); break
-          case 'chip': drawChip(ctx, s.size, s.variant); break
-          case 'star': drawStar(ctx, s.size); break
-        }
+        ctx.drawImage(sprite, -half, -half, sprite.width / dpr, sprite.height / dpr)
         ctx.restore()
       }
 
@@ -404,6 +436,7 @@ export function CasinoField({ parallaxRef, reducedMotion = false }: CasinoFieldP
     return () => {
       window.removeEventListener('resize', resize)
       cancelAnimationFrame(rafRef.current)
+      spriteCache.clear()
     }
   }, [parallaxRef, reducedMotion])
 
