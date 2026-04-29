@@ -1,0 +1,40 @@
+/* QuantumField — fullscreen WebGPU canvas, sits over the nebula
+   with additive blending so the particle glow stacks over the
+   nebula tendrils without darkening them. */
+
+.field {
+  position: absolute;
+  inset: 0;
+  /* Layer 1 — above .nebula (z=0), below .casinoField (z=3) so the
+     particles read as "atmospheric dust" between the volumetric
+     nebula and the foreground casino orbit. */
+  z-index: 1;
+  pointer-events: none;
+  /* The fragment shader already outputs additive premultiplied glow,
+     but a screen blend on the CSS layer too keeps the cloud feeling
+     like light rather than overlaid pixels. */
+  mix-blend-mode: screen;
+  opacity: 0.92;
+  /* Pin to GPU compositor — same trick we use for nebula to prevent
+     mid-frame layer recycling on Mali / Samsung Internet builds. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Mobile: drop the screen blend (some compositors flicker when blending
+   a WebGPU canvas under animated CSS-var children) and lower opacity so
+   the cloud whispers rather than competes with the nebula. */
+@media (hover: none) and (pointer: coarse) {
+  .field {
+    mix-blend-mode: normal;
+    opacity: 0.62;
+    will-change: transform;
+    isolation: isolate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field {
+    opacity: 0.55;
+  }
+}

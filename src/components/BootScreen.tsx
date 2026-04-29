@@ -19,6 +19,7 @@ import {
   setMidiCursorWriter,
 } from '../engine'
 import { CyberNebula } from './boot/CyberNebula'
+import { QuantumField } from './boot/QuantumField'
 import { CasinoField, type ParallaxState } from './boot/CasinoField'
 import styles from './BootScreen.module.css'
 
@@ -437,6 +438,11 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     >
       {/* Background layer 0 — WebGL nebula (procedural cyan/violet/gold flow) */}
       <CyberNebula parallaxRef={mouseLerpRef} reducedMotion={reducedMotion} />
+
+      {/* Background layer 1 — WebGPU 32k particle compute field, additively
+          blended over the nebula. Activates only on Chromium 113+ / Safari TP
+          and silently no-ops on browsers without navigator.gpu. */}
+      <QuantumField parallaxRef={mouseLerpRef} reducedMotion={reducedMotion} />
 
       {/* Mid-back layer 3 — casino symbols (coins, dice, chips, stars)
           orbit BEHIND Lucky 7 so they tuck visibly behind the figure */}

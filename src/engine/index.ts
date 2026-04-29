@@ -122,6 +122,12 @@ export {
   isHoudiniPaintSupported,
 } from './HoudiniPaint'
 
+export {
+  isWebGPUSupported,
+  createWebGPUField,
+} from './WebGPUCompute'
+export type { WebGPUFieldHandle, WebGPUFieldOptions } from './WebGPUCompute'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,
