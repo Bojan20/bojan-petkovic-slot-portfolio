@@ -17,7 +17,7 @@
  * All audio, animations, and timing driven by engine config.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { BootScreen } from './components/BootScreen'
 import { SplashScreen } from './components/slot/SplashScreen'
@@ -50,9 +50,17 @@ import {
 } from './engine'
 import { RecIndicator } from './components/RecIndicator'
 import { PresenceChip } from './components/PresenceChip'
-import { SlotAudioManager } from './components/SlotAudioManager'
+// Heavy panels lazy-loaded — they're keyboard-gated (Shift+A, Konami)
+// or rare-render (PlatformChips post-boot only). Splitting them off
+// drops ~120KB from the main bundle so first paint of the boot screen
+// is faster.
+const SlotAudioManager = lazy(() =>
+  import('./components/SlotAudioManager').then((m) => ({ default: m.SlotAudioManager })),
+)
+const DevOverlay = lazy(() =>
+  import('./components/DevOverlay').then((m) => ({ default: m.DevOverlay })),
+)
 import { VoiceIndicator } from './components/VoiceIndicator'
-import { DevOverlay } from './components/DevOverlay'
 import { PlatformChips } from './components/PlatformChip'
 import { useAudioStore } from './store'
 
@@ -573,14 +581,22 @@ export default function App() {
         <BootScreen onComplete={handleBootComplete} />
       )}
 
-      {/* Slot Audio Manager — Shift+A to toggle */}
-      <SlotAudioManager />
+      {/* Slot Audio Manager — Shift+A to toggle. Lazy: panel is invisible
+          until first toggle so the import only runs on demand. */}
+      <Suspense fallback={null}>
+        <SlotAudioManager />
+      </Suspense>
 
       {/* Voice control — handsfree commands (mic icon bottom-left, V key) */}
       <VoiceIndicator />
 
-      {/* Konami dev overlay — ↑↑↓↓←→←→BA to toggle, or ?dev URL flag */}
-      <DevOverlay visible={devOverlay} onClose={() => setDevOverlay(false)} phase={phase} />
+      {/* Konami dev overlay — ↑↑↓↓←→←→BA to toggle, or ?dev URL flag.
+          Lazy: only loads after Konami is entered or ?dev URL is set. */}
+      {devOverlay && (
+        <Suspense fallback={null}>
+          <DevOverlay visible={devOverlay} onClose={() => setDevOverlay(false)} phase={phase} />
+        </Suspense>
+      )}
 
       {/* Platform chips — Share + Lite-mode badge top-right (post-boot) */}
       <PlatformChips visible={phase !== 'boot'} />
