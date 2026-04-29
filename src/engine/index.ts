@@ -158,6 +158,12 @@ export {
 export type { PortfolioSnapshotV1 } from './SnapshotExport'
 
 export {
+  snapshotToSvg,
+  exportSnapshotSvg,
+  downloadSnapshotSvg,
+} from './SnapshotArt'
+
+export {
   isReelCaptureSupported,
   isReelCapturing,
   startReelCapture,

@@ -38,6 +38,7 @@ import {
   isReelCapturing,
   getCurrentPersona,
   forceReclassify,
+  downloadSnapshotSvg,
 } from '../engine'
 import type { Persona } from '../engine'
 import { useAudioStore } from '../store'
@@ -396,6 +397,12 @@ export function DevOverlay({ visible, onClose, phase }: DevOverlayProps) {
               }}
               title={isReelCaptureSupported() ? 'Toggle screen recording (Ctrl/Cmd+Shift+R)' : 'getDisplayMedia unsupported'}
             >● REEL</button>
+            <button
+              className={styles.btn}
+              type="button"
+              onClick={() => { void downloadSnapshotSvg() }}
+              title="Export interaction trace as SVG art (P1.10)"
+            >SVG ART</button>
           </div>
         </div>
 
