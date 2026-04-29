@@ -11,9 +11,11 @@
   cursor: pointer;
   overflow: hidden;
   perspective: 1200px;
-  /* Slow fade-in over the boot shield for a soft handoff */
+  /* Fade-in timed to the boot-splash-gate dissolve (gate clears at ~0.92s
+     after setPhase fires, splash should be near-fully visible by then).
+     1.0s gives ~92% opacity at gate-clear — crisp handoff through the gold flash. */
   opacity: 0;
-  animation: splashFadeIn 1.6s ease-out 0.05s forwards;
+  animation: splashFadeIn 1.0s ease-out 0.02s forwards;
   /* Mobile: kill rubber-band scroll + tap-highlight; tap-anywhere starts slot */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

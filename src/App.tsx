@@ -316,104 +316,162 @@ export default function App() {
     return off
   }, [])
 
-  // Boot complete → transition to splash
+  // Boot complete → cinematic transition to splash
+  // ── Architecture ────────────────────────────────────────────────────────
+  //  ACT 1 (0–0.32s): warm gold flash gate rises from opacity 0 → 1,
+  //                   overlapping the boot screen's own CSS exit fade.
+  //                   The two screens are now BOTH hidden behind gold light.
+  //  ACT 2 (0.32s):  phase switches to 'splash' — SplashScreen mounts
+  //                   under the flash, begins its own 1.0s CSS fade-in.
+  //  ACT 3 (0.4–0.9s): gate dissolves, revealing the materialising splash.
+  //
+  //  Net effect: match-dissolve through light — feels like a film cut
+  //  through a lens flare. Zero jarring pop or blank frame.
   const handleBootComplete = useCallback(() => {
-    setPhase('splash')
-    // Belt-and-braces: if the bus listener missed (e.g. handler error),
-    // ensure music is playing and analyser is wired here as well.
-    // Both calls are idempotent.
+    // Belt-and-braces: ensure music + analyser are wired
     const audio = audioRef.current
     if (audio) {
       audio.play().catch(() => {})
       attachAnalyser(audio)
     }
     bus.emit('splash:start')
+
+    const gate = document.getElementById('boot-splash-gate')
+    if (gate) {
+      const tl = gsap.timeline()
+      // ACT 1 — flash rises
+      tl.to(gate, { opacity: 1, duration: 0.32, ease: 'power2.out' })
+      // ACT 2 — phase switch at peak (SplashScreen mounts under flash)
+      tl.call(() => setPhase('splash'))
+      // ACT 3 — flash dissolves revealing splash
+      tl.to(gate, { opacity: 0, duration: 0.52, ease: 'power3.in', delay: 0.08 })
+    } else {
+      setPhase('splash')
+    }
   }, [])
 
-  // Splash enter → transition to slot — cyberpunk cinematic cross-dissolve
+  // Splash → Slot — three-act cinematic cross-dissolve
+  // ── Architecture ────────────────────────────────────────────────────────
+  //  ACT 1 — ANTICIPATION (0–0.42s):
+  //    Splash breathes in: push-zoom + warm brightness. Builds tension.
+  //    No exit yet — recruiter consciously feels the compression before
+  //    the cut.
+  //
+  //  ACT 2 — IMPACT (0.42–0.85s):
+  //    At 0.42s: chromatic burst SLAMS full-screen (0.16s rise).
+  //    Simultaneously: splash IMPLODES (scale ↑, blur, opacity 0).
+  //    At 0.50s: shockwave ring expands outward to zero opacity.
+  //    At 0.60s: burst fades.
+  //    Result: a single violent CUT through white-cyan light.
+  //
+  //  ACT 3 — REVELATION (0.72s+):
+  //    Slot machine materialises from a dark void: blur lifts, scale
+  //    snaps to 1, opacity rises over 1.25s. SlotMachine's own genesis
+  //    animation staggered internally — we just remove the veil.
+  //
+  //  Key fix vs. previous: all three acts are SEQUENTIAL, not overlapping.
+  //  Previous burst/shockwave/slot all started within 350ms of each other
+  //  → visual mud. Now each act has clear dominance before the next starts.
+  //
+  //  Race-condition fix: gsap.set() locks slot wrapper opacity/transform
+  //  BEFORE the React setPhase re-render can overwrite it to undefined.
   const handleEnter = useCallback(() => {
     if (phase !== 'splash') return
+
+    const burst = document.getElementById('chromatic-burst')
+    const shockwave = document.getElementById('shockwave-ring')
+    const shield = document.getElementById('pre-shield')
+
+    // CRITICAL: Lock slot to invisible BEFORE setPhase triggers re-render.
+    // Without this, React's style={{ opacity: phase==='boot'||phase==='splash' ? 0 : undefined }}
+    // removal races with GSAP's fromTo start — the slot wrapper flashes visible
+    // for one frame. gsap.set() writes inline style synchronously right now.
+    gsap.set(slotWrapRef.current, {
+      opacity: 0,
+      scale: 0.92,
+      filter: 'blur(32px) brightness(0.4)',
+    })
+
     setPhase('entering')
     setShowerActive(true)
 
     bus.emit('splash:enter')
-    // Audio hook — cyberBoot/hyperspaceSnap sequence (mapped in config)
     bus.emit('transition:splash_to_slot')
 
-    const tl = gsap.timeline({
-      onComplete: () => setPhase('slot'),
-    })
+    const tl = gsap.timeline({ onComplete: () => setPhase('slot') })
 
-    // ── Splash exit: chromatic implosion ────────────────────────────
+    // ── ACT 1: ANTICIPATION (0–0.42s) ─────────────────────────────
     tl.to(splashRef.current, {
-      scale: 1.12,
-      filter: 'blur(24px) hue-rotate(80deg) saturate(1.6)',
-      opacity: 0,
-      duration: 0.7,
-      ease: 'power3.in',
+      scale: 1.055,
+      filter: 'brightness(1.35) saturate(1.15)',
+      duration: 0.42,
+      ease: 'power1.inOut',
     }, 0)
 
-    // Chromatic flash overlay — quick burst at the crossover moment
-    const burst = document.getElementById('chromatic-burst')
+    // ── ACT 2: IMPACT — the CUT (0.42s) ───────────────────────────
+    // 2a: burst slams full-screen
     if (burst) {
       tl.fromTo(burst,
-        { opacity: 0, scale: 0.4, filter: 'blur(0px)' },
-        { opacity: 1, scale: 1.4, filter: 'blur(40px)', duration: 0.35, ease: 'expo.out' },
-        0.1,
-      )
-      tl.to(burst,
-        { opacity: 0, duration: 0.45, ease: 'power2.in' },
-        0.55,
+        { opacity: 0, scale: 0.4 },
+        { opacity: 1, scale: 1.0, duration: 0.16, ease: 'expo.out' },
+        0.42,
       )
     }
 
-    // ── Shockwave ring — concentric expansion at burst crest ───────
-    const shockwave = document.getElementById('shockwave-ring')
+    // 2b: splash implodes simultaneously (opacity 0 reached at 0.82s)
+    tl.to(splashRef.current, {
+      scale: 1.16,
+      filter: 'blur(22px) brightness(2.2) saturate(0.25)',
+      opacity: 0,
+      duration: 0.40,
+      ease: 'power3.in',
+    }, 0.42)
+
+    // 2c: shockwave expands outward — starts 80ms after impact crest
     if (shockwave) {
       tl.fromTo(shockwave,
-        { opacity: 0, scale: 0.05 },
+        { opacity: 0.95, scale: 0.06 },
         {
-          opacity: 1, scale: 1,
-          duration: 0.55,
-          ease: 'power3.out',
+          opacity: 0,
+          scale: 1,
+          duration: 0.72,
+          ease: 'power2.out',
           onStart: () => bus.emit('transition:shockwave'),
         },
-        0.18,
-      )
-      tl.to(shockwave,
-        { opacity: 0, duration: 0.4, ease: 'power2.in' },
-        0.65,
+        0.50,
       )
     }
 
-    // ── Slot entrance: faster wrapper fade — SlotMachine genesis owns
-    //    the per-element staggered entrance. Wrapper just lifts the
-    //    overall opacity/blur veil so genesis can play on visible canvas.
-    tl.fromTo(slotWrapRef.current,
-      { opacity: 0, scale: 0.96, filter: 'blur(18px) brightness(1.25)' },
-      {
-        opacity: 1,
-        scale: 1,
-        filter: 'blur(0px) brightness(1)',
-        duration: 1.1,
-        ease: 'power2.out',
-      },
-      0.35,
-    )
+    // 2d: burst fades 200ms after it peaks
+    if (burst) {
+      tl.to(burst,
+        { opacity: 0, duration: 0.42, ease: 'power2.in' },
+        0.60,
+      )
+    }
 
-    // Pre-shield fade — quick veil lift while shockwave is mid-expansion
-    const shield = document.getElementById('pre-shield')
+    // ── ACT 3: REVELATION (0.72s+) ────────────────────────────────
+    // Slot materialises from void — blur lifts + scale snaps to 1
+    tl.to(slotWrapRef.current, {
+      opacity: 1,
+      scale: 1,
+      filter: 'blur(0px) brightness(1)',
+      duration: 1.25,
+      ease: 'power2.out',
+    }, 0.72)
+
+    // Pre-shield dissolves with the slot reveal
     if (shield) {
       tl.to(shield, {
         opacity: 0,
-        duration: 0.9,
+        duration: 0.72,
         ease: 'power2.out',
         onComplete: () => { shield.style.display = 'none' },
-      }, 0.35)
+      }, 0.72)
     }
 
-    // Hold timeline open ~3s so CasinoShower + SlotMachine genesis finish
-    tl.to({}, { duration: 1.8 })
+    // Hold for CasinoShower + SlotMachine genesis to finish
+    tl.to({}, { duration: 1.5 })
   }, [phase])
 
   const handleShowerDone = useCallback(() => {
@@ -428,7 +486,11 @@ export default function App() {
       <div
         ref={slotWrapRef}
         style={{
-          opacity: phase === 'boot' || phase === 'splash' ? 0 : undefined,
+          // Keep at 0 through 'entering' so GSAP can fromTo/to without
+          // a one-frame flash when React's re-render removes the inline style.
+          // GSAP writes element.style on every RAF tick and wins the race
+          // against React's per-render write once the timeline starts.
+          opacity: (phase === 'boot' || phase === 'splash' || phase === 'entering') ? 0 : undefined,
           willChange: phase === 'entering' ? 'opacity, filter, transform' : undefined,
         }}
       >
@@ -437,6 +499,25 @@ export default function App() {
 
       {/* Casino particle shower — coins, chips, dice rain */}
       <CasinoShower active={showerActive} onComplete={handleShowerDone} />
+
+      {/* Boot-to-splash gate — warm gold flash that bridges the two screens.
+          Always mounted at opacity 0. GSAP animates it in handleBootComplete:
+          rises to opacity 1 at flash peak (when setPhase fires) then dissolves
+          while SplashScreen fades in beneath it. Net effect: match-dissolve
+          through light — no jarring pop, no blank frame between phases. */}
+      <div
+        id="boot-splash-gate"
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 3001,
+          pointerEvents: 'none',
+          opacity: 0,
+          background:
+            'radial-gradient(ellipse at 50% 44%, rgba(255, 240, 170, 0.99) 0%, rgba(255, 195, 55, 0.94) 18%, rgba(240, 130, 20, 0.72) 42%, rgba(18, 4, 28, 0.90) 72%, rgba(2, 3, 8, 0.98) 100%)',
+        }}
+      />
 
       {/* Chromatic burst — fullscreen radial flash during entering phase */}
       <div
