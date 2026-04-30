@@ -1,3 +1,8 @@
+/* ─────────────────────────────────────────────────────────────────────
+   CELL BASE — holographic glass card
+   Frosted dark panel with per-type neon accent + top inset highlight.
+   Reads as "physical card in a lit cabinet" not a flat web element.
+───────────────────────────────────────────────────────────────────── */
 .cell {
   --cx: 0;
   --cy: 0;
@@ -10,14 +15,19 @@
   padding: clamp(5px, 1vw, 12px);
   position: relative;
   overflow: hidden;
-  background: rgb(10, 9, 8);
-  border: 2.5px solid rgba(212, 168, 75, 0.35);
-  border-radius: 4px;
+  /* Holographic glass — deep indigo-violet base, not dead black */
+  background:
+    linear-gradient(160deg,
+      rgba(14, 8, 34, 0.96) 0%,
+      rgba(8, 14, 42, 0.93) 60%,
+      rgba(6, 10, 28, 0.96) 100%);
+  border: 1px solid rgba(130, 90, 210, 0.28);
+  border-radius: 6px;
   margin-bottom: 6px;
   box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.6),
-    0 1px 0 rgba(201, 162, 39, 0.08);
-  /* 3D tilt transition — snaps back smoothly on mouse leave */
+    inset 0 1px 0 rgba(180, 140, 255, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.65),
+    0 2px 14px rgba(0, 0, 0, 0.65);
   transition:
     transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     opacity 0.22s,
@@ -28,19 +38,37 @@
   will-change: transform;
 }
 
-/* 3D perspective tilt — driven by --cx/--cy set from onMouseMove */
+/* Top-edge highlight — simulates a light source above the cabinet */
+.cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(177, 76, 255, 0.45) 30%,
+    rgba(34, 232, 255, 0.50) 50%,
+    rgba(177, 76, 255, 0.45) 70%,
+    transparent 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* 3D perspective tilt + neon hover flare */
 .cell:hover {
   transform:
     perspective(700px)
     rotateX(calc(var(--cy) * -9deg))
     rotateY(calc(var(--cx) * 9deg))
-    translateZ(6px);
+    translateZ(8px);
+  border-color: rgba(177, 76, 255, 0.65);
   box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.55),
-    0 1px 0 rgba(201, 162, 39, 0.08),
-    0 10px 30px rgba(0, 0, 0, 0.45),
-    0 0 24px rgba(201, 162, 39, 0.10);
-  border-color: rgba(212, 168, 75, 0.55);
+    inset 0 1px 0 rgba(180, 140, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(177, 76, 255, 0.32),
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 55px rgba(34, 232, 255, 0.08);
 }
 
 /* Cursor spotlight — radial glow that follows mouse position */
@@ -67,97 +95,70 @@
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    TYPE-REACTIVE GRADIENTS
-   Subtle tinted backdrop per cell type
+   Each cell type has a distinct colored atmosphere.
+   Uses ::after to avoid conflicting with the ::before top-edge highlight.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.cell[data-cell-type="game"]::before {
+.cell[data-cell-type]::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  border-radius: inherit;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+/* game — violet/magenta portal */
+.cell[data-cell-type="game"]::after {
   background: radial-gradient(
-    ellipse at 30% 20%,
-    rgba(177, 76, 255, 0.14) 0%,
-    rgba(255, 43, 214, 0.06) 40%,
+    ellipse at 35% 25%,
+    rgba(177, 76, 255, 0.22) 0%,
+    rgba(255, 43, 214, 0.10) 40%,
     transparent 75%
   );
-  opacity: 0.55;
 }
-.cell[data-cell-type="scope"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+/* scope — cyan tech readout */
+.cell[data-cell-type="scope"]::after {
   background: radial-gradient(
-    ellipse at 70% 30%,
-    rgba(34, 232, 255, 0.14) 0%,
-    rgba(56, 189, 248, 0.06) 45%,
+    ellipse at 65% 30%,
+    rgba(34, 232, 255, 0.20) 0%,
+    rgba(56, 189, 248, 0.08) 45%,
     transparent 75%
   );
-  opacity: 0.55;
 }
-.cell[data-cell-type="detail"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+/* detail/work/simple — warm gold */
+.cell[data-cell-type="detail"]::after,
+.cell[data-cell-type="work"]::after,
+.cell[data-cell-type="simple"]::after {
   background: radial-gradient(
-    ellipse at 50% 35%,
-    rgba(255, 179, 0, 0.10) 0%,
-    rgba(240, 216, 120, 0.05) 45%,
+    ellipse at 50% 30%,
+    rgba(255, 200, 60, 0.16) 0%,
+    rgba(240, 216, 120, 0.07) 45%,
     transparent 75%
   );
-  opacity: 0.55;
 }
-.cell[data-cell-type="tools"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+/* tools — hot pink/magenta */
+.cell[data-cell-type="tools"]::after {
   background: radial-gradient(
-    ellipse at 40% 30%,
-    rgba(255, 43, 214, 0.13) 0%,
-    rgba(177, 76, 255, 0.05) 50%,
+    ellipse at 45% 35%,
+    rgba(255, 43, 214, 0.20) 0%,
+    rgba(177, 76, 255, 0.08) 50%,
     transparent 75%
   );
-  opacity: 0.55;
 }
-.cell[data-cell-type="demo"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+/* demo — emerald green pulse */
+.cell[data-cell-type="demo"]::after {
   background: radial-gradient(
     ellipse at 50% 45%,
-    rgba(74, 222, 128, 0.12) 0%,
-    rgba(34, 232, 255, 0.06) 50%,
+    rgba(52, 211, 153, 0.22) 0%,
+    rgba(34, 232, 255, 0.08) 50%,
     transparent 75%
   );
-  opacity: 0.55;
-}
-.cell[data-cell-type="simple"]::before,
-.cell[data-cell-type="work"]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    ellipse at 40% 30%,
-    rgba(177, 76, 255, 0.09) 0%,
-    rgba(34, 232, 255, 0.04) 50%,
-    transparent 75%
-  );
-  opacity: 0.5;
 }
 
-/* Center cell slightly brighter tint */
-.cell.center[data-cell-type]::before {
-  opacity: 0.85;
+/* Center cell: full intensity atmosphere */
+.cell.center[data-cell-type]::after {
+  opacity: 1;
 }
 
 /* Holographic shimmer — moves through on hover, only visible on non-spin hover */
@@ -244,34 +245,48 @@
   border-color: rgba(212, 168, 75, 0.18);
 }
 
-/* §2.7 + §2.5 — Per-column depth-of-field (pseudo-DOF without 3D transforms).
-   Outer columns read as "further from camera": slightly more blur + desaturated.
-   Inner columns are mid-field. Center column is tack-sharp.
-   Creates cinematic depth without touching overflow/stacking context. */
+/* §2.7 + §2.5 — Per-column depth-of-field.
+   Outer columns "further from camera": desaturated + blurred.
+   Center column: tack-sharp, slightly brighter. */
 .dim[data-col="0"],
 .dim[data-col="4"] {
-  filter: saturate(0.42) brightness(0.82) blur(0.7px);
-  opacity: 0.68;
+  filter: saturate(0.38) brightness(0.72) blur(0.6px);
+  opacity: 0.62;
+  border-color: rgba(100, 70, 180, 0.14);
 }
 .dim[data-col="1"],
 .dim[data-col="3"] {
-  filter: saturate(0.50) brightness(0.85) blur(0.25px);
-  opacity: 0.74;
+  filter: saturate(0.48) brightness(0.80) blur(0.2px);
+  opacity: 0.70;
+  border-color: rgba(120, 80, 200, 0.18);
 }
-/* Center column dim cells (row above/below center) — sharpest non-center */
 .dim[data-col="2"] {
-  filter: saturate(0.58) brightness(0.90);
-  opacity: 0.80;
+  filter: saturate(0.62) brightness(0.88);
+  opacity: 0.82;
+  border-color: rgba(140, 100, 220, 0.22);
 }
 
-/* Center — hero, fully lit, slightly scaled + reel breathing parallax */
+/* ─── CENTER — holographic hero card ──────────────────────────────
+   Dramatically different from dim cells. Deep violet-blue glass,
+   gold border, multi-layer glow. Reads as the "featured" tile. */
 .center {
   opacity: 1;
   filter: none;
-  border-color: rgba(212, 168, 75, 0.6);
-  background: rgb(14, 13, 12);
-  /* Dual animation: glow breath (3.5s) + subtle rotateY oscillation (6.1s)
-     → reads as the cabinet "breathing" in 3D toward the camera */
+  background:
+    linear-gradient(155deg,
+      rgba(30, 12, 65, 0.98) 0%,
+      rgba(10, 28, 68, 0.96) 50%,
+      rgba(20, 8, 55, 0.98) 100%);
+  border: 1.5px solid rgba(240, 216, 120, 0.65);
+  box-shadow:
+    /* Gold outer ring */
+    0 0 0 1px rgba(240, 216, 120, 0.16),
+    /* Gold ambient glow */
+    0 0 22px rgba(240, 216, 120, 0.18),
+    0 0 55px rgba(240, 216, 120, 0.07),
+    /* Violet inner atmosphere */
+    inset 0 0 35px rgba(177, 76, 255, 0.09),
+    inset 0 1px 0 rgba(240, 216, 120, 0.16);
   animation:
     centerBreath 3.5s ease-in-out infinite,
     reelCenterFloat 6.1s ease-in-out infinite;
@@ -293,20 +308,24 @@
   .center { animation: none; }
 }
 
-/* WoO 4-layer win highlight */
+/* WoO 4-layer holographic breath */
 @keyframes centerBreath {
   0%, 100% {
     box-shadow:
-      inset 0 0 18px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(212, 168, 75, 0.35),
-      0 0 12px rgba(201, 162, 39, 0.08);
+      0 0 0 1px rgba(240, 216, 120, 0.16),
+      0 0 22px rgba(240, 216, 120, 0.18),
+      0 0 55px rgba(240, 216, 120, 0.07),
+      inset 0 0 35px rgba(177, 76, 255, 0.09),
+      inset 0 1px 0 rgba(240, 216, 120, 0.16);
   }
   50% {
     box-shadow:
-      inset 0 0 8px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(230, 200, 114, 0.5),
-      0 0 22px rgba(201, 162, 39, 0.15),
-      0 0 44px rgba(201, 162, 39, 0.06);
+      0 0 0 1px rgba(240, 216, 120, 0.28),
+      0 0 32px rgba(240, 216, 120, 0.28),
+      0 0 80px rgba(240, 216, 120, 0.12),
+      0 0 110px rgba(177, 76, 255, 0.06),
+      inset 0 0 50px rgba(177, 76, 255, 0.14),
+      inset 0 1px 0 rgba(240, 216, 120, 0.24);
   }
 }
 
@@ -412,15 +431,19 @@
   font-weight: 700;
   font-size: clamp(10px, 2.1vw, 18px);
   letter-spacing: 1.5px;
-  color: #9aa8c8;
+  color: rgba(180, 160, 240, 0.75);
   text-align: center;
   line-height: 1.15;
 }
 
 .center .gameName {
-  color: #eeeeff !important;
-  -webkit-text-fill-color: #eeeeff !important;
-  text-shadow: 0 0 16px rgba(220, 224, 255, 0.14);
+  color: #f5f0ff !important;
+  -webkit-text-fill-color: #f5f0ff !important;
+  font-size: clamp(12px, 2.4vw, 21px);
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 12px rgba(177, 76, 255, 0.45),
+    0 0 28px rgba(177, 76, 255, 0.20);
 }
 
 .gameStudio {
@@ -500,15 +523,16 @@
   font-family: var(--f-ui);
   font-weight: 500;
   font-size: clamp(8.5px, 1.55vw, 13.5px);
-  color: #8498b8;
+  color: rgba(140, 165, 210, 0.65);
   text-align: center;
   line-height: 1.6;
   padding: 0 clamp(3px, 0.7vw, 9px);
 }
 
 .center .workText {
-  color: #98b0cc !important;
-  -webkit-text-fill-color: #98b0cc !important;
+  color: rgba(180, 205, 245, 0.88) !important;
+  -webkit-text-fill-color: rgba(180, 205, 245, 0.88) !important;
+  text-shadow: 0 0 12px rgba(100, 160, 255, 0.20);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -554,30 +578,40 @@
 }
 
 .demoBtn {
-  width: clamp(30px, 5.5vw, 46px);
-  height: clamp(30px, 5.5vw, 46px);
+  width: clamp(34px, 6vw, 52px);
+  height: clamp(34px, 6vw, 52px);
   border-radius: 50%;
-  border: 2px solid rgba(80, 80, 130, 0.7);
-  background: transparent;
+  border: 1.5px solid rgba(52, 211, 153, 0.28);
+  background: rgba(10, 40, 28, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: default;
-  transition: all 0.18s;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.12);
 }
 
 .center .demoBtn {
-  border-color: var(--amb-dim);
-  background: rgba(232, 192, 96, 0.04);
+  border-color: rgba(52, 211, 153, 0.65);
+  background: rgba(10, 50, 35, 0.55);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(232, 192, 96, 0.07);
+  box-shadow:
+    0 0 16px rgba(52, 211, 153, 0.28),
+    0 0 32px rgba(52, 211, 153, 0.12),
+    inset 0 0 12px rgba(52, 211, 153, 0.08);
+  animation: demoBtnPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes demoBtnPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(52, 211, 153, 0.28), 0 0 32px rgba(52, 211, 153, 0.12), inset 0 0 12px rgba(52, 211, 153, 0.08); }
+  50%       { box-shadow: 0 0 24px rgba(52, 211, 153, 0.45), 0 0 55px rgba(52, 211, 153, 0.22), inset 0 0 20px rgba(52, 211, 153, 0.14); }
 }
 
 .center .demoBtn:hover {
-  border-color: var(--amb);
-  background: rgba(232, 192, 96, 0.12);
-  box-shadow: 0 0 22px var(--amb-glow);
-  transform: scale(1.08);
+  border-color: rgba(52, 211, 153, 0.90);
+  background: rgba(15, 65, 45, 0.75);
+  box-shadow: 0 0 32px rgba(52, 211, 153, 0.55), 0 0 70px rgba(52, 211, 153, 0.28);
+  transform: scale(1.12);
 }
 
 .demoTri {

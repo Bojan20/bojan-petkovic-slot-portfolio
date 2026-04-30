@@ -100,9 +100,9 @@
       var(--g200) 80%, var(--g300) 92%, var(--g500) 100%
     );
   box-shadow: 0 0 14px var(--g-shadow), inset 0 0 5px rgba(0, 0, 0, 0.5);
-  /* P4.2 — pillar opacity scales with --chrome-strength.
-     Idle 0.22 (gold whisper, doesn't grab eye), active 1.0. */
-  opacity: var(--chrome-strength);
+  /* Always at least 0.55 visible — pillars define the cabinet frame
+     visually and should never disappear. Full brightness on hover/spin. */
+  opacity: max(0.55, var(--chrome-strength));
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -217,9 +217,7 @@
   animation:
     medalRotate 55s linear infinite,
     medalShine 8s ease-in-out infinite;
-  /* P4.2 — medallion dims at idle (0.22) so they don't compete with
-     the hero tile or content cells. Wake on hover/spin. */
-  opacity: var(--chrome-strength);
+  opacity: max(0.50, var(--chrome-strength));
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -299,8 +297,7 @@
     rgba(34, 232, 255, 0.32) 85%, transparent 100%
   );
   animation: topStripHue 18s linear infinite;
-  /* P4.2 — top strip dims with chrome */
-  opacity: var(--chrome-strength);
+  opacity: max(0.60, var(--chrome-strength));
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 

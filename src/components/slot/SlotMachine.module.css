@@ -450,17 +450,30 @@
 
 .reelSep {
   flex-shrink: 0;
-  width: 5px;
+  width: 3px;
   height: calc(3 * var(--cell-h, 80px) + 12px);
   max-height: 100%;
   align-self: center;
+  position: relative;
+  /* Thin neon laser-line between columns */
   background: linear-gradient(
     180deg,
-    var(--g600) 0%, var(--g500) 8%, var(--g300) 18%,
-    var(--g200) 28%, var(--g100) 36%, var(--g300) 44%,
-    var(--g500) 56%, var(--g300) 66%, var(--g100) 74%,
-    var(--g200) 82%, var(--g500) 92%, var(--g600) 100%
+    transparent 0%,
+    rgba(177, 76, 255, 0.18) 12%,
+    rgba(34, 232, 255, 0.55) 30%,
+    rgba(255, 255, 255, 0.70) 50%,
+    rgba(34, 232, 255, 0.55) 70%,
+    rgba(177, 76, 255, 0.18) 88%,
+    transparent 100%
   );
+  box-shadow: 0 0 8px rgba(34, 232, 255, 0.35), 0 0 18px rgba(177, 76, 255, 0.18);
+  border-radius: 2px;
+  animation: sepPulse 4.5s ease-in-out infinite;
+}
+
+@keyframes sepPulse {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; box-shadow: 0 0 12px rgba(34, 232, 255, 0.55), 0 0 28px rgba(177, 76, 255, 0.28); }
 }
 
 .flash {
