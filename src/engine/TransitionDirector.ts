@@ -93,24 +93,22 @@ class Director {
     })
     this.tl = tl
 
-    // Cross-dissolve through DIM (not full black). Total ~0.85s, no
-    // pure-black frame, matte peaks at 0.92 instead of 1.0 so the
-    // incoming splash is visible underneath as it materializes.
-    //
-    // Phase 1 (0–0.42s) — matte rises 0 → 0.92, boot dims out
-    tl.to(matte, { opacity: 0.92, duration: 0.42, ease: 'power2.in' }, 0)
+    // ── Cinematic "lights out" iris close ──────────────────────────────
+    // Phase 1 (0–0.38s) — matte slams to FULL BLACK (power3.in = aggressive
+    // acceleration, like a shutter snapping shut). No half-measures.
+    tl.to(matte, { opacity: 1, duration: 0.38, ease: 'power3.in' }, 0)
 
-    // Phase 2 — at peak dim, swap React to splash. Splash is now
-    // mounted underneath the matte. NO hold — go straight into
-    // matte fade-out so we never have a static dim frame.
-    tl.addLabel('boot_dim_peak', 0.42)
+    // Phase 2 — HOLD 90ms at true black (cinema breath — recruiter's eye
+    // has a frame to reset before the splash world materialises).
+    tl.addLabel('boot_dim_peak', 0.38)
     tl.call(() => {
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 80 })
-    }, [], 'boot_dim_peak')
+    }, [], 'boot_dim_peak+=0.09')
 
-    // Phase 3 — matte fades out, splash reveals through
-    tl.to(matte, { opacity: 0, duration: 0.43, ease: 'power2.out' })
+    // Phase 3 — matte snaps off (power3.out = crisp, confident reveal).
+    // Positioned to start at the same instant as the phase-swap call.
+    tl.to(matte, { opacity: 0, duration: 0.30, ease: 'power3.out' }, 'boot_dim_peak+=0.09')
   }
 
   /** Splash → Slot with match-cut Lucky 7 → reel viewport. */
@@ -126,9 +124,10 @@ class Director {
 
     bus.emit('custom:transition:cue', { label: 'splash_to_slot_start', leadMs: 120 })
 
-    // Lock slot invisible BEFORE React re-render — GSAP wins the race
+    // Lock slot invisible BEFORE React re-render — GSAP wins the race.
+    // Start from dramatic over-scale + heavy blur so the expansion is felt.
     if (slotEl) {
-      gsap.set(slotEl, { opacity: 0, scale: 1.012, filter: 'blur(8px)' })
+      gsap.set(slotEl, { opacity: 0, scale: 1.07, filter: 'blur(16px)' })
     }
 
     this.opts.setPhase('entering')
@@ -143,56 +142,70 @@ class Director {
       })
       this.tl = tl
       if (splashEl) tl.to(splashEl, { opacity: 0, duration: 0.4 }, 0)
-      if (slotEl) tl.to(slotEl, { opacity: 1, duration: 0.4 }, 0)
+      if (slotEl) tl.to(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4 }, 0)
       return
     }
 
     const tl = gsap.timeline({ onComplete: () => this.completeSplashToSlot() })
     this.tl = tl
 
-    // Phase 1 — splash compresses & dims (the "match" half)
+    // ── Phase 1 (0–0.48s) — "burned exit" ─────────────────────────────
+    // Splash overexposes before it dies — like a film frame held too long
+    // in the projector gate. power3.in = aggressive accelerating burn.
     if (splashEl) {
       tl.to(splashEl, {
         opacity: 0,
-        scale: 0.92,
-        filter: 'blur(8px) brightness(1.4)',
-        duration: 0.85,
-        ease: 'power2.inOut',
+        scale: 0.95,
+        filter: 'blur(6px) brightness(2.4)',
+        duration: 0.48,
+        ease: 'power3.in',
       }, 0)
     }
 
-    // Phase 2 — matte rises mid-cut for depth
+    // ── Phase 2 (0.28–0.58s) — FULL BLACK CUT ─────────────────────────
+    // Matte hits opacity 1 (not a dim — a real hard cut). The brief pure-
+    // black hold between splash exit and slot reveal is the cinematic
+    // "match-cut" frame — gives the recruiter's eye a reset point and
+    // amplifies the slot reveal that follows.
     if (matte) {
-      tl.to(matte, { opacity: 0.55, duration: 0.4, ease: 'power2.in' }, 0.32)
-      tl.addLabel('match_cut_peak', 0.55)
+      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.28)
+      tl.addLabel('match_cut_peak', 0.58)
       tl.call(() => {
         bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
       }, [], 'match_cut_peak')
-      tl.to(matte, { opacity: 0, duration: 0.65, ease: 'power2.out' }, 0.72)
+      // Matte dissolves WHILE the slot expands — simultaneous reveal
+      tl.to(matte, { opacity: 0, duration: 0.64, ease: 'power2.out' }, 0.74)
     }
 
-    // Phase 3 — slot reveals from the match-cut center, expanding outward
-    bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 80 })
+    // ── Phase 3 (0.62s) — audio J-cut just before slot becomes visible
+    tl.call(() => {
+      bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
+    }, [], 0.62)
+
+    // ── Phase 4 (0.62–1.50s) — SLOT SLAMS IN ──────────────────────────
+    // Expands from scale(1.07) → 1 while blur dissolves. power3.out = the
+    // machine "arrives with weight" — fast start, organic settle.
+    // Previous: scale(1.012) barely visible. New: +7% = unmistakeable.
     if (slotEl) {
       tl.fromTo(slotEl,
-        { opacity: 0, scale: 1.012, filter: 'blur(8px)' },
+        { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
         {
           opacity: 1,
           scale: 1,
-          filter: 'blur(0)',
-          duration: 1.05,
-          ease: 'power2.out',
-        }, 0.6)
+          filter: 'blur(0px)',
+          duration: 0.88,
+          ease: 'power3.out',
+        }, 0.62)
     }
 
     // CRITICAL — wait for SlotMachine genesis (1.55s once entering=true)
     // to fully reveal cells / tabs / controls BEFORE flipping phase →
     // 'slot'. Genesis is gated on entering=true; if we transition to
-    // 'slot' mid-genesis it triggers black-screen because the genesis
-    // useEffect's cleanup used to kill the in-flight tween.
-    // 0.6 (slot-fade start) + 1.05 (slot-fade duration) = 1.65,
-    // genesis completes by ~1.55, so a 1.4s tail leaves margin.
-    tl.to({}, { duration: 1.4 })
+    // 'slot' mid-genesis it triggers black-screen.
+    // slot-fade: 0.62 + 0.88 = 1.50s, genesis ~1.55s from entering=true
+    // (entering was set at the very top of this method, so clock starts now).
+    // 0.70s tail → total 2.20s → covers genesis with 0.65s margin.
+    tl.to({}, { duration: 0.70 })
   }
 
   private completeSplashToSlot(): void {
@@ -224,7 +237,7 @@ class Director {
       const slotEl = this.opts.slotWrapRef.current
       if (splashEl) gsap.set(splashEl, { opacity: 0 })
       if (matte) gsap.set(matte, { opacity: 0 })
-      if (slotEl) gsap.set(slotEl, { opacity: 1, scale: 1, filter: 'blur(0)' })
+      if (slotEl) gsap.set(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px)' })
       this.completeSplashToSlot()
       return
     }

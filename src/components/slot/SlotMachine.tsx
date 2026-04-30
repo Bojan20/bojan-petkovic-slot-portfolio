@@ -925,47 +925,66 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     const enterTl = gsap.timeline()
     takeoverTlRef.current = enterTl
 
-    // Initial state: cards start slightly offset in direction of travel
+    // ── ENTER: initial state — cards start FAR from final position ──────
+    // Big blur + aggressive scale-down so the fly-in lands with real drama.
+    // Previous: scale*0.80, 18–28px offset — barely perceptible.
+    // New: scale*0.55, 65px vertical / 48px horizontal, blur(14px).
     cards.forEach(({ el, allDx, allDy }, i) => {
-      const initOffY = isPortrait ? 28 : 0
-      const initOffX = isPortrait ? 0 : (i < n / 2 ? -18 : 18)
+      const initOffY = isPortrait ? 65 : 0
+      const initOffX = isPortrait ? 0 : (i < n / 2 ? -48 : 48)
       gsap.set(el, {
         opacity: 0,
-        scale: allScale * 0.80,
+        scale: allScale * 0.55,
+        filter: 'blur(14px)',
         x: allDx + initOffX,
         y: allDy + initOffY,
       })
     })
 
-    // Phase 1: Dim + backdrop blur
+    // ── Phase 1: World goes dark + backdrop deepens ───────────────────
     enterTl.to(overlay, {
-      background: 'rgba(2, 2, 8, 0.93)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
-      duration: 0.5,
-      ease: 'expo.out',
+      background: 'rgba(2, 2, 8, 0.95)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      duration: 0.45,
+      ease: 'power3.out',
     })
     enterTl.to(cells, {
       opacity: 0.03,
-      filter: 'blur(5px) brightness(0.15)',
-      duration: 0.4,
-      stagger: 0.025,
-      ease: 'power2.out',
+      filter: 'blur(5px) brightness(0.12)',
+      duration: 0.38,
+      stagger: 0.022,
+      ease: 'power3.out',
     }, '<')
 
-    // Phase 2: Cards fly in — expo.out for that premium deceleration
+    // ── Camera punch AT t=0 — fires BEFORE overlay covers the machine ──
+    // The brief jolt is visible for the first ~0.15s (while overlay is
+    // still near-transparent), then continues as a felt-not-seen motion
+    // under the dark glass. Elastic return = physical weight.
+    if (reelsInnerRef.current) {
+      enterTl.fromTo(reelsInnerRef.current,
+        { y: -7 },
+        { y: 0, duration: 0.55, ease: 'elastic.out(1.1, 0.45)' },
+        0  // absolute timeline start — fires before overlay opacity builds
+      )
+    }
+
+    // ── Phase 2: Cards materialise — expo.out + blur dissolve ────────
+    // Large initial offset + blur makes each card feel like it's
+    // "arriving" from off-screen depth rather than just scaling up.
     cards.forEach(({ el, allDx, allDy }, i) => {
       enterTl.to(el, {
         opacity: 1,
         scale: allScale,
+        filter: 'blur(0px)',
         x: allDx,
         y: allDy,
         boxShadow:
           '0 0 40px 12px rgba(240,216,120,0.35), 0 0 80px 20px rgba(201,162,39,0.15), 0 15px 45px rgba(0,0,0,0.7)',
-        duration: isPortrait ? 0.55 : 0.65,
+        duration: isPortrait ? 0.68 : 0.78,
         ease: 'expo.out',
         onComplete: () => { el.style.pointerEvents = 'auto' },
-      }, i === 0 ? '-=0.1' : `<${isPortrait ? 0.055 : 0.065}`)
+      }, i === 0 ? '-=0.12' : `<${isPortrait ? 0.062 : 0.072}`)
     })
 
     // Phase 3: Button rises from bottom
@@ -987,7 +1006,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       })
     })
 
-    // ── SETTLE BACK → full exit ──
+    // ── SETTLE BACK → cinematic implode ───────────────────────────────
     function settleBack() {
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
       enterTl.kill()
@@ -995,42 +1014,66 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       const exitTl = gsap.timeline({ onComplete: cleanup })
       takeoverTlRef.current = exitTl
 
-      // Button sinks away
+      // Button vaporises instantly — don't let it linger
       exitTl.to(btn, {
-        opacity: 0, y: 12, scale: 0.8,
-        duration: 0.22, ease: 'expo.in',
+        opacity: 0, y: 16, scale: 0.65,
+        duration: 0.18, ease: 'power3.in',
       })
 
-      // Cards fly back — reverse stagger (last card first)
-      const reversed = [...cards].reverse()
-      reversed.forEach(({ el }, i) => {
+      // ── Cards implode in forward order ────────────────────────────────
+      // Each card: brief overscale flash (0.07s) → collapse to near-zero
+      // while sliding back to origin, accelerating hard (power3.in).
+      // Forward stagger (0→4) = "vacuum pull" into the machine center.
+      cards.forEach(({ el }, i) => {
+        const t = 0.06 + i * 0.038  // stagger start (absolute tl position)
+
+        // 1. Flash pulse — card "charges up" before imploding
         exitTl.to(el, {
-          x: 0, y: 0,
-          scale: isPortrait ? allScale * 0.65 : 0.75,
+          scale: allScale * 1.08,
+          filter: 'brightness(2.0)',
+          duration: 0.07,
+          ease: 'power2.out',
+        }, t)
+
+        // 2. Implode — slam back to origin, shrink to a point, blur out
+        exitTl.to(el, {
+          x: 0,
+          y: 0,
+          scale: allScale * 0.06,
           opacity: 0,
+          filter: 'blur(14px) brightness(0.3)',
           boxShadow: '0 0 0 0 transparent',
-          duration: 0.42,
-          ease: 'expo.in',
-        }, i === 0 ? '-=0.12' : '<0.04')
+          duration: 0.36,
+          ease: 'power3.in',
+        }, t + 0.07)
       })
 
-      // Overlay + blur fade simultaneously with last card
+      // Machine flash — reels briefly brighten as cards slam back in
+      if (reelsInnerRef.current) {
+        gsap.fromTo(reelsInnerRef.current,
+          { filter: 'brightness(2.2)' },
+          { filter: 'brightness(1)', duration: 0.55, ease: 'power2.out' },
+        )
+      }
+
+      // Overlay + blur dissolve — overlaps with last card imploding
+      const lastImplosionStart = 0.06 + (cards.length - 1) * 0.038 + 0.07
       exitTl.to(overlay, {
         background: 'rgba(2, 2, 8, 0)',
         backdropFilter: 'blur(0px)',
         WebkitBackdropFilter: 'blur(0px)',
-        duration: 0.45,
+        duration: 0.42,
         ease: 'power2.out',
-      }, '-=0.3')
+      }, lastImplosionStart - 0.05)
 
-      // Original cells restore with smooth fade
+      // Original cells restore with a staggered bloom
       exitTl.to(cells, {
         opacity: 1,
         filter: 'none',
-        duration: 0.35,
-        stagger: 0.025,
+        duration: 0.30,
+        stagger: 0.022,
         ease: 'power2.out',
-      }, '-=0.35')
+      }, lastImplosionStart)
     }
   }
 
