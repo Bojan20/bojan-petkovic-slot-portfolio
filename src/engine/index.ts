@@ -267,6 +267,9 @@ export {
 } from './PersonaInference'
 export type { Persona } from './PersonaInference'
 
+export { pickNextItem } from './SpinTargeting'
+export type { PickNextOpts } from './SpinTargeting'
+
 export {
   transition as spinPhaseTransition,
   isSpinLocked,

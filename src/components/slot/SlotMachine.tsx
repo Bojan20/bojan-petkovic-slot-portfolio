@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { bus, playReelAccent, playPaylineTravel, playJackpotBloom, vibrate, recordVisit } from '../../engine'
+import {
+  bus,
+  playReelAccent,
+  playPaylineTravel,
+  playJackpotBloom,
+  vibrate,
+  recordVisit,
+  pickNextItem,
+  getCurrentPersona,
+  isCellVisited,
+} from '../../engine'
 import { useSlotStore, useAudioStore } from '../../store'
 import { PROJECTS, SKILLS_DATA, ABOUT_DATA, EXP_DATA, CONTACT_DATA, SECTIONS } from '../../data'
 import type { CellData } from '../../types'
@@ -998,13 +1008,25 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     })
   }
 
-  // Spin button → advance to next item
-  // Blocked while locked (intro), spinning, or payline takeover cards are on screen
+  // Spin button → advance to next item via persona-driven targeting (P4.3).
+  // Old behavior was `(currentItemIdx + 1) % length` — linear, dumb,
+  // happily landed on already-seen rows. New behavior consults
+  // PersonaInference (which kind of recruiter is this) + CellMemory
+  // (what have they already seen) and picks the most useful next row.
+  // Blocked while locked (intro), spinning, or payline takeover cards on screen.
   const handleSpin = useCallback(() => {
     if (locked || isSpinning || takeoverTlRef.current || takeoverCleanupRef.current) return
     bus.emit('slot:spin:start')
     const arr = getDataForSection(currentSectionIdx)
-    const newIdx = (currentItemIdx + 1) % arr.length
+    const secId = SECTIONS[currentSectionIdx]?.id ?? 'projects'
+    const newIdx = pickNextItem({
+      sectionIdx: currentSectionIdx,
+      currentIdx: currentItemIdx,
+      itemCount: arr.length,
+      persona: getCurrentPersona(),
+      isVisited: (i) => isCellVisited(secId, i),
+      rowExcitement: (i) => rowExcitement(currentSectionIdx, i),
+    })
     spinToIdx(newIdx)
   }, [locked, isSpinning, currentSectionIdx, currentItemIdx, spinToIdx])
 
