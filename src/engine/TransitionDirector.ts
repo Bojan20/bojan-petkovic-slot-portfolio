@@ -30,7 +30,7 @@
 import gsap from 'gsap'
 import { bus } from './EventBus'
 
-export type AppPhase = 'boot' | 'splash' | 'teaser' | 'entering' | 'slot'
+export type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
 export type TransitionLabel =
   | 'boot_to_splash_start'
