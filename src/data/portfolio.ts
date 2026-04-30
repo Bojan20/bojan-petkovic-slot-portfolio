@@ -10,11 +10,11 @@ import type { ProjectItem, SkillItem, SimpleItem, SectionDef } from '../types'
 // ============================================================
 
 export const SECTIONS: SectionDef[] = [
-  { id: 'projects', label: 'PROJECTS', icon: '◈', headers: ['GAME', 'SCOPE', 'WORK', 'TOOLS', 'DEMO'],          headerIcons: ['⬡', '◎', '✦', '⚙', '▶'], numCols: 5 },
+  { id: 'projects', label: 'WORK',     icon: '◈', headers: ['GAME', 'SCOPE', 'WORK', 'TOOLS', 'DEMO'],          headerIcons: ['⬡', '◎', '✦', '⚙', '▶'], numCols: 5 },
   { id: 'skills',   label: 'SKILLS',   icon: '◉', headers: ['SKILL', 'LEVEL', 'DETAILS', 'TOOLS', 'DOMAIN'],    headerIcons: ['◈', '★', '◎', '⚙', '◆'], numCols: 5 },
   { id: 'about',    label: 'ABOUT',    icon: '◎', headers: ['PROFILE', 'CONTEXT', 'STORY', 'FACTS', 'FOCUS'],   headerIcons: ['◈', '◎', '✦', '◆', '●'], numCols: 5 },
   { id: 'career',   label: 'CAREER',   icon: '◆', headers: ['COMPANY', 'PERIOD', 'ROLE', 'SCOPE', 'IMPACT'],    headerIcons: ['◆', '◎', '✦', '◎', '★'], numCols: 5 },
-  { id: 'contact',  label: 'CONTACT',  icon: '▶', headers: ['CHANNEL', 'TYPE', 'VALUE', 'STATUS', 'NOTE'],      headerIcons: ['▶', '◎', '◆', '✓', '◎'], numCols: 5 },
+  { id: 'contact',  label: 'REACH',    icon: '▶', headers: ['CHANNEL', 'TYPE', 'VALUE', 'STATUS', 'NOTE'],      headerIcons: ['▶', '◎', '◆', '✓', '◎'], numCols: 5 },
 ]
 
 // ============================================================

@@ -124,6 +124,37 @@
   flex-direction: column;
 }
 
+/* §2.7 — 3-plane cinematic depth vignette.
+   Radial dark overlay pushed to z-index 98 (above content, below chrome/overlay).
+   Darkens the reel zone edges → center "pops out" toward the viewer.
+   Reads as a camera lens vignette on a physical cabinet. */
+.depthVignette {
+  position: absolute;
+  inset: 0;
+  z-index: 98;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 70% 65% at 50% 50%,
+      transparent 40%,
+      rgba(0, 0, 0, 0.28) 72%,
+      rgba(0, 0, 0, 0.58) 100%
+    );
+  mix-blend-mode: multiply;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* Lighter on mobile — less screen real estate to spare */
+  .depthVignette {
+    background: radial-gradient(
+      ellipse 80% 75% at 50% 50%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.18) 80%,
+      rgba(0, 0, 0, 0.40) 100%
+    );
+  }
+}
+
 /* HOUDINI PAINT LAYER — procedural cyberpunk circuit-grid + glitches.
    Dedicated DOM element (cyberPaintBg) so we don't fight the existing
    .machine::before/::after pseudo-elements (ambient glow + scanlines).

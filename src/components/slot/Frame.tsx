@@ -70,10 +70,10 @@ export function Frame({ children, isSpinning, cellHeight = 0 }: FrameProps) {
       {/* Right pillar */}
       <div className={`${styles.pillar} ${styles.right}`} />
 
-      {/* Corner medallions */}
+      {/* Corner medallions — diagonal pair only (TL + BR).
+          §2.4 V2: 4-medallion symmetry → 2-medallion diagonal balance.
+          Reduces visual noise; eye moves TL→BR reinforcing reading direction. */}
       <div className={`${styles.medallion} ${styles.tl}`} />
-      <div className={`${styles.medallion} ${styles.tr}`} />
-      <div className={`${styles.medallion} ${styles.bl}`} />
       <div className={`${styles.medallion} ${styles.br}`} />
 
       {/* Top cold-light reflection strip */}

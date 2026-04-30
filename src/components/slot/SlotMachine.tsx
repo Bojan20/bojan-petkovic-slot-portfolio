@@ -1184,8 +1184,12 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       tickJackpot()
       bus.emit('slot:win', { type: 'jackpot', amount: 1000 })
     })
-    return () => { offSpin(); offNext(); offBack(); offJackpot() }
-  }, [handleSpin, handleSectionChange, currentSectionIdx, tickJackpot])
+    // ReachPill "REACH OUT ↗" click — jump directly to REACH tab (section 4)
+    const offReach = bus.on('custom:go_to_reach' as 'custom:go_to_reach', () => {
+      if (!locked) handleSectionChange(SECTIONS.length - 1)
+    })
+    return () => { offSpin(); offNext(); offBack(); offJackpot(); offReach() }
+  }, [handleSpin, handleSectionChange, currentSectionIdx, tickJackpot, locked])
 
   const section = SECTIONS[currentSectionIdx]!
 
@@ -1242,6 +1246,8 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
       {/* Frame + Reels zone */}
       <div className={styles.frameWrapper}>
+        {/* §2.7 — Cinematic depth vignette (dark radial edge) */}
+        <div className={styles.depthVignette} aria-hidden="true" />
         <Frame isSpinning={isSpinning} cellHeight={cellHeight}>
           <div
             ref={reelsZoneRef}

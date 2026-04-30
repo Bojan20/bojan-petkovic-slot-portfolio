@@ -27,10 +27,11 @@ import { bus, playSynthById } from '../../engine'
 interface CellProps {
   data: CellData
   height: number
+  colIndex?: number
   onGameCellClick?: (itemIndex: number) => void
 }
 
-export function Cell({ data, height, onGameCellClick }: CellProps) {
+export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
   const cellId = useId()
   const isCenter = data.center
   const cls = [
@@ -96,6 +97,7 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         data-cell-type={data.type}
+        {...(colIndex !== undefined ? { 'data-col': String(colIndex) } : {})}
         {...(isCenter ? { 'data-center-cell': '' } : {})}
       >
         <CellBackground />

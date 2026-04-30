@@ -64,6 +64,9 @@ const DevOverlay = lazy(() =>
 )
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { PlatformChips } from './components/PlatformChip'
+import { ReachPill } from './components/ReachPill'
+import { EngageToast } from './components/EngageToast'
+import { useSoftFunnel } from './hooks/useSoftFunnel'
 import { useAudioStore } from './store'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -295,6 +298,9 @@ export default function App() {
     idleThresholdMs: 30_000,
   })
 
+  // §2.11 Soft funnel — 30s/60s/120s non-blocking engagement escalators
+  const { showEngageToast, dismissEngageToast } = useSoftFunnel(phase === 'slot')
+
   // ── Voice commands: session capture is wired in useSessionCapture ──
 
   // ── Voice command: mute / unmute ────────────────────────────────────
@@ -485,6 +491,12 @@ export default function App() {
           <DevOverlay visible={devOverlay} onClose={() => setDevOverlay(false)} phase={phase} />
         </Suspense>
       )}
+
+      {/* ReachPill — always-visible "AVAILABLE · REACH OUT ↗" CTA (§2.10) */}
+      <ReachPill visible={phase === 'slot'} />
+
+      {/* Soft funnel — 60s engage toast (§2.11) */}
+      <EngageToast visible={showEngageToast} onDismiss={dismissEngageToast} />
 
       {/* Platform chips — Share + Lite-mode badge top-right (post-boot) */}
       <PlatformChips visible={phase !== 'boot'} />

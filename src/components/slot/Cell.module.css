@@ -244,13 +244,53 @@
   border-color: rgba(212, 168, 75, 0.18);
 }
 
-/* Center — hero, fully lit */
+/* §2.7 + §2.5 — Per-column depth-of-field (pseudo-DOF without 3D transforms).
+   Outer columns read as "further from camera": slightly more blur + desaturated.
+   Inner columns are mid-field. Center column is tack-sharp.
+   Creates cinematic depth without touching overflow/stacking context. */
+.dim[data-col="0"],
+.dim[data-col="4"] {
+  filter: saturate(0.42) brightness(0.82) blur(0.7px);
+  opacity: 0.68;
+}
+.dim[data-col="1"],
+.dim[data-col="3"] {
+  filter: saturate(0.50) brightness(0.85) blur(0.25px);
+  opacity: 0.74;
+}
+/* Center column dim cells (row above/below center) — sharpest non-center */
+.dim[data-col="2"] {
+  filter: saturate(0.58) brightness(0.90);
+  opacity: 0.80;
+}
+
+/* Center — hero, fully lit, slightly scaled + reel breathing parallax */
 .center {
   opacity: 1;
   filter: none;
   border-color: rgba(212, 168, 75, 0.6);
   background: rgb(14, 13, 12);
-  animation: centerBreath 3.5s ease-in-out infinite;
+  /* Dual animation: glow breath (3.5s) + subtle rotateY oscillation (6.1s)
+     → reads as the cabinet "breathing" in 3D toward the camera */
+  animation:
+    centerBreath 3.5s ease-in-out infinite,
+    reelCenterFloat 6.1s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+/* §2.5 — Reel center breathing parallax.
+   0.4° rotateY oscillation on a 6.1s cycle (prime vs 3.5s breath so
+   they never land in unison). Reads as the cabinet gently pivoting
+   toward the viewer — camera depth, not a spin. */
+@keyframes reelCenterFloat {
+  0%, 100% { transform: perspective(900px) rotateY(0deg) scale(1); }
+  25%       { transform: perspective(900px) rotateY(0.35deg) scale(1.004); }
+  50%       { transform: perspective(900px) rotateY(0deg) scale(1.007); }
+  75%       { transform: perspective(900px) rotateY(-0.35deg) scale(1.004); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .center { animation: none; }
 }
 
 /* WoO 4-layer win highlight */

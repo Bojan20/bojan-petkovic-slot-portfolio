@@ -1,0 +1,67 @@
+.toast {
+  position: fixed;
+  bottom: clamp(70px, 10vh, 110px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 490;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 232, 255, 0.22);
+  background: rgba(4, 5, 14, 0.88);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  font-family: var(--f-ui, monospace);
+  font-size: clamp(10px, 1.3vw, 12px);
+  color: rgba(200, 215, 240, 0.88);
+  box-shadow:
+    0 0 0 1px rgba(34, 232, 255, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.55);
+  animation: toastIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  white-space: nowrap;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.msg {
+  letter-spacing: 0.04em;
+  opacity: 0.82;
+}
+
+.cta {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(34, 232, 255, 0.92);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.18s;
+}
+
+.cta:hover { color: rgba(34, 232, 255, 1); }
+
+.dismiss {
+  font-family: inherit;
+  font-size: 11px;
+  color: rgba(180, 190, 210, 0.4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.18s;
+}
+
+.dismiss:hover { color: rgba(180, 190, 210, 0.8); }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
