@@ -41,7 +41,15 @@ export function CabinetConnectionLines() {
   const lastEmitRef = useRef<number>(0)
   const suspendedRef = useRef<boolean>(false)
 
+  // V7.4 — early-exit on mobile (≤640px). CSS already hides the
+  // SVG; this skips the bus subscriptions + DOM walks entirely so
+  // Cell hovers don't burn cycles for a layer that's invisible.
+  const isMobile =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(max-width: 640px)').matches
+
   useEffect(() => {
+    if (isMobile) return
     // V7.2 — gate: skip while payline takeover is up (recruiter is
     // already focused on a single card — affinity lines would be
     // visual noise overlaying the cinematic stage). Also skip on
@@ -144,7 +152,7 @@ export function CabinetConnectionLines() {
       offSpin()
       if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current)
     }
-  }, [])
+  }, [isMobile])
 
   if (lines.length === 0) return null
 

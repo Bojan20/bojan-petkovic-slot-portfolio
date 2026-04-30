@@ -1059,7 +1059,10 @@
 /* Responsive — mobile portrait stacks under the card */
 @media (max-width: 720px) {
   .panel {
-    padding: 18px 20px;
+    /* V7.4 — respect iOS notch + bottom home indicator */
+    padding:
+      max(18px, env(safe-area-inset-top, 0)) 20px
+      max(18px, env(safe-area-inset-bottom, 0));
     gap: 14px;
   }
   .heroIcon { font-size: 42px; }
@@ -1069,4 +1072,24 @@
   .timelineMark { font-size: 9px; letter-spacing: 1.5px; }
   .factText { font-size: 10px; letter-spacing: 1.3px; }
   .contactValue { font-size: 14px; }
+
+  /* V7.4 — tap-target sizing: badge needs ≥36px hit area on touch */
+  .dossierBadge {
+    top: 10px;
+    right: 10px;
+    padding: 9px 13px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  /* V7.4 — disable expensive pseudo-element layers on mobile to
+     keep scroll/animation FPS up; the panel still looks futuristic
+     thanks to the rim + scanline already on .panel */
+  .heroName::before,
+  .heroName::after,
+  .contactBig::after,
+  .skillBarFill::after,
+  .timelineDotActive::after { display: none; }
+
+  .panel::after { opacity: 0.30; }  /* dim scan sweep on mobile */
 }

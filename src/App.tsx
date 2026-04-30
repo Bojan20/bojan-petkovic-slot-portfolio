@@ -26,7 +26,12 @@ const MoodboardV3 = lazy(() =>
 )
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
-import { CasinoShower } from './components/slot/CasinoShower'
+// V7.4 — Lazy CasinoShower so the ~80KB Matter.js engine isn't in
+// the boot bundle. The shower only fires during splash→slot
+// transition, so first-paint of the boot screen is faster.
+const CasinoShower = lazy(() =>
+  import('./components/slot/CasinoShower').then((m) => ({ default: m.CasinoShower })),
+)
 import { PullToRefresh } from './components/PullToRefresh'
 import {
   bus,
@@ -498,8 +503,11 @@ function AppMain() {
         <SlotMachine locked={introLocked} entering={phase === 'entering'} />
       </div>
 
-      {/* Casino particle shower — coins, chips, dice rain */}
-      <CasinoShower active={showerActive} onComplete={handleShowerDone} />
+      {/* Casino particle shower — coins, chips, dice rain.
+          V7.4 — lazy: Matter.js engine loads only when shower is needed. */}
+      <Suspense fallback={null}>
+        {showerActive && <CasinoShower active={showerActive} onComplete={handleShowerDone} />}
+      </Suspense>
 
       {/* Cinematic matte — pure black overlay used for all scene transitions.
           Fades to black between phases, then dissolves to reveal the next scene. */}
