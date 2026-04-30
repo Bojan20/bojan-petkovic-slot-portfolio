@@ -879,6 +879,163 @@ const synthLibrary: Record<string, (volume: number) => void> = {
   },
 
   // ═══════════════════════════════════════════════════════════════════════
+  // P4.5 — SECTION VOICES.
+  // Five signature stings, one per top-level slot section. Plays on
+  // tab change so the recruiter — eyes closed — knows where they are
+  // by sound alone. ~600–900ms each, low gain, generous reverb.
+  // Registered as synths so SlotAudioManager can audition them.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // ──── PROJECTS — warm pad swell (curtain rises) ───────────────────────
+  // Sub-octave anchor + sustained sine pad with detuned shimmer.
+  section_voice_projects: (vol) => {
+    if (!_unlocked) return
+    const ac = getCtx()
+    const now = ac.currentTime
+
+    // Sub anchor: F2 (87.31 Hz)
+    const sub = ac.createOscillator()
+    sub.type = 'sine'
+    sub.frequency.value = 87.31
+    const subG = env(ac, 0.06, 0.45, 0.35, 0.10 * vol)
+    sub.connect(subG).connect(_sfxGain!)
+    sub.start(now)
+    sub.stop(now + 0.95)
+
+    // Sustained pad — F3 + Ab3 (minor third — warm, not too saccharine)
+    for (const freq of [174.61, 207.65]) {
+      for (const detune of [-6, 0, 6]) {
+        const o = ac.createOscillator()
+        o.type = 'sine'
+        o.frequency.value = freq
+        o.detune.value = detune
+        const g = env(ac, 0.12, 0.35, 0.45, 0.045 * vol)
+        o.connect(g).connect(_sfxGain!)
+        sendToReverb(g, 0.55)
+        o.start(now)
+        o.stop(now + 0.95)
+      }
+    }
+  },
+
+  // ──── SKILLS — bright crystalline arpeggio (precision) ────────────────
+  section_voice_skills: (vol) => {
+    if (!_unlocked) return
+    const ac = getCtx()
+    const now = ac.currentTime
+
+    // Ascending arp: C5 E5 G5 B5 (major 7th — bright, technical)
+    const notes = [523.25, 659.25, 783.99, 987.77]
+    notes.forEach((freq, i) => {
+      const t0 = now + i * 0.06
+
+      for (const detune of [-4, 4]) {
+        const osc = ac.createOscillator()
+        osc.type = 'triangle'
+        osc.frequency.value = freq
+        osc.detune.value = detune
+        const g = env(ac, 0.002, 0.015, 0.22, 0.05 * vol)
+        osc.connect(g).connect(_sfxGain!)
+        sendToReverb(g, 0.6)
+        osc.start(t0)
+        osc.stop(t0 + 0.26)
+      }
+    })
+  },
+
+  // ──── ABOUT — breathy filtered choir (intimate, human) ────────────────
+  section_voice_about: (vol) => {
+    if (!_unlocked) return
+    const ac = getCtx()
+    const now = ac.currentTime
+
+    // Filtered noise breath
+    const noise = ac.createBufferSource()
+    noise.buffer = getNoise(ac, 1.0, 'about_breath')
+    const bp = ac.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = 1100
+    bp.Q.value = 1.4
+    const ng = env(ac, 0.08, 0.30, 0.55, 0.08 * vol)
+    noise.connect(bp).connect(ng).connect(_sfxGain!)
+    sendToReverb(ng, 0.8)
+    noise.start(now)
+    noise.stop(now + 1.0)
+
+    // Low pad — A2 + E3 (open fifth, choir-like)
+    for (const freq of [110.0, 164.81]) {
+      const o = ac.createOscillator()
+      o.type = 'sine'
+      o.frequency.value = freq
+      const g = env(ac, 0.18, 0.25, 0.50, 0.06 * vol)
+      o.connect(g).connect(_sfxGain!)
+      sendToReverb(g, 0.65)
+      o.start(now)
+      o.stop(now + 0.95)
+    }
+  },
+
+  // ──── CAREER — brass swell with formant sweep (authority) ─────────────
+  section_voice_career: (vol) => {
+    if (!_unlocked) return
+    const ac = getCtx()
+    const now = ac.currentTime
+
+    // Saw foundation — D3 + A3 (open fifth, fanfare-like)
+    for (const freq of [146.83, 220.0]) {
+      const osc = ac.createOscillator()
+      osc.type = 'sawtooth'
+      osc.frequency.value = freq
+
+      const sat = ac.createWaveShaper()
+      sat.curve = getSatCurve()
+      sat.oversample = '2x'
+
+      // Formant filter sweep — emulates brass attack
+      const lp = ac.createBiquadFilter()
+      lp.type = 'lowpass'
+      lp.frequency.setValueAtTime(420, now)
+      lp.frequency.exponentialRampToValueAtTime(2400, now + 0.35)
+      lp.frequency.exponentialRampToValueAtTime(900, now + 0.85)
+      lp.Q.value = 4
+
+      const g = env(ac, 0.04, 0.30, 0.45, 0.045 * vol)
+      osc.connect(sat).connect(lp).connect(g).connect(_sfxGain!)
+      sendToReverb(g, 0.5)
+      osc.start(now)
+      osc.stop(now + 0.85)
+    }
+  },
+
+  // ──── CONTACT — bell ping (call to action) ────────────────────────────
+  section_voice_contact: (vol) => {
+    if (!_unlocked) return
+    const ac = getCtx()
+    const now = ac.currentTime
+
+    // Two-stroke bell: G5 + D6 (perfect fifth)
+    const strikes = [
+      { freq: 783.99, t: 0,    peak: 0.10 * vol },
+      { freq: 1174.66, t: 0.12, peak: 0.07 * vol },
+    ]
+    for (const s of strikes) {
+      const t0 = now + s.t
+      // Bell = fundamental + inharmonic partials
+      const partials = [1.0, 2.76, 5.4, 8.93]
+      partials.forEach((mult, i) => {
+        const osc = ac.createOscillator()
+        osc.type = 'sine'
+        osc.frequency.value = s.freq * mult
+        const g = env(ac, 0.001, 0.015, 0.50 / (i + 1), s.peak / (i + 1))
+        osc.connect(g).connect(_sfxGain!)
+        sendToReverb(g, 0.75)
+        osc.start(t0)
+        osc.stop(t0 + 0.65)
+      })
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
   // sfx_crystal_arp — crystalline arpeggio (used in cyberBoot sequence)
   // ═══════════════════════════════════════════════════════════════════════
   sfx_crystal_arp: (vol) => {

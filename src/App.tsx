@@ -40,6 +40,7 @@ import {
   loadCellMemory,
   scheduleKeyDetection,
   startPersonaInference, stopPersonaInference,
+  startSectionVoice, stopSectionVoice,
   initTransitionDirector, disposeTransitionDirector, getTransitionDirector,
   startAudioBus, stopAudioBus, onAudioCue,
   playSynthById,
@@ -270,6 +271,18 @@ export default function App() {
     return () => {
       off()
       stopPersonaInference()
+    }
+  }, [])
+
+  // P4.5 — Section Voice. Five signature stings (one per section) play
+  // on tab change. Wired after boot:complete so AudioContext is unlocked
+  // and the synthetic first section render doesn't auto-trigger a sting
+  // (SectionVoice internally suppresses the first emission).
+  useEffect(() => {
+    const off = bus.on('boot:complete', () => startSectionVoice())
+    return () => {
+      off()
+      stopSectionVoice()
     }
   }, [])
 

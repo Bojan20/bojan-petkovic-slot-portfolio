@@ -271,6 +271,13 @@ export { pickNextItem } from './SpinTargeting'
 export type { PickNextOpts } from './SpinTargeting'
 
 export {
+  startSectionVoice,
+  stopSectionVoice,
+  previewSectionVoice,
+  listSectionVoiceIds,
+} from './SectionVoice'
+
+export {
   transition as spinPhaseTransition,
   isSpinLocked,
   isLanded,
