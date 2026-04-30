@@ -382,9 +382,279 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* ── V6.0 SKILL METER (skills section) ── */
+.skillMeter {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.30s;
+}
+
+.skillMeterHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+.skillMeterLabel {
+  color: var(--card-glow, #ffe066);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--card-glow) 50%, transparent);
+}
+
+.skillMeterYears {
+  color: rgba(220, 215, 255, 0.7);
+  font-size: 11px;
+}
+
+.skillBar {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.skillBarFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--card-glow) 70%, white) 0%,
+    var(--card-glow, #ffe066) 100%
+  );
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--card-glow) 65%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: skillFill 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.40s;
+  transform-origin: left center;
+}
+
+@keyframes skillFill {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+.skillBarTicks {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  pointer-events: none;
+}
+
+.skillBarTicks > span {
+  border-right: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.skillBarTicks > span:last-child {
+  border-right: none;
+}
+
+.skillBarLegend {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(180, 175, 220, 0.55);
+  padding: 0 2px;
+}
+
+.skillBarLegend > span:nth-child(2),
+.skillBarLegend > span:nth-child(3),
+.skillBarLegend > span:nth-child(4) {
+  text-align: center;
+}
+
+.skillBarLegend > span:last-child {
+  text-align: right;
+}
+
+/* ── V6.0 ABOUT FACT GRID ── */
+.factGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.30s;
+}
+
+.factCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.factCell:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: color-mix(in srgb, var(--card-glow) 35%, transparent);
+}
+
+.factDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--card-glow, #ffe066);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--card-glow) 65%, transparent);
+  flex-shrink: 0;
+}
+
+.factText {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  color: rgba(232, 230, 255, 0.92);
+  text-transform: uppercase;
+}
+
+/* ── V6.0 CAREER TIMELINE ── */
+.timeline {
+  position: relative;
+  z-index: 1;
+  height: 60px;
+  margin: 4px 6px 8px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.30s;
+}
+
+.timelineRail {
+  position: absolute;
+  left: 8%;
+  right: 4%;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--card-glow) 20%, transparent) 0%,
+    color-mix(in srgb, var(--card-glow) 70%, transparent) 100%
+  );
+  transform: translateY(-50%);
+  border-radius: 1px;
+}
+
+.timelineDot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid color-mix(in srgb, var(--card-glow) 60%, transparent);
+  transform: translate(-50%, -50%);
+}
+
+.timelineDotActive {
+  background: var(--card-glow, #ffe066);
+  border-color: var(--card-glow, #ffe066);
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--card-glow) 70%, transparent),
+    0 0 32px color-mix(in srgb, var(--card-glow) 30%, transparent);
+  animation: timelinePulse 2s ease-in-out infinite;
+}
+
+@keyframes timelinePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.18); }
+}
+
+.timelineMark {
+  position: absolute;
+  top: calc(50% + 14px);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: rgba(220, 215, 255, 0.78);
+  white-space: nowrap;
+}
+
+.timelineMarkStart {
+  left: 8%;
+  transform: translateX(-50%);
+}
+
+.timelineMarkEnd {
+  left: 96%;
+  transform: translateX(-50%);
+  color: var(--card-glow, #ffe066);
+}
+
+/* ── V6.0 CONTACT BIG-VALUE ROW ── */
+.contactBig {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--card-glow) 14%, transparent) 0%,
+      color-mix(in srgb, var(--card-glow) 4%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--card-glow) 35%, transparent);
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.20s;
+}
+
+.contactValue {
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: clamp(14px, 1.8vw, 20px);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fff;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--card-glow) 50%, transparent);
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
+.contactCopy {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--card-glow) 60%, transparent);
+  background: color-mix(in srgb, var(--card-glow) 14%, transparent);
+  color: var(--card-glow, #fff);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 7px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.contactCopy:hover {
+  background: color-mix(in srgb, var(--card-glow) 28%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--card-glow) 45%, transparent);
+}
+
+.contactCopy[data-copied='1'] {
+  background: var(--card-glow, #ffe066);
+  color: #0a0612;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .panel, .hero, .pitch, .stats, .wave, .tools, .tech, .cta,
-  .panel::before, .waveBar { animation: none; }
+  .skillMeter, .factGrid, .timeline, .contactBig,
+  .panel::before, .waveBar, .skillBarFill, .timelineDotActive { animation: none; }
 }
 
 /* Responsive — mobile portrait stacks under the card */
@@ -397,4 +667,7 @@
   .heroName { font-size: clamp(22px, 6vw, 32px); letter-spacing: 2px; }
   .pitch { font-size: 13px; }
   .statValue { font-size: 18px; }
+  .timelineMark { font-size: 9px; letter-spacing: 1.5px; }
+  .factText { font-size: 10px; letter-spacing: 1.3px; }
+  .contactValue { font-size: 14px; }
 }

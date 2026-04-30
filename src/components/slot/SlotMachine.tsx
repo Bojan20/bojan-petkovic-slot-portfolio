@@ -20,6 +20,7 @@ import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
 import { getStrategy, STRATEGIES } from './sections'
 import cardDetailStyles from './cabinet/CardDetail.module.css'
+import { buildDetailHTML, hasDetailFor } from './cabinet/detailBuilders'
 import {
   CabinetMarquee,
   CabinetHUD,
@@ -130,114 +131,9 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
  *   • TECH   — tech-breakdown blockquote
  *   • CTA    — primary "Open Demo" + secondary "Read Case"
  */
-function buildProjectDetailHTML(itemIdx: number): { html: string; color: string } {
-  const project = PROJECTS[itemIdx]
-  if (!project) return { html: '', color: '#ff2bd6' }
-  const { ico, name, studio, color, scope, work, tools, demo } = project
-  // Derived stats — content varies per project but format stays constant
-  const sfxCount =
-    name === 'PIGGY PLUNGER' ? '200+' :
-    name === 'STARLIGHT TRAVELERS' ? '180+' :
-    name === 'SMASH FACTORY' ? '160+' :
-    name === 'VALKYRIES' ? '140+' :
-    name === 'ZHULONGS' ? '120+' :
-    name === 'MIDNIGHT GOLD' ? '110+' :
-    name === "BLAZIN'S HOT" ? '90+' :
-    '100+'
-  const winStates =
-    scope.qa ? '8 win tiers' : '5 win tiers'
-  const adaptive =
-    scope.music ? '4 layers' : 'Linear'
-  const role = scope.integration ? 'Lead Audio Designer + Wwise / Howler integrator'
-                                 : 'Lead Audio Designer'
-  // Tech blurb varies by project
-  const techBlurb =
-    name === 'PIGGY PLUNGER'
-      ? 'Adaptive 4-layer ragtime score crossfaded by feature state. 12-band haptic mapping for mobile coin cascades. iZotope RX cleanup pipeline for plunger mechanics.'
-    : name === 'STARLIGHT TRAVELERS'
-      ? 'Spectral granular synthesis for nebula ambience. Per-symbol detune cascades land on minor-pentatonic triads. 5.1 → web stereo with HRTF panning.'
-    : name === 'VALKYRIES'
-      ? 'FMOD parameter-driven choir intensity. War-drum stems split per-shield-strike with sample-accurate quantization. Battle ambience reactive to spin energy.'
-    : name === 'MIDNIGHT GOLD'
-      ? 'Velvet UI palette built from real lounge piano + tape-saturated sax. Coin rain FX granular-stretched to match win-tier multiplier. Custom Howler.js spatial pan.'
-    : name === 'ZHULONGS'
-      ? 'Pentatonic modal modulation per bonus state. Real gong samples convolution-reverbed for resonance tail. Pro Tools session-driven post-mix in Unity.'
-      : 'Adaptive score system, sample-accurate cue triggers, custom audio middleware integration. Mixed in-engine to match dynamic gameplay states.'
-
-  const toolChips = tools.map((t) => `<span class="${cardDetailStyles.toolChip}">${escapeHtml(t)}</span>`).join('')
-
-  // 18-bar animated waveform — staggered animation-delay per bar
-  const waveBars = Array.from({ length: 24 }, (_, i) => {
-    const delay = (i * 0.045).toFixed(2)
-    const heightPct = 28 + Math.abs(Math.sin(i * 0.78)) * 60
-    return `<span class="${cardDetailStyles.waveBar}" style="animation-delay:-${delay}s;height:${heightPct}%"></span>`
-  }).join('')
-
-  const html = `
-    <section class="${cardDetailStyles.hero}">
-      <div class="${cardDetailStyles.heroIcon}">${ico}</div>
-      <div class="${cardDetailStyles.heroText}">
-        <span class="${cardDetailStyles.heroEyebrow}">PROJECT · ${escapeHtml(role.toUpperCase())}</span>
-        <h2 class="${cardDetailStyles.heroName}">${escapeHtml(name)}</h2>
-        <span class="${cardDetailStyles.heroStudio}">${escapeHtml(studio)}</span>
-      </div>
-    </section>
-
-    <p class="${cardDetailStyles.pitch}">${escapeHtml(work)}</p>
-
-    <section class="${cardDetailStyles.stats}">
-      <div class="${cardDetailStyles.statCard}">
-        <span class="${cardDetailStyles.statValue}">${sfxCount}</span>
-        <span class="${cardDetailStyles.statLabel}">CUSTOM SFX</span>
-      </div>
-      <div class="${cardDetailStyles.statCard}">
-        <span class="${cardDetailStyles.statValue}">${winStates}</span>
-        <span class="${cardDetailStyles.statLabel}">WIN STATES</span>
-      </div>
-      <div class="${cardDetailStyles.statCard}">
-        <span class="${cardDetailStyles.statValue}">${adaptive}</span>
-        <span class="${cardDetailStyles.statLabel}">ADAPTIVE MUSIC</span>
-      </div>
-    </section>
-
-    <section class="${cardDetailStyles.wave}">
-      <header class="${cardDetailStyles.waveHeader}">
-        <span class="${cardDetailStyles.waveLabel}">▶ AUDIO PREVIEW · ${demo === 'video' ? 'VIDEO + STEMS' : 'STEMS'}</span>
-        <button class="${cardDetailStyles.wavePlay}" type="button" data-detail-play>LISTEN</button>
-      </header>
-      <div class="${cardDetailStyles.waveBars}">${waveBars}</div>
-    </section>
-
-    <section class="${cardDetailStyles.tools}">
-      <span class="${cardDetailStyles.toolsHeader}">STACK · TOOLS</span>
-      <div class="${cardDetailStyles.toolsChips}">${toolChips}</div>
-    </section>
-
-    <section class="${cardDetailStyles.tech}">
-      <span class="${cardDetailStyles.techHeader}">★ TECH BREAKDOWN</span>
-      <p class="${cardDetailStyles.techBody}">${escapeHtml(techBlurb)}</p>
-    </section>
-
-    <section class="${cardDetailStyles.cta}">
-      <a class="${cardDetailStyles.ctaPrimary}" href="mailto:bojan.petkovic25@gmail.com?subject=Re%3A%20${encodeURIComponent(name)}" target="_blank" rel="noopener">
-        DISCUSS THIS PROJECT &nbsp;→
-      </a>
-      <button class="${cardDetailStyles.ctaSecondary}" type="button" data-detail-back>
-        ◄ BACK
-      </button>
-    </section>
-  `
-  return { html, color }
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+// V6.0 — buildProjectDetailHTML + escapeHtml moved to ./cabinet/detailBuilders.ts.
+// All sections (projects, skills, about, career, contact) now have takeover
+// detail panels via the buildDetailHTML(sectionId, itemIdx, styles) dispatcher.
 
 interface SlotMachineProps {
   /** Block all interaction during intro transition */
@@ -960,13 +856,15 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       level = idx
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
 
-      // V5.2 — only show detail panel on column 0 (GAME card) of
-      // the WORK section + viewport wide enough to host card+panel.
+      // V6.0 — show detail panel on column 0 (hero card) for ANY
+      // section that has a builder registered (projects/skills/about/
+      // career/contact). Viewport must be wide enough to host panel.
       // Mobile portrait suppresses; landscape with vw≥760 enables.
       const hasRoomForDetail = vw >= 760 && vh >= 480
+      const sectionId = SECTIONS[currentSectionIdx]?.id
       const showDetail =
         idx === 0 &&
-        SECTIONS[currentSectionIdx]?.id === 'projects' &&
+        hasDetailFor(sectionId) &&
         hasRoomForDetail
 
       // QA fix — always clear any stale detail panel from a prior
@@ -1018,9 +916,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         })
       }
 
-      // V5.4 — mount fullscreen-centered detail panel
-      if (showDetail) {
-        const { html, color } = buildProjectDetailHTML(currentItemIdx)
+      // V6.0 — mount fullscreen-centered detail panel (per-section)
+      if (showDetail && sectionId) {
+        const { html, color } = buildDetailHTML(
+          sectionId,
+          currentItemIdx,
+          cardDetailStyles as Record<string, string | undefined>,
+        )
         if (html) {
           const panel = document.createElement('div')
           panel.className = cardDetailStyles.panel ?? 'cardDetailPanel'
@@ -1045,6 +947,23 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
             ?.addEventListener('click', (e) => {
               e.stopPropagation()
               try { playSynthById('sfx_warp_ignite', 0.40) } catch { /* unlocked? */ }
+            })
+          // V6.0 — wire COPY button (contact section)
+          panel.querySelector<HTMLButtonElement>('[data-detail-copy]')
+            ?.addEventListener('click', async (e) => {
+              e.stopPropagation()
+              const btnEl = e.currentTarget as HTMLButtonElement
+              const wrap = btnEl.closest<HTMLElement>('[data-contact-copy]')
+              const text = wrap?.dataset.contactCopy ?? ''
+              try {
+                await navigator.clipboard?.writeText(text)
+                btnEl.dataset.copied = '1'
+                btnEl.textContent = 'COPIED'
+                setTimeout(() => {
+                  btnEl.dataset.copied = '0'
+                  btnEl.textContent = 'COPY'
+                }, 1400)
+              } catch { /* clipboard denied */ }
             })
         }
       }
