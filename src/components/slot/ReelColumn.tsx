@@ -37,6 +37,7 @@ export const ReelColumn = forwardRef<HTMLDivElement, ReelColumnProps>(
               data={cell}
               height={cellHeight}
               colIndex={colIndex}
+              stripRow={rowIndex}
               onGameCellClick={onGameCellClick}
             />
           ))}

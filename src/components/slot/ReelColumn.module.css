@@ -6,6 +6,43 @@
   overflow: hidden;
   background: transparent;
   transition: box-shadow 0.25s ease;
+
+  /* V3.2 — 3D perspective for cylindrical reel feel.
+     1100px is the "camera distance" — large enough that the rotation
+     reads as gentle depth, not a fishbowl distortion. preserve-3d
+     on the strip lets cells inherit the perspective context. */
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
+}
+
+.column .strip {
+  transform-style: preserve-3d;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   V3.2 — REEL MASK (top + bottom gradient fade into cylinder darkness)
+   Sits above the strip but below the column motion-trail effect.
+   Reads as "the reel surface curves away into darkness" — same
+   trick as classic mechanical slots where the symbol disappears
+   over the cylinder lip.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.column[data-col]::before {
+  /* Override the V1 motion-trail gradient — V3 uses a stronger
+     fade with better camera-lens vignette feel. */
+  background: linear-gradient(
+    180deg,
+    rgba(5, 7, 14, 0.92) 0%,
+    rgba(5, 7, 14, 0.55) 6%,
+    rgba(5, 7, 14, 0.18) 11%,
+    transparent 16%,
+    transparent 84%,
+    rgba(5, 7, 14, 0.18) 89%,
+    rgba(5, 7, 14, 0.55) 94%,
+    rgba(5, 7, 14, 0.92) 100%
+  );
+  /* Always partially visible so the cylinder edges read at idle.
+     Spinning still ramps to opacity 1 (.spinning::before rule). */
+  opacity: 0.55;
 }
 
 .column.gameReel {

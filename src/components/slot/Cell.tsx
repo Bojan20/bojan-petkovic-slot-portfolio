@@ -28,6 +28,9 @@ interface CellProps {
   data: CellData
   height: number
   colIndex?: number
+  /** V3.2 — strip row index (0-6). cell[3] is the centered row; rows
+   *  2 and 4 are top/bottom edges that get cylindrical rotateX. */
+  stripRow?: number
   onGameCellClick?: (itemIndex: number) => void
 }
 
@@ -50,7 +53,7 @@ function tagLabel(type: string | undefined): string | null {
   }
 }
 
-export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
+export function Cell({ data, height, colIndex, stripRow, onGameCellClick }: CellProps) {
   const cellId = useId()
   const isCenter = data.center
   const cls = [
@@ -120,6 +123,7 @@ export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
         onMouseLeave={handleMouseLeave}
         data-cell-type={data.type}
         {...(colIndex !== undefined ? { 'data-col': String(colIndex) } : {})}
+        {...(stripRow !== undefined ? { 'data-strip-row': String(stripRow) } : {})}
         {...(isCenter ? { 'data-center-cell': '' } : {})}
       >
         <CellBackground />
