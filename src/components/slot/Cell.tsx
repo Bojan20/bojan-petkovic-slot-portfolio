@@ -16,7 +16,7 @@
  * subcomponents directly from `./cell` and assemble manually.
  */
 
-import { useCallback, useId, useMemo } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { CellData } from '../../types'
 import styles from './Cell.module.css'
 import { CellContext } from './cell/CellContext'
@@ -56,10 +56,17 @@ function tagLabel(type: string | undefined): string | null {
 export function Cell({ data, height, colIndex, stripRow, onGameCellClick }: CellProps) {
   const cellId = useId()
   const isCenter = data.center
+  // V4.2 — peel state. Set true for the brief moment between click
+  // commit and onGameCellClick firing so the selected card visually
+  // tilts forward while the others blur away.
+  const [peeling, setPeeling] = useState(false)
+  const peelTimerRef = useRef<number>(0)
+
   const cls = [
     styles.cell,
     isCenter ? styles.center : styles.dim,
     data.type === 'game' ? styles.gameCell : '',
+    peeling ? styles.cellPeel : '',
   ].filter(Boolean).join(' ')
 
   const handleClick = () => {
@@ -69,12 +76,30 @@ export function Cell({ data, height, colIndex, stripRow, onGameCellClick }: Cell
     // sfx_rail_tick — short metallic click, registered in SoundManager.
     try { playSynthById('sfx_rail_tick', 0.55) } catch { /* ignore */ }
     // V4.0 — emit cell click for the cinematic camera to react with
-    // a punch-in. Also a hook future cinematic peel can listen on.
+    // a punch-in. Also a hook for the cinematic peel below.
     bus.emit('custom:cell:click' as 'custom:cell:click', {
       type: data.type,
       isCenter,
       cellId,
     })
+
+    // V4.2 — cinematic card select. Non-center game cells get a
+    // brief "peel forward" animation + body[data-card-select] flag
+    // that defocuses the rest of the grid. After 280ms the cell
+    // calls onGameCellClick which kicks off the spin sequence.
+    if (data.type === 'game' && !isCenter && data.itemIndex !== undefined) {
+      setPeeling(true)
+      document.body.setAttribute('data-card-select', 'active')
+      if (peelTimerRef.current) window.clearTimeout(peelTimerRef.current)
+      peelTimerRef.current = window.setTimeout(() => {
+        document.body.removeAttribute('data-card-select')
+        setPeeling(false)
+        onGameCellClick?.(data.itemIndex!)
+        peelTimerRef.current = 0
+      }, 280)
+      return
+    }
+
     if (data.type === 'game' && data.itemIndex !== undefined) {
       onGameCellClick?.(data.itemIndex)
     }
