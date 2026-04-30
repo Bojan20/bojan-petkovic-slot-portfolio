@@ -266,3 +266,110 @@ body[data-jackpot]::after {
     animation: none !important;
   }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   V4.0 — CINEMATIC CAMERA LAYER
+   CabinetCamera.tsx sets body[data-camera] to one of:
+     idle-float, punch-in, shake-small, shake-medium, shake-big,
+     shake-jackpot
+   Each value drives a viewport-level transform animation.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Idle-float — gentle handheld-camera sway, always-on baseline */
+@keyframes camIdleFloat {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25%      { transform: rotate(0.18deg) translateY(-1px); }
+  50%      { transform: rotate(-0.12deg) translateY(0.5px); }
+  75%      { transform: rotate(0.10deg) translateY(-0.5px); }
+}
+
+body[data-camera="idle-float"] {
+  animation: camIdleFloat 14s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Punch-in — camera "lunges" toward the cabinet on commit
+   (spin start, cell click). 320ms total. */
+@keyframes camPunchIn {
+  0%   { transform: scale(1)     translateZ(0); }
+  35%  { transform: scale(0.992) translateZ(0); }
+  70%  { transform: scale(1.004) translateZ(0); }
+  100% { transform: scale(1)     translateZ(0); }
+}
+
+body[data-camera="punch-in"] {
+  animation: camPunchIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Shake-small — single reel-stop micro shake */
+@keyframes camShakeSmall {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(0.6px, -0.4px); }
+  50%      { transform: translate(-0.5px, 0.3px); }
+  75%      { transform: translate(0.4px, 0.5px); }
+}
+
+body[data-camera="shake-small"] {
+  animation: camShakeSmall 180ms ease-out;
+}
+
+/* Shake-medium — medium-win bump */
+@keyframes camShakeMedium {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20%      { transform: translate(1.2px, -0.8px) rotate(0.12deg); }
+  40%      { transform: translate(-1px, 0.6px) rotate(-0.10deg); }
+  60%      { transform: translate(0.8px, 1px) rotate(0.08deg); }
+  80%      { transform: translate(-0.6px, -0.4px) rotate(-0.05deg); }
+}
+
+body[data-camera="shake-medium"] {
+  animation: camShakeMedium 280ms cubic-bezier(0.36, 0, 0.66, -0.56);
+}
+
+/* Shake-big — big-win impact */
+@keyframes camShakeBig {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  10%      { transform: translate(2.4px, -1.6px) rotate(0.22deg) scale(1.004); }
+  25%      { transform: translate(-2px, 1.4px) rotate(-0.18deg) scale(1.002); }
+  40%      { transform: translate(1.6px, 1.8px) rotate(0.14deg); }
+  55%      { transform: translate(-1.2px, -1px) rotate(-0.10deg); }
+  70%      { transform: translate(0.8px, 0.6px) rotate(0.06deg); }
+  85%      { transform: translate(-0.4px, -0.3px); }
+}
+
+body[data-camera="shake-big"] {
+  animation: camShakeBig 480ms cubic-bezier(0.36, 0, 0.66, -0.56);
+}
+
+/* Shake-jackpot — full cinematic earthquake +brief blur */
+@keyframes camShakeJackpot {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); filter: blur(0); }
+  8%       { transform: translate(3.5px, -2.5px) rotate(0.35deg) scale(1.012); filter: blur(0.6px); }
+  16%      { transform: translate(-3.2px, 2.2px) rotate(-0.30deg) scale(1.008); filter: blur(0.4px); }
+  26%      { transform: translate(2.8px, 2.6px) rotate(0.24deg) scale(1.005); filter: blur(0.3px); }
+  38%      { transform: translate(-2.4px, -1.8px) rotate(-0.20deg) scale(1.003); }
+  50%      { transform: translate(1.8px, 1.4px) rotate(0.16deg); }
+  64%      { transform: translate(-1.4px, -1.1px) rotate(-0.12deg); }
+  78%      { transform: translate(0.9px, 0.7px) rotate(0.08deg); }
+  90%      { transform: translate(-0.5px, -0.3px); }
+}
+
+body[data-camera="shake-jackpot"] {
+  animation: camShakeJackpot 720ms cubic-bezier(0.36, 0, 0.66, -0.56);
+  will-change: transform, filter;
+}
+
+/* Honor reduced-motion + perf gates */
+@media (prefers-reduced-motion: reduce) {
+  body[data-camera] {
+    animation: none !important;
+  }
+}
+
+body[data-perf-pressure="critical"] {
+  /* Under critical CPU pressure, idle-float stays but disable shakes */
+  animation: camIdleFloat 14s ease-in-out infinite !important;
+}

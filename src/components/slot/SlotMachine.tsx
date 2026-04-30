@@ -27,6 +27,7 @@ import {
   CabinetWinFx,
   CabinetWorld,
   CabinetAnticipation,
+  CabinetCamera,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1383,6 +1384,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           + warp audio rampa when a high-excitement spin is about to
           land. Cleared the moment the last reel commits. */}
       <CabinetAnticipation />
+
+      {/* V4.0 — cinematic camera. Sets body[data-camera] on
+          spin/reel-stop/win/cell-click events; CSS in styles/index.css
+          drives viewport-level shakes + idle-float. */}
+      <CabinetCamera />
     </div>
   )
 }

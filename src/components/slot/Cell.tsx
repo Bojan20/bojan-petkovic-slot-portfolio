@@ -68,6 +68,13 @@ export function Cell({ data, height, colIndex, stripRow, onGameCellClick }: Cell
     // when AudioContext isn't unlocked yet, so pre-tap is silent.
     // sfx_rail_tick — short metallic click, registered in SoundManager.
     try { playSynthById('sfx_rail_tick', 0.55) } catch { /* ignore */ }
+    // V4.0 — emit cell click for the cinematic camera to react with
+    // a punch-in. Also a hook future cinematic peel can listen on.
+    bus.emit('custom:cell:click' as 'custom:cell:click', {
+      type: data.type,
+      isCenter,
+      cellId,
+    })
     if (data.type === 'game' && data.itemIndex !== undefined) {
       onGameCellClick?.(data.itemIndex)
     }
