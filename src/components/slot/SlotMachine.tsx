@@ -29,6 +29,8 @@ import {
   CabinetAnticipation,
   CabinetCamera,
   CabinetLensFlare,
+  CabinetVoxelFloor,
+  CabinetConnectionLines,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1291,6 +1293,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           the cabinet. */}
       <CabinetWorld />
 
+      {/* V5.0 — Tron-style perspective grid floor under the cabinet */}
+      <CabinetVoxelFloor />
+
       {/* CSS Houdini Paint — procedural cyberpunk circuit-grid base
           (paint(cyberPattern) on Chromium-based browsers; falls back
           to a radial gradient on Safari/Firefox via CSS layering). */}
@@ -1439,6 +1444,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           vertical bloom on final reel stop / win. Tier-scaled
           intensity, jackpot adds radial sunburst. */}
       <CabinetLensFlare />
+
+      {/* V5.1 — affinity connection lines. On cell hover, draws
+          neon SVG bezier curves to related cells (same row + same
+          type). Pure DOM SVG, no canvas. */}
+      <CabinetConnectionLines />
     </div>
   )
 }

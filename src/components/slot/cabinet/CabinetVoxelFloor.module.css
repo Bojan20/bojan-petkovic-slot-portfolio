@@ -1,0 +1,117 @@
+/**
+ * Tron-style perspective grid floor CSS.
+ * Position fixed at viewport bottom so the floor extends BEYOND the
+ * cabinet edges into the world background. z-index 0 so cabinet
+ * (z-index 1) sits ON it. Hidden outside slot phase.
+ */
+
+.floor {
+  position: fixed;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 38vh;
+  z-index: 0;
+  pointer-events: none;
+  perspective: 480px;
+  perspective-origin: 50% 0;
+  display: none;
+  overflow: hidden;
+}
+
+:global(body[data-phase="slot"]) .floor {
+  display: block;
+}
+
+/* Grid lines — repeated linear gradients, transformed in 3D so the
+   floor recedes into the horizon. background-position scrolls toward
+   the camera so the grid feels like it's flowing under the cabinet. */
+.grid {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(64deg) translateZ(0);
+  transform-origin: 50% 100%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 38px,
+      rgba(34, 232, 255, 0.55) 39px,
+      transparent 40px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 38px,
+      rgba(34, 232, 255, 0.40) 39px,
+      transparent 40px
+    ),
+    linear-gradient(180deg,
+      rgba(8, 12, 28, 0.0) 0%,
+      rgba(8, 12, 28, 0.6) 60%,
+      rgba(2, 4, 12, 0.92) 100%);
+  filter:
+    drop-shadow(0 0 6px rgba(34, 232, 255, 0.45))
+    drop-shadow(0 0 14px rgba(177, 76, 255, 0.20));
+  animation: gridScroll 4s linear infinite;
+  /* Soft top edge — the grid fades into the world above it */
+  -webkit-mask: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.4) 18%,
+    #000 35%,
+    #000 100%);
+          mask: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.4) 18%,
+    #000 35%,
+    #000 100%);
+}
+
+@keyframes gridScroll {
+  0%   { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 0 80px, 0 80px, 0 0; }
+}
+
+/* Horizontal haze band where the grid meets the horizon — sells the
+   "floor recedes into infinity" illusion */
+.haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8%;
+  height: 22%;
+  background: radial-gradient(ellipse 60% 100% at 50% 50%,
+    rgba(34, 232, 255, 0.18) 0%,
+    rgba(177, 76, 255, 0.10) 40%,
+    transparent 75%);
+  filter: blur(28px);
+  mix-blend-mode: screen;
+  animation: hazeBreath 6s ease-in-out infinite;
+}
+
+@keyframes hazeBreath {
+  0%, 100% { opacity: 0.7; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid { animation: none; }
+  .haze { animation: none; }
+}
+
+/* Mobile — flatter floor, less aggressive perspective */
+@media (max-width: 640px) {
+  .floor {
+    height: 28vh;
+    perspective: 360px;
+  }
+  .grid {
+    transform: rotateX(58deg);
+  }
+}
+
+body[data-perf-pressure="critical"] .floor {
+  display: none !important;
+}

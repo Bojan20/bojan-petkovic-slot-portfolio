@@ -1,0 +1,52 @@
+.svg {
+  position: fixed;
+  inset: 0;
+  z-index: 290;
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Inner sharp dashed stroke marches forward — visualizes flow */
+.line {
+  animation: lineMarch 1.6s linear infinite;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+@keyframes lineMarch {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -22; }
+}
+
+.glow {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { stroke-opacity: 0.20; }
+  50%      { stroke-opacity: 0.45; }
+}
+
+.endpoint {
+  animation: endpointPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes endpointPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50%      { transform: scale(1.6); opacity: 1; }
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line, .glow, .endpoint { animation: none; }
+}
+
+body[data-perf-pressure="critical"] .svg {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Mobile — connection lines are noise on a small viewport
+     where there's only 1 visible column anyway */
+  .svg { display: none; }
+}
