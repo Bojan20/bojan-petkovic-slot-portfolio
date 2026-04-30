@@ -663,3 +663,28 @@
     opacity: 0.6 !important;
   }
 }
+
+/* ─── Idle breath (P3.6) ────────────────────────────────────────
+   Subtle scale + brightness cycle on non-center cells when the
+   slot is idle. Reads as the cabinet "breathing" — kabinet je
+   živ. 4s slow cycle, peaks at 1.004 scale + 1.04 brightness.
+   Center cell is excluded — it has its own neon outline +
+   spotlight which would compete with this. */
+.cell.dim {
+  animation: cellIdleBreath 4.6s ease-in-out infinite;
+  animation-delay: var(--breath-delay, 0s);
+}
+
+@keyframes cellIdleBreath {
+  0%, 100% { transform: scale(1);     filter: brightness(1); }
+  50%      { transform: scale(1.004); filter: brightness(1.04); }
+}
+
+/* Pause breath while user hovers the cell (3D tilt takes over) */
+.cell.dim:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell.dim { animation: none; }
+}

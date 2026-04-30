@@ -16,13 +16,13 @@
  * subcomponents directly from `./cell` and assemble manually.
  */
 
-import { useCallback, useId } from 'react'
+import { useCallback, useId, useMemo } from 'react'
 import type { CellData } from '../../types'
 import styles from './Cell.module.css'
 import { CellContext } from './cell/CellContext'
 import { CellBackground } from './cell/CellBackground'
 import { CellContent } from './cell/CellContent'
-import { bus } from '../../engine'
+import { bus, playSynthById } from '../../engine'
 
 interface CellProps {
   data: CellData
@@ -40,10 +40,19 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
   ].filter(Boolean).join(' ')
 
   const handleClick = () => {
+    // P3.7 — audio designer's portfolio MUST sound on click. Plays a
+    // small UI tick on every cell interaction. SoundManager swallows
+    // when AudioContext isn't unlocked yet, so pre-tap is silent.
+    // sfx_rail_tick — short metallic click, registered in SoundManager.
+    try { playSynthById('sfx_rail_tick', 0.55) } catch { /* ignore */ }
     if (data.type === 'game' && data.itemIndex !== undefined) {
       onGameCellClick?.(data.itemIndex)
     }
   }
+
+  // Stagger idle-breath delay per cell so the grid doesn't pulse
+  // in unison — feels organic rather than mechanical.
+  const breathDelay = useMemo(() => `-${(Math.abs(cellId.charCodeAt(2) ?? 0) % 46) / 10}s`, [cellId])
 
   // 3D perspective tilt — cursor position → rotateX/Y CSS vars consumed
   // by Cell.module.css `.cell:hover` rule. Per-cell handler is fine for
@@ -77,7 +86,11 @@ export function Cell({ data, height, onGameCellClick }: CellProps) {
     <CellContext.Provider value={{ data, isCenter }}>
       <div
         className={cls}
-        style={{ height: `${height}px`, boxSizing: 'border-box' }}
+        style={{
+          height: `${height}px`,
+          boxSizing: 'border-box',
+          ['--breath-delay' as string]: breathDelay,
+        }}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
