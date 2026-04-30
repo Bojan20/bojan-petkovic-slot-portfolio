@@ -24,6 +24,7 @@ import {
   CabinetWinStrip,
   CabinetSubFrame,
   CabinetControlDeck,
+  CabinetWinFx,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1346,6 +1347,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           Replaces V1 bottomStrip, gives recruiters a permanent
           one-line CTA at the cabinet base. */}
       <CabinetSubFrame />
+
+      {/* V3.6 — cinematic win overlay. Listens for slot:win and
+          renders a per-tier fullscreen FX layer. Pointer-events-none
+          so it never blocks interaction. */}
+      <CabinetWinFx />
     </div>
   )
 }

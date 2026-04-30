@@ -1,0 +1,307 @@
+/**
+ * CabinetWinFx CSS — V3.6 win overlays.
+ *
+ * Each tier composes from layers below — small/medium are subtle
+ * (don't take over the screen), big adds darken + scanline + 24
+ * particles, jackpot goes full cinematic.
+ *
+ * Particle trajectory math uses --i index var (0..N-1) to scatter
+ * starting positions and velocities so we don't need JS for any of
+ * the per-particle work.
+ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SMALL — thin centerline gold beam, 350ms
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.lineSmall {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg,
+    transparent, rgba(255, 224, 102, 0.6), rgba(255, 255, 255, 0.95),
+    rgba(255, 224, 102, 0.6), transparent);
+  box-shadow: 0 0 14px rgba(255, 224, 102, 0.55);
+  animation: lineSmallPulse 350ms ease-out;
+}
+
+@keyframes lineSmallPulse {
+  0%   { opacity: 0; transform: translateY(-50%) scaleX(0); }
+  20%  { opacity: 1; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MEDIUM — cyan beam L→R + 12 sparkles
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.beamMedium {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg,
+    transparent, rgba(34, 232, 255, 0.4), rgba(255, 255, 255, 0.95),
+    rgba(34, 232, 255, 0.4), transparent);
+  box-shadow:
+    0 0 16px rgba(34, 232, 255, 0.55),
+    0 0 36px rgba(34, 232, 255, 0.25);
+  animation: beamMediumSweep 700ms ease-out;
+}
+
+@keyframes beamMediumSweep {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  20%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+
+.sparkField {
+  position: absolute;
+  inset: 30% 10%;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(34, 232, 255, 0.95);
+  box-shadow: 0 0 10px rgba(34, 232, 255, 0.85);
+  left: calc((var(--i) * 8.3%) + 2%);
+  top: calc(50% + (sin(var(--i) * 0.6) * 30%));
+  animation: sparkFloat 700ms ease-out;
+  animation-delay: calc(var(--i) * 30ms);
+  opacity: 0;
+}
+
+@keyframes sparkFloat {
+  0%   { opacity: 0; transform: scale(0) translateY(0); }
+  20%  { opacity: 1; transform: scale(1) translateY(-8px); }
+  100% { opacity: 0; transform: scale(0.5) translateY(-30px); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BIG — screen darken + scanline kick + 24 magenta particles
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.darken {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%,
+    transparent 30%, rgba(0, 0, 0, 0.55) 80%);
+  animation: darkenPulse 1300ms ease-out;
+}
+
+@keyframes darkenPulse {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.scanlineKick {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    rgba(255, 43, 214, 0.06) 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  animation: scanlinePulse 600ms ease-out;
+}
+
+@keyframes scanlinePulse {
+  0%   { opacity: 0; }
+  20%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.particleBurst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.burstParticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 43, 214, 0.95);
+  box-shadow: 0 0 12px rgba(255, 43, 214, 0.85);
+  /* Burst trajectory — outward radial in 24 directions */
+  --angle: calc(var(--i) * 15deg);
+  animation: burstFly 1300ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: calc(var(--i) * 8ms);
+  opacity: 0;
+}
+
+@keyframes burstFly {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(0); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) rotate(var(--angle)) translateX(40px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateX(280px) scale(0.4); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JACKPOT — gold shower + bloom core + chromatic split
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.darkenJackpot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%,
+    transparent 20%, rgba(0, 0, 0, 0.7) 80%);
+  animation: darkenJackpotHold 2500ms ease-out;
+}
+
+@keyframes darkenJackpotHold {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.bloomCore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 50% 50%,
+    rgba(255, 240, 180, 0.55) 0%,
+    rgba(255, 224, 102, 0.4) 25%,
+    rgba(255, 215, 0, 0.18) 50%,
+    transparent 70%);
+  filter: blur(20px);
+  animation: bloomPulse 2500ms ease-out;
+  mix-blend-mode: screen;
+}
+
+@keyframes bloomPulse {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  60%  { opacity: 0.85; transform: translate(-50%, -50%) scale(1.04); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.chromaSplit {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    rgba(255, 43, 214, 0.05) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(34, 232, 255, 0.05) 100%);
+  mix-blend-mode: screen;
+  animation: chromaShift 1200ms ease-out;
+}
+
+@keyframes chromaShift {
+  0%   { transform: translateX(0); opacity: 0; }
+  20%  { transform: translateX(8px); opacity: 1; }
+  40%  { transform: translateX(-6px); opacity: 1; }
+  60%  { transform: translateX(2px); opacity: 0.7; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+
+.goldShower {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.goldDrop {
+  position: absolute;
+  width: 5px;
+  height: 12px;
+  border-radius: 2px;
+  background: linear-gradient(180deg,
+    rgba(255, 240, 180, 0.95) 0%,
+    rgba(255, 224, 102, 0.95) 50%,
+    rgba(218, 165, 32, 0.85) 100%);
+  box-shadow: 0 0 8px rgba(255, 224, 102, 0.85);
+  /* Random-ish per-i positions across width */
+  left: calc((var(--i) * 1.67% + 3%) - (cos(var(--i)) * 3%));
+  top: -20px;
+  animation: goldFall 2500ms cubic-bezier(0.55, 0, 0.7, 1);
+  animation-delay: calc(var(--i) * 30ms);
+  opacity: 0;
+}
+
+@keyframes goldFall {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(110vh) rotate(180deg); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AMOUNT CAPTION (big + jackpot)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.amount {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  z-index: 5;
+  animation: amountIn 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tier_big .amount { animation-duration: 600ms; }
+.tier_jackpot .amount { animation-duration: 800ms; }
+
+@keyframes amountIn {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.amountTier {
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  font-size: clamp(14px, 2vw, 22px);
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #ffe066;
+  text-shadow:
+    0 0 14px rgba(255, 224, 102, 0.85),
+    0 0 32px rgba(255, 215, 0, 0.5);
+  text-transform: uppercase;
+}
+
+.amountValue {
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  font-size: clamp(40px, 7vw, 84px);
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fff8dc 0%, #ffe066 50%, #ffd700 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(255, 224, 102, 0.6));
+  font-feature-settings: 'tnum';
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lineSmall, .beamMedium, .spark, .darken, .scanlineKick,
+  .burstParticle, .darkenJackpot, .bloomCore, .chromaSplit,
+  .goldDrop, .amount { animation: none; }
+}
