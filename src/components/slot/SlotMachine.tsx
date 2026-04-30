@@ -152,7 +152,10 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
   const [showSecR, setShowSecR] = useState(false)
 
   // Measure cell height — target square cells (width = height)
-  // Calculate column width mathematically (no DOM chicken-and-egg)
+  // Calculate column width mathematically (no DOM chicken-and-egg).
+  // P4.4 — on viewports ≤ 640px we collapse to single-column focus
+  // (hero tile only); CSS hides cols 1..4 and we recompute width
+  // for that one visible column so the cell fills the cabinet.
   useEffect(() => {
     function measure() {
       const el = reelsInnerRef.current
@@ -160,12 +163,18 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       const zoneW = el.clientWidth
       const zoneH = el.clientHeight
       const gapY = 6
-      const numCols = SECTIONS[currentSectionIdx]?.numCols ?? 5
+      const baseCols = SECTIONS[currentSectionIdx]?.numCols ?? 5
+      const isMobileFocus =
+        typeof window !== 'undefined' &&
+        window.matchMedia('(max-width: 640px)').matches
+      const numCols = isMobileFocus ? 1 : baseCols
       const sepW = 5           // reelSep width
       const gapX = 6           // reelsInner flex gap
-      const numSeps = numCols - 1
-      // 9 flex children (5 cols + 4 seps) = 8 gaps total
-      const totalGaps = (numCols + numSeps - 1) * gapX
+      const numSeps = Math.max(0, numCols - 1)
+      // (numCols + numSeps) flex children — gaps = (children - 1)
+      const totalGaps = numCols + numSeps - 1 > 0
+        ? (numCols + numSeps - 1) * gapX
+        : 0
       const colW = Math.floor((zoneW - numSeps * sepW - totalGaps) / numCols)
       // Fill full zone height: 3 cells + 2 gaps fit the entire height
       const maxByHeight = Math.floor((zoneH - 2 * gapY) / 3)
@@ -180,9 +189,14 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     measure()
     const raf = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
+    // matchMedia listener so rotating phone (portrait↔landscape) re-measures
+    const mq = window.matchMedia('(max-width: 640px)')
+    const onMqChange = () => measure()
+    mq.addEventListener?.('change', onMqChange)
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', measure)
+      mq.removeEventListener?.('change', onMqChange)
     }
   }, [currentSectionIdx])
 
@@ -1247,7 +1261,10 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
             {/* Reels inner */}
             <div ref={reelsInnerRef} className={styles.reelsInner}>
               {cellHeight > 0 && colData.map((cells, ci) => (
-                <div key={ci} style={{ display: 'contents' }}>
+                // P4.4 — data-col-index lets the mobile media query
+                // hide cols 1..N-1 (CSS-only) so the hero tile expands
+                // to fill the cabinet on ≤640px viewports.
+                <div key={ci} style={{ display: 'contents' }} data-col-index={ci}>
                   {ci > 0 && <div className={styles.reelSep} />}
                   <ReelColumn
                     ref={(el: HTMLDivElement | null) => {
@@ -1267,6 +1284,24 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
                 </div>
               ))}
             </div>
+
+            {/* P4.4 — reel deck (mobile only). Tells the recruiter
+                "there are 4 more reels behind this one — tap a card to
+                deep-dive and you'll see them all in the takeover".
+                CSS-only visibility (display:none on desktop). */}
+            {cellHeight > 0 && colData.length > 1 && (
+              <div className={styles.mobileReelDeck} aria-hidden="true">
+                {colData.map((_, ci) => (
+                  <span
+                    key={ci}
+                    className={`${styles.deckPip} ${ci === 0 ? styles.deckPipActive : ''}`}
+                  />
+                ))}
+                <span className={styles.deckHint}>
+                  TAP CARD TO REVEAL ALL REELS
+                </span>
+              </div>
+            )}
 
             {/* Swipe hint */}
             <div className={styles.swipeHint}>
