@@ -64,8 +64,12 @@ export interface CellData {
   tools?: string[]
   // demo
   demo?: 'video' | 'audio' | null
-  // simple (skills/about/career/contact)
+  // simple — skills
+  level?: string       // 'EXPERT' | 'ADVANCED' | 'PROFICIENT'
+  domain?: string      // 'COMPOSITION' | 'ENGINEERING' | etc.
+  // simple — about / career / contact
   period?: string
+  highlights?: string[] // stat chips
 }
 
 export type SpinPhase = 'idle' | 'windup' | 'spinning' | 'landing' | 'snapping' | 'landed'

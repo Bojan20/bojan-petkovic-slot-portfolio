@@ -14,7 +14,7 @@ export const skillsStrategy: SectionStrategy = {
       const s = wrap(SKILLS_DATA, centerIdx - 3 + k)
       const isC = k === 3
       const itemIndex = rowItemIndex(SKILLS_DATA.length, centerIdx, k)
-      cols[0]!.push({ type: 'simple', ico: s.ico, name: s.name, studio: '', color: s.color, center: isC, itemIndex })
+      cols[0]!.push({ type: 'simple', ico: s.ico, name: s.name, studio: '', level: s.level, domain: s.domain, color: s.color, center: isC, itemIndex })
       cols[1]!.push({ type: 'tools',  tools: [s.level], color: s.color, center: isC })
       cols[2]!.push({ type: 'detail', text: s.desc,     color: s.color, center: isC })
       cols[3]!.push({ type: 'tools',  tools: s.tools,   color: s.color, center: isC })

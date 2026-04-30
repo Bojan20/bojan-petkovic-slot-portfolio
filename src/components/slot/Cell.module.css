@@ -1130,3 +1130,380 @@
     filter: none;
   }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HERO CHIP LABEL (GameContent EXPLORE chip)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.heroPlayChipLabel {
+  font: 700 9px var(--f-ui), monospace;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.90);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GAME RANK BADGE — "02" counter, top-right corner of center game cell
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.gameRank {
+  position: absolute;
+  /* Below v3CellTag (z-index 9) + above holo rim (z-index 7) */
+  top: 6px;
+  right: 8px;
+  z-index: 9;
+  font-family: var(--f-ui), monospace;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: rgba(255, 215, 0, 0.75);
+  background: rgba(0, 0, 0, 0.50);
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 215, 0, 0.30);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.55);
+  pointer-events: none;
+  user-select: none;
+  animation: v3TagFadeIn 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCOPE RING — conic-gradient progress wheel (center cell only)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.scopeRingWrapper {
+  position: relative;
+  width: clamp(42px, 7vw, 58px);
+  height: clamp(42px, 7vw, 58px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 3px;
+}
+
+.scopeRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(34, 232, 255, 0.90) 0deg,
+    rgba(34, 232, 255, 0.90) var(--ring-fill, 0deg),
+    rgba(34, 232, 255, 0.10) var(--ring-fill, 0deg),
+    rgba(34, 232, 255, 0.10) 360deg
+  );
+  /* Donut mask — only the ring edge is visible */
+  -webkit-mask: radial-gradient(circle, transparent 58%, black 60%);
+          mask: radial-gradient(circle, transparent 58%, black 60%);
+  filter: drop-shadow(0 0 6px rgba(34, 232, 255, 0.55));
+  animation: scopeRingSpin 0.5s ease-out;
+}
+
+@keyframes scopeRingSpin {
+  0% { transform: rotate(-90deg); opacity: 0; }
+  100% { transform: rotate(0); opacity: 1; }
+}
+
+@property --ring-fill {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.scopeRingInner {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  z-index: 1;
+}
+
+.scopeRingCount {
+  font-family: var(--f-ui);
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 900;
+  color: #22e8ff;
+  text-shadow: 0 0 12px rgba(34, 232, 255, 0.75);
+  line-height: 1;
+}
+
+.scopeRingTotal {
+  font-family: var(--f-ui);
+  font-size: clamp(10px, 1.5vw, 13px);
+  font-weight: 600;
+  color: rgba(34, 232, 255, 0.50);
+  line-height: 1;
+}
+
+/* Compact 2×2 dot grid for off-center scope cells */
+.scopeCompact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(3px, 0.4vw, 5px);
+  padding: 2px;
+}
+
+.scopeDot2 {
+  font-size: clamp(9px, 1.4vw, 13px);
+  font-weight: 700;
+  text-align: center;
+  padding: clamp(3px, 0.5vh, 5px) clamp(4px, 0.6vw, 6px);
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.scopeDot2On {
+  color: #22e8ff;
+  background: rgba(34, 232, 255, 0.10);
+  border: 1px solid rgba(34, 232, 255, 0.32);
+  text-shadow: 0 0 6px rgba(34, 232, 255, 0.55);
+}
+
+.scopeDot2Off {
+  color: rgba(80, 80, 110, 0.45);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(60, 60, 90, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scopeRing { animation: none; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   METRICS ROW — "200+ SFX · 4 LAYERS" chips extracted from work text
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.metricsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+.metricChip {
+  font-family: var(--f-ui);
+  font-size: clamp(7px, 1.1vw, 9px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.30);
+  border-radius: 3px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.50);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOOLS GROUPED — grouped by category (DAW / ENGINE / QA) for center
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.toolsGrouped {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.7vh, 7px);
+  width: 100%;
+}
+
+.toolsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toolsGroupLabel {
+  font-family: var(--f-ui);
+  font-size: clamp(6px, 0.9vw, 8px);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(177, 76, 255, 0.65);
+  border-bottom: 1px solid rgba(177, 76, 255, 0.18);
+  padding-bottom: 1px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolsGroupItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DEMO SPECTRUM — 12-bar animated equalizer (center cell)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.demoSpectrum {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(1.5px, 0.25vw, 3px);
+  height: clamp(24px, 5vh, 40px);
+  margin-bottom: 3px;
+}
+
+.demoSpecBar {
+  flex: 1;
+  max-width: 5px;
+  min-width: 2px;
+  height: var(--bar-h, 12px);
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom;
+  animation: specBarBounce var(--bar-dur, 0.7s) ease-in-out infinite;
+  animation-delay: var(--bar-delay, 0s);
+}
+
+@keyframes specBarBounce {
+  0%, 100% { transform: scaleY(0.2); opacity: 0.45; }
+  50%       { transform: scaleY(1);  opacity: 0.90; }
+}
+
+.demoSpectrumAudio .demoSpecBar {
+  background: linear-gradient(to top, rgba(34, 232, 255, 0.90), rgba(34, 232, 255, 0.40));
+  box-shadow: 0 0 4px rgba(34, 232, 255, 0.40);
+}
+
+.demoSpectrumVideo .demoSpecBar {
+  background: linear-gradient(to top, rgba(255, 43, 214, 0.90), rgba(177, 76, 255, 0.50));
+  box-shadow: 0 0 4px rgba(255, 43, 214, 0.40);
+}
+
+.demoCenterLabel {
+  font-family: var(--f-ui);
+  font-size: clamp(9px, 1.6vw, 12px);
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--amb, #22e8ff);
+  text-shadow: 0 0 10px var(--amb-glow, rgba(34, 232, 255, 0.55));
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.demoTypeIcon {
+  font-size: clamp(11px, 1.8vw, 15px);
+  line-height: 1;
+}
+
+.demoBadge {
+  font-family: var(--f-ui);
+  font-size: clamp(6px, 0.9vw, 8px);
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.demoBadgeVideo {
+  color: #ff2bd6;
+  background: rgba(255, 43, 214, 0.08);
+  border: 1px solid rgba(255, 43, 214, 0.38);
+  text-shadow: 0 0 8px rgba(255, 43, 214, 0.55);
+  box-shadow: 0 0 8px rgba(255, 43, 214, 0.12);
+}
+
+.demoBadgeAudio {
+  color: #22e8ff;
+  background: rgba(34, 232, 255, 0.08);
+  border: 1px solid rgba(34, 232, 255, 0.38);
+  text-shadow: 0 0 8px rgba(34, 232, 255, 0.55);
+  box-shadow: 0 0 8px rgba(34, 232, 255, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demoSpecBar { animation: none; transform: scaleY(0.6); opacity: 0.65; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SIMPLE CELL — skills level badge, domain, highlights, period
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.simplePeriod {
+  font-family: var(--f-ui);
+  font-size: clamp(6.5px, 1.1vw, 10px);
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: rgba(160, 180, 220, 0.70);
+  text-align: center;
+}
+
+.levelBadge {
+  font-family: var(--f-ui);
+  font-size: clamp(7px, 1.1vw, 9px);
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  padding: clamp(2px, 0.4vh, 4px) clamp(8px, 1.2vw, 14px);
+  border-radius: 3px;
+  text-transform: uppercase;
+  margin-top: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.levelExpert {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.38);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.65);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.12);
+  animation: expertPulse 3s ease-in-out infinite;
+}
+
+@keyframes expertPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.10); }
+  50%       { box-shadow: 0 0 18px rgba(255, 215, 0, 0.28); }
+}
+
+.levelAdvanced {
+  color: #22e8ff;
+  background: rgba(34, 232, 255, 0.07);
+  border: 1px solid rgba(34, 232, 255, 0.32);
+  text-shadow: 0 0 8px rgba(34, 232, 255, 0.50);
+}
+
+.domainBadge {
+  font-family: var(--f-ui);
+  font-size: clamp(6px, 0.9vw, 8px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(177, 76, 255, 0.82);
+  background: rgba(177, 76, 255, 0.06);
+  border: 1px solid rgba(177, 76, 255, 0.22);
+  border-radius: 2px;
+  padding: 1px 6px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.highlightGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 3px;
+  max-width: 96%;
+}
+
+.highlightChip {
+  font-family: var(--f-ui);
+  font-size: clamp(6px, 0.95vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: clamp(2px, 0.3vh, 3px) clamp(4px, 0.6vw, 7px);
+  border-radius: 2px;
+  text-transform: uppercase;
+  color: rgba(200, 220, 255, 0.78);
+  background: rgba(100, 130, 220, 0.06);
+  border: 1px solid rgba(100, 130, 220, 0.20);
+  white-space: nowrap;
+}
+
+.iconCenter {
+  font-size: clamp(28px, 6.5vw, 50px) !important;
+  filter: brightness(1.15) saturate(1.2)
+    drop-shadow(0 0 16px var(--amb-glow, rgba(255, 215, 0, 0.4)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .levelExpert { animation: none; }
+}

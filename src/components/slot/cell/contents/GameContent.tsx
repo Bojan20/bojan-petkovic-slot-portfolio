@@ -1,19 +1,10 @@
 /**
- * GameContent — Hero project tile (P4.1 upgrade)
+ * GameContent — Hero project tile.
  *
- * Used by section 'projects' col 0 (the project chooser). This is the
- * cell the recruiter's eye lands on first — V2 architecture treats it
- * as a HERO TILE, not a row item:
- *
- *   • Per-project palette glow ring around the icon (uses data.color)
- *   • Pulsating outer halo (only on center cell, idle ambient pulse)
- *   • Integrated PLAY chip overlay (only on center cell hover)
- *   • Larger icon + name typography stack
- *
- * The DOM stays minimal so the existing 3D tilt + spotlight + visited
- * badge + affinity halo stack all compose without z-index conflicts.
- * All new visuals are layered above .colorBg and below .neonOutline
- * (which is the center-cell neon SVG outline).
+ * Center cell: per-project palette halo + pulsing icon ring +
+ * gradient display-size name + EXPLORE chip + rank badge "02".
+ * Off-center: smaller emoji + name + studio — same hierarchy,
+ * scaled down by parent .dim class.
  */
 
 import styles from '../../Cell.module.css'
@@ -21,14 +12,16 @@ import { useCellContext } from '../CellContext'
 
 export function GameContent() {
   const { data, isCenter } = useCellContext()
-  // Per-project palette — used to tint the glow ring + halo.
-  // Defaults to the gold token if data.color is missing.
   const palette = data.color || '#c9a227'
+
+  // "02" rank badge — 1-indexed, zero-padded to 2 chars
+  const rank = data.itemIndex !== undefined
+    ? String(data.itemIndex + 1).padStart(2, '0')
+    : null
 
   return (
     <>
-      {/* Hero halo — pulsating outer ring, center cell only.
-          CSS handles the 2.4s ambient pulse + reduced-motion gate. */}
+      {/* Hero halo — ambient outer pulse, center only */}
       {isCenter && (
         <div
           className={styles.heroHalo}
@@ -37,22 +30,29 @@ export function GameContent() {
         />
       )}
 
-      {/* Per-project glow ring around the icon — visible on every
-          row, brighter on center. Uses the project's brand color. */}
+      {/* Project rank — "01" – "08" top-right corner, center only */}
+      {isCenter && rank && (
+        <div className={styles.gameRank} aria-hidden="true">
+          {rank}
+        </div>
+      )}
+
+      {/* Glow ring around icon — all rows, brighter on center */}
       <div
         className={styles.heroIconRing}
         style={{ ['--proj-glow' as string]: palette }}
         aria-hidden="true"
       />
 
-      <div className={styles.icon}>{data.ico}</div>
+      {/* Icon — center uses .iconCenter for size + drop-shadow boost */}
+      <div className={`${styles.icon} ${isCenter ? styles.iconCenter : ''}`}>
+        {data.ico}
+      </div>
+
       <div className={styles.gameName}>{data.name}</div>
       {data.studio && <div className={styles.gameStudio}>{data.studio}</div>}
 
-      {/* PLAY overlay — only on center cell. Click hits the cell's
-          existing onGameCellClick which triggers payline takeover.
-          Visually it's a hint chip, not a separate button — the
-          whole cell stays clickable. */}
+      {/* EXPLORE chip — pointer hint for center; entire cell is clickable */}
       {isCenter && (
         <div className={styles.heroPlayChip} aria-hidden="true">
           <span className={styles.heroPlayChipIcon}>▶</span>

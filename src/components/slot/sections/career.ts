@@ -14,7 +14,7 @@ export const careerStrategy: SectionStrategy = {
       const d = wrap(EXP_DATA, centerIdx - 3 + k)
       const isC = k === 3
       const itemIndex = rowItemIndex(EXP_DATA.length, centerIdx, k)
-      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '',       color: d.color, center: isC, itemIndex })
+      cols[0]!.push({ type: 'simple', ico: d.ico, name: d.name, studio: '', highlights: d.highlights, color: d.color, center: isC, itemIndex })
       cols[1]!.push({ type: 'detail', text: d.period || '',                       color: d.color, center: isC })
       cols[2]!.push({ type: 'detail', text: d.desc,                               color: d.color, center: isC })
       cols[3]!.push({ type: 'tools',  tools: (d.highlights || []).slice(0, 2),    color: d.color, center: isC })
