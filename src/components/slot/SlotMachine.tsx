@@ -26,6 +26,7 @@ import {
   CabinetControlDeck,
   CabinetWinFx,
   CabinetWorld,
+  CabinetAnticipation,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -400,6 +401,23 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       const delays = baseDelays.map((d, i) =>
         i === numCols - 1 ? d + Math.round(excitement * 600) : d,
       )
+
+      // V3.8 — Anticipation reel events. When the spin is going to a
+      // high-excitement row (≥ 0.4 — usually big/jackpot), broadcast
+      // anticipation:start at the moment the second-to-last reel
+      // lands, so the cabinet can visually + sonically build tension
+      // before the final reel commits. Anticipation:end fires the
+      // moment the last reel actually stops.
+      if (excitement >= 0.4 && numCols >= 2) {
+        const startAt = delays[numCols - 2] ?? 0
+        const endAt = delays[numCols - 1] ?? 0
+        setTimeout(() => {
+          bus.emit('custom:slot:anticipation:start', { excitement, lastCol: numCols - 1 })
+        }, startAt)
+        setTimeout(() => {
+          bus.emit('custom:slot:anticipation:end', {})
+        }, endAt)
+      }
 
       delays.forEach((d, i) => {
         setTimeout(() => {
@@ -1358,6 +1376,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           renders a per-tier fullscreen FX layer. Pointer-events-none
           so it never blocks interaction. */}
       <CabinetWinFx />
+
+      {/* V3.8 — last-reel anticipation. Shows a glitchy "?" hologram
+          + warp audio rampa when a high-excitement spin is about to
+          land. Cleared the moment the last reel commits. */}
+      <CabinetAnticipation />
     </div>
   )
 }

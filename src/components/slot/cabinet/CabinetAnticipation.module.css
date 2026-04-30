@@ -1,0 +1,120 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8500;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bloom {
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  max-width: 600px;
+  max-height: 600px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 224, 102, 0.32) 0%,
+    rgba(255, 43, 214, 0.18) 25%,
+    rgba(177, 76, 255, 0.12) 50%,
+    transparent 70%
+  );
+  filter: blur(28px);
+  animation: bloomPulse 1.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes bloomPulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+
+.qmark {
+  position: relative;
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: clamp(120px, 22vw, 280px);
+  line-height: 1;
+  color: rgba(255, 240, 180, 0.95);
+  text-shadow:
+    0 0 28px rgba(255, 224, 102, 0.85),
+    0 0 60px rgba(255, 215, 0, 0.45);
+  animation: qmarkJitter 0.18s steps(2) infinite, qmarkRise 1.8s ease-out;
+  filter: drop-shadow(0 0 12px rgba(255, 224, 102, 0.6));
+  z-index: 2;
+}
+
+@keyframes qmarkJitter {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(-2px, 1px) rotate(-1.4deg); }
+  50%  { transform: translate(1px, -2px) rotate(1deg); }
+  75%  { transform: translate(-1px, 2px) rotate(-0.5deg); }
+  100% { transform: translate(2px, -1px) rotate(1.2deg); }
+}
+
+@keyframes qmarkRise {
+  0%   { opacity: 0; transform: scale(0.6); }
+  20%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Chromatic aberration — two ghost copies offset RGB-style */
+.qmarkGhostA,
+.qmarkGhostB {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: qmarkGhostJitter 0.22s steps(2) infinite, qmarkRise 1.8s ease-out;
+}
+
+.qmarkGhostA {
+  color: rgba(255, 43, 214, 0.65);
+  text-shadow: 0 0 14px rgba(255, 43, 214, 0.55);
+  transform: translateX(-3px);
+}
+
+.qmarkGhostB {
+  color: rgba(34, 232, 255, 0.65);
+  text-shadow: 0 0 14px rgba(34, 232, 255, 0.55);
+  transform: translateX(3px);
+}
+
+@keyframes qmarkGhostJitter {
+  0%   { transform: translateX(-3px); }
+  50%  { transform: translateX(-5px) translateY(1px); }
+  100% { transform: translateX(-2px) translateY(-1px); }
+}
+
+.qmarkGhostB {
+  animation-name: qmarkGhostJitterB, qmarkRise;
+}
+
+@keyframes qmarkGhostJitterB {
+  0%   { transform: translateX(3px); }
+  50%  { transform: translateX(5px) translateY(-1px); }
+  100% { transform: translateX(2px) translateY(1px); }
+}
+
+/* Quick scanline burst across the question mark */
+.scan {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qmark, .qmarkGhostA, .qmarkGhostB, .bloom { animation: none; }
+}
