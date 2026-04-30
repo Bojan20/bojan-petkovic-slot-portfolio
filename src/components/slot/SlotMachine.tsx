@@ -893,7 +893,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           gsap.to(el, {
             opacity: 0,
             scale: allScale * 0.72,
-            filter: 'blur(2px)',
+            /* V9.6 - filter blur uklonjen (flicker fix) */
             duration: 0.28,
             ease: 'expo.in',
             delay: 0.02 * Math.abs(i - idx),
@@ -910,7 +910,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         gsap.to(card.el, {
           opacity: 0,
           scale: singleScale * 0.88,
-          filter: 'blur(8px)',
+          /* V9.6 - filter blur uklonjen (flicker fix) */
           duration: 0.36,
           ease: 'power3.in',
         })
@@ -1045,7 +1045,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         gsap.to(el, {
           opacity: 0,
           x: 36,
-          filter: 'blur(8px)',
+          /* V9.6 - filter blur uklonjen (flicker fix) */
           duration: 0.32,
           ease: 'power3.in',
           onComplete: () => el.remove(),
@@ -1060,7 +1060,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           y: allDy,
           scale: allScale,
           opacity: 1,
-          filter: 'blur(0px)',
+          /* V9.6 - filter cleanup */
           boxShadow: '0 0 40px 12px rgba(240,216,120,0.35), 0 0 80px 20px rgba(201,162,39,0.15), 0 15px 45px rgba(0,0,0,0.7)',
           duration: 0.5,
           ease: 'expo.out',
@@ -1140,7 +1140,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       gsap.set(el, {
         opacity: 0,
         scale: allScale * 0.55,
-        filter: 'blur(14px)',
+        /* V9.6 - filter blur uklonjen */
         x: origDx + initOffX,   // reel origin + cinematic offset
         y: origDy + initOffY,
       })
@@ -1160,7 +1160,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // dim overlay — visible artifact.
     enterTl.to(allCenterCells, {
       opacity: 0.03,
-      filter: 'blur(5px) brightness(0.12)',
+      /* V9.6 - filter blur+brightness uklonjeni */
       duration: 0.38,
       stagger: 0.022,
       ease: 'power3.out',
@@ -1186,7 +1186,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       enterTl.to(el, {
         opacity: 1,
         scale: allScale,
-        filter: 'blur(0px)',
+        /* V9.6 - filter cleanup */
         x: allDx,
         y: allDy,
         boxShadow:
@@ -1251,7 +1251,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           y: 0,
           scale: allScale * 0.06,
           opacity: 0,
-          filter: 'blur(12px)',
+          /* V9.6 - filter blur uklonjen */
           boxShadow: '0 0 0 0 transparent',
           duration: 0.36,
           ease: 'power3.in',

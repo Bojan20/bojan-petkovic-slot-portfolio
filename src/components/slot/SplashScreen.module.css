@@ -175,10 +175,13 @@
   animation: coreHueSpin 14s linear infinite;
 }
 
+/* V9.6 — hue-rotate + brightness uklonjeni iz keyframe-a. Color-
+   space conversion + per-frame rasterizacija → splash core treperi.
+   Sad pure opacity breath — GPU compositor only. */
 @keyframes coreHueSpin {
-  from { filter: hue-rotate(0deg) brightness(1); }
-  50%  { filter: hue-rotate(180deg) brightness(1.3); }
-  to   { filter: hue-rotate(360deg) brightness(1); }
+  from { opacity: 1; }
+  50%  { opacity: 0.78; }
+  to   { opacity: 1; }
 }
 
 .coreSvg {

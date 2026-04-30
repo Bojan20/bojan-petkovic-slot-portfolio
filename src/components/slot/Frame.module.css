@@ -121,32 +121,37 @@
    Damped sine-wave deformation. Total ≤ 720ms — felt as a single
    "ring" of the cabinet, not a distraction.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* V9.6 — filter:brightness uklonjen iz keyframe-ova. Filter na
+   .machine root re-rasterizuje CEO DOM stablo (5 reel kolona × 3
+   ćelije + headers + tabBar + frame chrome) na svaki frame ovih
+   ripple-ova. To je glavni preostali izvor flicker-a tokom win
+   tier-ova. Sad su keyframe-ovi pure transform — GPU compositor. */
 @keyframes cabinetRippleJackpot {
-  0%   { transform: scale(1)      rotate(0);      filter: brightness(1); }
-  18%  { transform: scale(1.024)  rotate(-0.6deg); filter: brightness(1.18); }
-  35%  { transform: scale(0.992)  rotate(0.4deg);  filter: brightness(1.05); }
-  55%  { transform: scale(1.012)  rotate(-0.2deg); filter: brightness(1.10); }
-  78%  { transform: scale(0.998)  rotate(0.1deg);  filter: brightness(1.02); }
-  100% { transform: scale(1)      rotate(0);      filter: brightness(1); }
+  0%   { transform: scale(1)      rotate(0); }
+  18%  { transform: scale(1.024)  rotate(-0.6deg); }
+  35%  { transform: scale(0.992)  rotate(0.4deg); }
+  55%  { transform: scale(1.012)  rotate(-0.2deg); }
+  78%  { transform: scale(0.998)  rotate(0.1deg); }
+  100% { transform: scale(1)      rotate(0); }
 }
 
 @keyframes cabinetRippleBig {
-  0%   { transform: scale(1);     filter: brightness(1); }
-  35%  { transform: scale(1.012); filter: brightness(1.08); }
-  70%  { transform: scale(0.998); filter: brightness(1.02); }
-  100% { transform: scale(1);     filter: brightness(1); }
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.012); }
+  70%  { transform: scale(0.998); }
+  100% { transform: scale(1); }
 }
 
 .rippleJackpot {
   animation: cabinetRippleJackpot 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: center center;
-  will-change: transform, filter;
+  will-change: transform;
 }
 
 .rippleBig {
   animation: cabinetRippleBig 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: center center;
-  will-change: transform, filter;
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
