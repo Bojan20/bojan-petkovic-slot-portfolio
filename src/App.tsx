@@ -19,6 +19,11 @@
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { BootScreen } from './components/BootScreen'
+// Moodboard route — lazy so the static moodboard CSS doesn't bloat
+// the main bundle; only fetched when ?moodboard=v3 is present.
+const MoodboardV3 = lazy(() =>
+  import('./components/MoodboardV3').then((m) => ({ default: m.MoodboardV3 })),
+)
 import { SplashScreen } from './components/slot/SplashScreen'
 import { SlotMachine } from './components/slot'
 import { CasinoShower } from './components/slot/CasinoShower'
@@ -71,7 +76,32 @@ import { useAudioStore } from './store'
 
 type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
 
+// ?moodboard=v3 short-circuit — checked at module-load time so the
+// entire App body (with its 30+ engine init effects) never runs when
+// we're previewing the static moodboard. A separate component keeps
+// React Hooks order clean — each branch has its own hook list.
+function isMoodboardRoute(): boolean {
+  return typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('moodboard') === 'v3'
+}
+
+function MoodboardRoute() {
+  return (
+    <Suspense fallback={<div style={{ position: 'fixed', inset: 0, background: '#05060f' }} />}>
+      <MoodboardV3 />
+    </Suspense>
+  )
+}
+
 export default function App() {
+  // Moodboard route bypass — renders only MoodboardV3 above the
+  // engine pipeline so design review opens instantly without booting.
+  if (isMoodboardRoute()) return <MoodboardRoute />
+
+  return <AppMain />
+}
+
+function AppMain() {
   const [phase, setPhase] = useState<AppPhase>('boot')
   const [showerActive, setShowerActive] = useState(false)
   const [introLocked, setIntroLocked] = useState(true)
