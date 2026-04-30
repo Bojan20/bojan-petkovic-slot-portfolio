@@ -51,6 +51,7 @@ import {
   playSynthById,
 } from './engine'
 import { bootDeepLink } from './engine/DeepLink'
+import { startProceduralAmbience, stopProceduralAmbience } from './engine/ProceduralAmbience'
 import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
@@ -269,6 +270,15 @@ function AppMain() {
   // browser back/forward navigates the slot. Idempotent / disposable.
   useEffect(() => {
     return bootDeepLink()
+  }, [])
+
+  // V7.3 — Procedural ambience: dynamic synth drone layered on top
+  // of the lounge.mp3 ambient. Re-pitches by section, gain follows
+  // spinPhase. Self-defers until boot:audio_unlocked so it never
+  // tries to start before the user's first gesture.
+  useEffect(() => {
+    startProceduralAmbience()
+    return () => stopProceduralAmbience()
   }, [])
 
   // Speech announcer — cinematic casino-host voice. Init AFTER boot:tap

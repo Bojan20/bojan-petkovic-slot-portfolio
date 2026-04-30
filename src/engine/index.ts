@@ -307,6 +307,13 @@ export {
   isAudioBusStarted,
 } from './AudioBus'
 
+// V7.3 — Procedural ambience drone bed
+export {
+  startProceduralAmbience,
+  stopProceduralAmbience,
+  isProceduralAmbienceActive,
+} from './ProceduralAmbience'
+
 export type {
   PortfolioConfig,
   SoundManagerConfig,

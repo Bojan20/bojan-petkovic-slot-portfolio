@@ -960,6 +960,8 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
                 await navigator.clipboard?.writeText(text)
                 btnEl.dataset.copied = '1'
                 btnEl.textContent = 'COPIED'
+                // V7.3 — affirmative ding on successful copy
+                try { playSynthById('sfx_ding', 0.45) } catch { /* unlocked? */ }
                 setTimeout(() => {
                   btnEl.dataset.copied = '0'
                   btnEl.textContent = 'COPY'
@@ -979,6 +981,8 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
             dBtn.addEventListener('click', async (e) => {
               e.stopPropagation()
               dBtn.dataset.pending = '1'
+              // V7.3 — sweep cue when the dossier window spawns
+              try { playSynthById('sfx_sweep', 0.40) } catch { /* unlocked? */ }
               try {
                 const cardName = panel.querySelector<HTMLElement>(
                   `.${cardDetailStyles.heroName ?? 'heroName'}`,
