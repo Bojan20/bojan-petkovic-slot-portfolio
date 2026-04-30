@@ -13,13 +13,17 @@ import styles from './CabinetSubFrame.module.css'
 
 export function CabinetSubFrame() {
   return (
-    <div className={styles.subFrame} aria-label="Availability and contact">
+    <a
+      href="mailto:bojan.petkovic25@gmail.com"
+      className={styles.subFrame}
+      aria-label="Available for hire — contact Bojan Petković at bojan.petkovic25@gmail.com"
+    >
       <span className={styles.dot} aria-hidden="true" />
       <span className={styles.text}>
         AVAILABLE FOR HIRE · CONTACT BOJAN.PETKOVIC25@GMAIL.COM · BELGRADE · REMOTE / RELO
       </span>
       <span className={styles.dot} aria-hidden="true" />
-    </div>
+    </a>
   )
 }
 

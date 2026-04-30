@@ -305,3 +305,21 @@
   .burstParticle, .darkenJackpot, .bloomCore, .chromaSplit,
   .goldDrop, .amount { animation: none; }
 }
+
+/* Performance gate — when --perf-pressure approaches 1 (set by
+   PlatformPolish adaptive-quality watcher) we drop the heaviest
+   particle layers so the rest of the app stays at 60fps. The
+   gold shower + 24-particle burst are the most expensive layers. */
+body[data-perf-pressure="critical"] .goldShower,
+body[data-perf-pressure="critical"] .particleBurst {
+  display: none;
+}
+
+/* Mobile — fewer particles, no gold shower (60 raindrops on a Mali
+   GPU is too much) */
+@media (max-width: 640px) {
+  .goldDrop:nth-child(2n) { display: none; }   /* 60 → 30 */
+  .burstParticle:nth-child(3n) { display: none; }   /* 24 → 16 */
+  .amountValue { font-size: clamp(32px, 9vw, 56px); }
+  .amountTier { font-size: clamp(11px, 3vw, 16px); letter-spacing: 4px; }
+}

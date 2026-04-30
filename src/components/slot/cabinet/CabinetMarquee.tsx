@@ -19,8 +19,12 @@ const MARQUEE_TEXT =
 
 export function CabinetMarquee() {
   return (
-    <div className={styles.marquee} aria-hidden="true">
-      <div className={styles.track}>
+    <div
+      className={styles.marquee}
+      role="marquee"
+      aria-label="Vanvinkl Studio · Bojan Petković · Audio Director · 8 years · 50+ titles"
+    >
+      <div className={styles.track} aria-hidden="true">
         <span className={styles.text}>{MARQUEE_TEXT}</span>
         <span className={styles.text}>{MARQUEE_TEXT}</span>
         <span className={styles.text}>{MARQUEE_TEXT}</span>

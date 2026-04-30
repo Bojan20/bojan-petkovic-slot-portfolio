@@ -116,3 +116,17 @@
 @media (prefers-reduced-motion: reduce) {
   .far, .mid, .near { animation: none; }
 }
+
+/* Performance gate — drop the near sparkle layer under critical
+   CPU pressure (it's the most expensive of the three because of
+   the 8 layered radial gradients sliding). */
+body[data-perf-pressure="critical"] .near {
+  display: none;
+}
+
+/* Mobile — kill the mid grid scroll (it's redundant with the slot
+   machine's own cyberPaintBg) and tone the near layer down. */
+@media (max-width: 640px) {
+  .mid { display: none; }
+  .near { opacity: 0.35; }
+}
