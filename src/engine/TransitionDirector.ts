@@ -167,8 +167,10 @@ class Director {
     }
 
     this.opts.setPhase('entering')
-    // V5.7 — chip/dice shower removed from the splash→slot transition
-    // per Boki. Slot now reveals directly as the matte dissolves.
+    // V5.8 — chip/dice shower restored: starts AT THE MOMENT the slot
+    // becomes visible (act IV of the timeline below), so the cabinet
+    // emerges from a rain of coins+dice, not before. Triggered via
+    // tl.call at 0.62s, see ACT IV.
     bus.emit('splash:enter')
     bus.emit('transition:splash_to_slot')
 
@@ -184,6 +186,9 @@ class Director {
       if (splashEl) tl.to(splashEl, { opacity: 0, duration: 0.4 }, 0)
       if (slotEl) tl.to(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4 }, 0)
       if (matte) tl.to(matte, { opacity: 0, duration: 0.4 }, 0.2)
+      // V5.8 — shower also fires under reduced motion; it has its
+      // own reduced-motion handling (slower, fewer particles)
+      tl.call(() => this.opts.setShowerActive(true), [], 0.2)
       return
     }
 
@@ -232,9 +237,14 @@ class Director {
       bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
     }, [], 'match_cut_peak')
 
-    // ── ACT IV — Slot rack-focuses in ─────────────────────────
+    // ── ACT IV — Slot rack-focuses in + shower starts ─────────
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
+      // V5.8 — kick off the chip/dice shower at the very moment the
+      // slot starts to bloom in. Coins rain from above as the cabinet
+      // resolves out of the matte — recruiter sees the slot machine
+      // arrive in its native casino confetti.
+      this.opts.setShowerActive(true)
     }, [], 0.62)
 
     if (slotEl) {
