@@ -308,24 +308,25 @@
   .center { animation: none; }
 }
 
-/* WoO 4-layer holographic breath */
+/* 5-layer holographic breath — peak is 60% brighter than V3.0 baseline
+   so the center card feels like it's lit from within, not just outlined */
 @keyframes centerBreath {
   0%, 100% {
     box-shadow:
-      0 0 0 1px rgba(240, 216, 120, 0.16),
-      0 0 22px rgba(240, 216, 120, 0.18),
-      0 0 55px rgba(240, 216, 120, 0.07),
-      inset 0 0 35px rgba(177, 76, 255, 0.09),
-      inset 0 1px 0 rgba(240, 216, 120, 0.16);
+      0 0 0 1px rgba(240, 216, 120, 0.22),
+      0 0 28px rgba(240, 216, 120, 0.24),
+      0 0 60px rgba(240, 216, 120, 0.10),
+      inset 0 0 40px rgba(177, 76, 255, 0.12),
+      inset 0 1px 0 rgba(240, 216, 120, 0.20);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(240, 216, 120, 0.28),
-      0 0 32px rgba(240, 216, 120, 0.28),
-      0 0 80px rgba(240, 216, 120, 0.12),
-      0 0 110px rgba(177, 76, 255, 0.06),
-      inset 0 0 50px rgba(177, 76, 255, 0.14),
-      inset 0 1px 0 rgba(240, 216, 120, 0.24);
+      0 0 0 1px rgba(240, 216, 120, 0.45),
+      0 0 45px rgba(240, 216, 120, 0.42),
+      0 0 100px rgba(240, 216, 120, 0.18),
+      0 0 160px rgba(177, 76, 255, 0.10),
+      inset 0 0 65px rgba(177, 76, 255, 0.20),
+      inset 0 1px 0 rgba(240, 216, 120, 0.35);
   }
 }
 
@@ -437,13 +438,24 @@
 }
 
 .center .gameName {
-  color: #f5f0ff !important;
-  -webkit-text-fill-color: #f5f0ff !important;
-  font-size: clamp(12px, 2.4vw, 21px);
-  letter-spacing: 2px;
-  text-shadow:
-    0 0 12px rgba(177, 76, 255, 0.45),
-    0 0 28px rgba(177, 76, 255, 0.20);
+  /* Gradient clip — white fades into brand violet. Display-size
+     typography makes the project name the FIRST thing eye reads. */
+  font-size: clamp(14px, 2.8vw, 26px);
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  line-height: 1.1;
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #e8e0ff 40%,
+    #c4a8ff 75%,
+    rgba(177, 76, 255, 0.85) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 14px rgba(177, 76, 255, 0.55)) drop-shadow(0 0 30px rgba(177, 76, 255, 0.22));
 }
 
 .gameStudio {
@@ -456,8 +468,13 @@
 }
 
 .center .gameStudio {
-  color: #505090 !important;
-  -webkit-text-fill-color: #505090 !important;
+  font-size: clamp(8px, 1.3vw, 11.5px);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(140, 120, 200, 0.9) !important;
+  -webkit-text-fill-color: rgba(140, 120, 200, 0.9) !important;
+  text-shadow: 0 0 8px rgba(140, 120, 200, 0.4);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -486,39 +503,102 @@
 }
 
 .scopeOn {
-  background: rgba(232, 192, 96, 0.08);
-  color: var(--amb) !important;
-  -webkit-text-fill-color: var(--amb) !important;
-  border: 1px solid rgba(232, 192, 96, 0.16);
-  text-shadow: 0 0 6px var(--amb-glow);
+  background: rgba(34, 232, 255, 0.10);
+  color: #22e8ff !important;
+  -webkit-text-fill-color: #22e8ff !important;
+  border: 1px solid rgba(34, 232, 255, 0.40);
+  text-shadow: 0 0 8px rgba(34, 232, 255, 0.65), 0 0 18px rgba(34, 232, 255, 0.28);
+  box-shadow: 0 0 10px rgba(34, 232, 255, 0.10), inset 0 0 6px rgba(34, 232, 255, 0.06);
+  font-weight: 700;
 }
 
 .scopeOff {
-  background: rgba(255, 255, 255, 0.02);
-  color: #6e6e8a !important;
-  -webkit-text-fill-color: #6e6e8a !important;
-  border: 1px solid #383854;
+  background: rgba(255, 255, 255, 0.01);
+  color: rgba(80, 80, 110, 0.65) !important;
+  -webkit-text-fill-color: rgba(80, 80, 110, 0.65) !important;
+  border: 1px solid rgba(60, 60, 90, 0.4);
+  filter: saturate(0.4);
+}
+
+/* Scope header — "X/4 DELIVERABLES" counter. Center only. */
+.scopeHeader {
+  font-family: var(--f-ui);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: rgba(34, 232, 255, 0.65);
+  text-align: center;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(34, 232, 255, 0.18);
+  width: 92%;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.scopeIcon {
+  font-size: 10px;
+  line-height: 1;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .scopeDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .scopeOn .scopeDot {
-  background: var(--amb);
-  box-shadow: 0 0 5px var(--amb-glow);
+  background: #22e8ff;
+  box-shadow: 0 0 6px rgba(34, 232, 255, 0.8), 0 0 12px rgba(34, 232, 255, 0.35);
 }
 
 .scopeOff .scopeDot {
-  background: #4a4a68;
+  background: #2a2a40;
+  box-shadow: none;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    WORK TEXT (reel 2)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.workLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3px, 0.5vh, 6px);
+  width: 100%;
+}
+
+.workTitle {
+  font-family: var(--f-ui);
+  font-weight: 900;
+  font-size: clamp(12px, 2.4vw, 22px);
+  letter-spacing: 1.8px;
+  text-align: center;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fff 0%, #e0d4ff 50%, #b4a0e8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(180, 140, 255, 0.50));
+}
+
+.workRole {
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: clamp(7px, 1.1vw, 10px);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(140, 160, 220, 0.80);
+  text-align: center;
+  padding: 2px 8px;
+  border: 1px solid rgba(140, 120, 220, 0.22);
+  border-radius: 2px;
+  background: rgba(80, 60, 140, 0.12);
+}
+
 .workText {
   font-family: var(--f-ui);
   font-weight: 500;
@@ -530,9 +610,11 @@
 }
 
 .center .workText {
-  color: rgba(180, 205, 245, 0.88) !important;
-  -webkit-text-fill-color: rgba(180, 205, 245, 0.88) !important;
-  text-shadow: 0 0 12px rgba(100, 160, 255, 0.20);
+  color: rgba(190, 215, 252, 0.92) !important;
+  -webkit-text-fill-color: rgba(190, 215, 252, 0.92) !important;
+  font-size: clamp(9px, 1.65vw, 14.5px);
+  text-shadow: 0 0 14px rgba(100, 160, 255, 0.22);
+  line-height: 1.65;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -553,18 +635,21 @@
   letter-spacing: 0.4px;
   padding: clamp(2px, 0.35vh, 4px) clamp(4px, 0.7vw, 8px);
   border-radius: 3px;
-  background: rgba(64, 200, 248, 0.04);
-  color: rgba(64, 200, 248, 0.65) !important;
-  -webkit-text-fill-color: rgba(64, 200, 248, 0.65) !important;
-  border: 1px solid rgba(64, 200, 248, 0.15);
+  background: rgba(177, 76, 255, 0.04);
+  color: rgba(177, 76, 255, 0.55) !important;
+  -webkit-text-fill-color: rgba(177, 76, 255, 0.55) !important;
+  border: 1px solid rgba(177, 76, 255, 0.18);
   white-space: nowrap;
 }
 
 .center .toolBadge {
-  color: var(--ice) !important;
-  -webkit-text-fill-color: var(--ice) !important;
-  background: rgba(64, 200, 248, 0.07);
-  border-color: rgba(64, 200, 248, 0.16);
+  background: rgba(177, 76, 255, 0.10);
+  color: #c87aff !important;
+  -webkit-text-fill-color: #c87aff !important;
+  border-color: rgba(177, 76, 255, 0.42);
+  text-shadow: 0 0 7px rgba(177, 76, 255, 0.55);
+  box-shadow: 0 0 8px rgba(177, 76, 255, 0.12), inset 0 0 4px rgba(177, 76, 255, 0.06);
+  font-weight: 700;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1002,25 +1087,29 @@
    they don't z-fight with the center cell's neon outline.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .cell[data-strip-row="2"] {
-  transform: rotateX(20deg) translateZ(-10px) scale(0.96);
+  transform: rotateX(24deg) translateZ(-14px) scale(0.93);
   transform-origin: center bottom;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: brightness(0.78);
+  filter: brightness(0.58) saturate(0.7);
+  opacity: 0.68;
 }
 
 .cell[data-strip-row="3"] {
-  /* Center — no rotation, full scale, full brightness */
-  transform: rotateX(0deg) translateZ(0) scale(1);
+  /* Center — hero card. scale(1.08) pulls it toward viewer, translateZ
+     increases perceived depth gap vs edge cells. z-index 4 prevents
+     neon outline from being clipped by adjacent column overflow. */
+  transform: rotateX(0deg) translateZ(10px) scale(1.08);
   transform-origin: center center;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 4;  /* above edges so center neon outline isn't clipped */
+  z-index: 4;
 }
 
 .cell[data-strip-row="4"] {
-  transform: rotateX(-20deg) translateZ(-10px) scale(0.96);
+  transform: rotateX(-24deg) translateZ(-14px) scale(0.93);
   transform-origin: center top;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: brightness(0.78);
+  filter: brightness(0.58) saturate(0.7);
+  opacity: 0.68;
 }
 
 /* During spin the cylinder rotation must NOT animate — strip is

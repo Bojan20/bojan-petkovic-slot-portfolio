@@ -57,8 +57,9 @@ export interface CellData {
   itemIndex?: number
   // scope
   scope?: { music: boolean; sfx: boolean; integration: boolean; qa: boolean }
-  // work
+  // work / detail
   text?: string
+  role?: string
   // tools
   tools?: string[]
   // demo

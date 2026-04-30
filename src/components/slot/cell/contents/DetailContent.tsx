@@ -11,8 +11,18 @@ import styles from '../../Cell.module.css'
 import { useCellContext } from '../CellContext'
 
 export function DetailContent() {
-  const { data } = useCellContext()
-  return <div className={styles.workText}>{data.text}</div>
+  const { data, isCenter } = useCellContext()
+  return (
+    <div className={styles.workLayout}>
+      {isCenter && data.name && (
+        <div className={styles.workTitle}>{data.name}</div>
+      )}
+      {isCenter && data.role && (
+        <div className={styles.workRole}>{data.role}</div>
+      )}
+      <div className={styles.workText}>{data.text}</div>
+    </div>
+  )
 }
 
 export default DetailContent

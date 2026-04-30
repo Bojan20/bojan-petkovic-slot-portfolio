@@ -125,9 +125,10 @@
 }
 
 /* §2.7 — 3-plane cinematic depth vignette.
-   Radial dark overlay pushed to z-index 98 (above content, below chrome/overlay).
-   Darkens the reel zone edges → center "pops out" toward the viewer.
-   Reads as a camera lens vignette on a physical cabinet. */
+   Heavier V4 version: corners are nearly black (0.72 opacity) while
+   the center 30% horizontal band is fully transparent. Combined with
+   the per-column canyon mask this creates a "lit stage" for center row.
+   mix-blend: multiply keeps the vignette from washing out cell glows. */
 .depthVignette {
   position: absolute;
   inset: 0;
@@ -135,12 +136,46 @@
   pointer-events: none;
   background:
     radial-gradient(
-      ellipse 70% 65% at 50% 50%,
-      transparent 40%,
-      rgba(0, 0, 0, 0.28) 72%,
-      rgba(0, 0, 0, 0.58) 100%
+      ellipse 60% 52% at 50% 50%,
+      transparent 28%,
+      rgba(0, 0, 0, 0.20) 55%,
+      rgba(0, 0, 0, 0.52) 78%,
+      rgba(0, 0, 0, 0.72) 100%
     );
   mix-blend-mode: multiply;
+}
+
+/* Center row payline glow — horizontal cyan/gold band at the payline.
+   Draws the recruiter's eye to the center row without any text label.
+   Sits BELOW content (z-index 2) so cells read over it. */
+.centerRowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 1px);
+  height: 2px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(34, 232, 255, 0.28) 8%,
+    rgba(240, 216, 120, 0.55) 30%,
+    rgba(255, 255, 255, 0.70) 50%,
+    rgba(240, 216, 120, 0.55) 70%,
+    rgba(34, 232, 255, 0.28) 92%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 12px 3px rgba(240, 216, 120, 0.35),
+    0 0 28px 6px rgba(240, 216, 120, 0.15),
+    0 0 60px 14px rgba(34, 232, 255, 0.08);
+  animation: paylineIdle 4s ease-in-out infinite;
+}
+
+@keyframes paylineIdle {
+  0%, 100% { opacity: 0.70; }
+  50%       { opacity: 1.00; }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -342,7 +377,7 @@
   padding: clamp(8px, 1.5vh, 16px) clamp(8px, 1.5vw, 16px);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: clamp(6px, 1.2vw, 12px);
   flex-shrink: 0;
   box-shadow: inset 0 1px 0 rgba(201, 162, 39, 0.06), 0 -4px 20px rgba(0, 0, 0, 0.5);
@@ -455,25 +490,34 @@
   max-height: 100%;
   align-self: center;
   position: relative;
-  /* Thin neon laser-line between columns */
+  /* Laser-line separator — intense at payline center, fades top/bottom */
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(177, 76, 255, 0.18) 12%,
-    rgba(34, 232, 255, 0.55) 30%,
-    rgba(255, 255, 255, 0.70) 50%,
-    rgba(34, 232, 255, 0.55) 70%,
-    rgba(177, 76, 255, 0.18) 88%,
+    rgba(177, 76, 255, 0.08) 8%,
+    rgba(34, 232, 255, 0.35) 22%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(34, 232, 255, 0.35) 78%,
+    rgba(177, 76, 255, 0.08) 92%,
     transparent 100%
   );
-  box-shadow: 0 0 8px rgba(34, 232, 255, 0.35), 0 0 18px rgba(177, 76, 255, 0.18);
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.50),
+    0 0 14px rgba(34, 232, 255, 0.50),
+    0 0 32px rgba(177, 76, 255, 0.25);
   border-radius: 2px;
-  animation: sepPulse 4.5s ease-in-out infinite;
+  animation: sepPulse 3.8s ease-in-out infinite;
 }
 
 @keyframes sepPulse {
-  0%, 100% { opacity: 0.65; }
-  50%       { opacity: 1; box-shadow: 0 0 12px rgba(34, 232, 255, 0.55), 0 0 28px rgba(177, 76, 255, 0.28); }
+  0%, 100% {
+    opacity: 0.55;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.35), 0 0 14px rgba(34, 232, 255, 0.35), 0 0 28px rgba(177, 76, 255, 0.18);
+  }
+  50%       {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.70), 0 0 22px rgba(34, 232, 255, 0.65), 0 0 50px rgba(177, 76, 255, 0.38);
+  }
 }
 
 .flash {

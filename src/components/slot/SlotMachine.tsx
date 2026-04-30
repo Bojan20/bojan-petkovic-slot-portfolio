@@ -1285,6 +1285,8 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       <div className={styles.frameWrapper}>
         {/* §2.7 — Cinematic depth vignette (dark radial edge) */}
         <div className={styles.depthVignette} aria-hidden="true" />
+        {/* Center payline gold spotlight line — draws eye to active row */}
+        <div className={styles.centerRowLine} aria-hidden="true" />
         <Frame isSpinning={isSpinning} cellHeight={cellHeight}>
           <div
             ref={reelsZoneRef}

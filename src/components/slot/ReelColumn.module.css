@@ -27,22 +27,23 @@
    over the cylinder lip.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .column[data-col]::before {
-  /* Override the V1 motion-trail gradient — V3 uses a stronger
-     fade with better camera-lens vignette feel. */
+  /* V4 — deeper canyon fade: 98% black at top/bottom edges, 0% at
+     center 30% band. Reads as "abyss above and below the payline"
+     — classic mechanical reel illusion, amplified. */
   background: linear-gradient(
     180deg,
-    rgba(5, 7, 14, 0.92) 0%,
-    rgba(5, 7, 14, 0.55) 6%,
-    rgba(5, 7, 14, 0.18) 11%,
-    transparent 16%,
-    transparent 84%,
-    rgba(5, 7, 14, 0.18) 89%,
-    rgba(5, 7, 14, 0.55) 94%,
-    rgba(5, 7, 14, 0.92) 100%
+    rgba(4, 5, 12, 0.98) 0%,
+    rgba(4, 5, 12, 0.80) 5%,
+    rgba(4, 5, 12, 0.40) 10%,
+    rgba(4, 5, 12, 0.12) 16%,
+    transparent 22%,
+    transparent 78%,
+    rgba(4, 5, 12, 0.12) 84%,
+    rgba(4, 5, 12, 0.40) 90%,
+    rgba(4, 5, 12, 0.80) 95%,
+    rgba(4, 5, 12, 0.98) 100%
   );
-  /* Always partially visible so the cylinder edges read at idle.
-     Spinning still ramps to opacity 1 (.spinning::before rule). */
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 .column.gameReel {
