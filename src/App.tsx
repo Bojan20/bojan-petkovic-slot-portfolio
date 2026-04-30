@@ -56,7 +56,9 @@ import {
   playSynthById,
 } from './engine'
 import { bootDeepLink } from './engine/DeepLink'
-import { startProceduralAmbience, stopProceduralAmbience } from './engine/ProceduralAmbience'
+// V9.x — ProceduralAmbience temporarily disabled (kept exported for
+// manual use). Re-import here when the drone bed is re-enabled.
+// import { startProceduralAmbience, stopProceduralAmbience } from './engine/ProceduralAmbience'
 import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'

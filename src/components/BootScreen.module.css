@@ -902,10 +902,17 @@
   will-change: transform, filter;
 }
 
+/* V9.3 — keyframes MUST include translate(-50%, -56%) to keep the
+   element centered. The base .sevenStage rule offsets via translate
+   to counter top:50%/left:50%; if these keyframes only set scale,
+   the browser drops the translate and the element snaps to the
+   bottom-right (top/left point of a top-50%/left-50% placed box).
+   THIS is the "ghost 7 in the bottom-right" the user kept seeing
+   during boot→splash exit. Restore the offset on every keyframe. */
 @keyframes sevenDolly {
-  0%   { transform: scale(1)    translateZ(0);    filter: brightness(1)    saturate(1); }
-  60%  { transform: scale(1.06) translateZ(0);    filter: brightness(1.14) saturate(1.10); }
-  100% { transform: scale(1.10) translateZ(0);    filter: brightness(1.22) saturate(1.18); }
+  0%   { transform: translate(-50%, -56%) scale(1)    translateZ(0); filter: brightness(1)    saturate(1); }
+  60%  { transform: translate(-50%, -56%) scale(1.06) translateZ(0); filter: brightness(1.14) saturate(1.10); }
+  100% { transform: translate(-50%, -56%) scale(1.10) translateZ(0); filter: brightness(1.22) saturate(1.18); }
 }
 
 .bootDolly .tagline,
