@@ -468,8 +468,26 @@ export function BootScreen({ onComplete }: BootScreenProps) {
         />
       </div>
 
-      {/* Progress bar removed — clean composition; the CONTINUE button
-          appearing IS the "load done" signal. No separate strip needed. */}
+      {/* Loading bar + status — visible during 0..100% boot sequence */}
+      {!loadingDone && (
+        <div className={styles.loadBar} aria-hidden="true">
+          <div
+            ref={hudBarFillRef}
+            className={styles.hudBarFill}
+            style={{ transform: `scaleX(${progress})` }}
+          />
+        </div>
+      )}
+
+      {/* Loading status text — cycles through boot steps as progress advances */}
+      {!loadingDone && (
+        <div className={styles.loadStatus} aria-hidden="true">
+          {boot.loadingSteps[Math.min(
+            Math.floor(progress * boot.loadingSteps.length),
+            boot.loadingSteps.length - 1,
+          )]}
+        </div>
+      )}
 
       {/* CONTINUE — holographic ring pulse when ready */}
       <div className={styles.continueWrap}>
@@ -507,7 +525,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
       >
         <span className={styles.nameplateName}>BOJAN PETKOVIĆ</span>
         <span className={styles.nameplateDivider} aria-hidden="true" />
-        <span className={styles.nameplateRole}>AUDIO DESIGNER</span>
+        <span className={styles.nameplateRole}>AUDIO DIRECTOR · TECHNICAL ARTIST · UX ENGINEER</span>
       </div>
 
       {/* Version bar removed — no CORTEX branding */}

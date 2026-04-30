@@ -13,7 +13,7 @@ export const portfolioConfig: PortfolioConfig = {
 
   // ─── Boot Screen Config ──────────────────────────────────────────────────
   boot: {
-    progressDuration: 2400,
+    progressDuration: 1600,
     minDisplayTime: 2000,
     loadingSteps: [
       'Initializing audio engine...',

@@ -201,18 +201,17 @@ class Director {
     this.tl = tl
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // V5.7 — Single-pass cinematic match-cut, no chip shower.
+    // V9.0 — Tighter match-cut, 180ms crnog ekrana umesto 340ms.
     //
-    //   ACT I   (0.00–0.42s) — splash recedes: scale 1→0.96,
-    //                          blur 0→8px, opacity 1→0  (dolly back)
-    //   ACT II  (0.28–0.58s) — matte hard cuts to full black
-    //   ACT III (0.58s)      — match-cut audio cue at full black
-    //   ACT IV  (0.62–1.72s) — slot rack-focuses in: scale 1.07→1,
-    //                          blur 16px→0, opacity 0→1  (1.10s)
-    //   ACT V   (0.72–1.72s) — matte dissolves with the slot reveal
-    //                          (world + cabinet bloom together)
-    //   ACT VI  (0.85s)      — letterbox bars retract
-    //   ACT VII (1.72–2.20s) — genesis safety tail
+    //   ACT I   (0.00–0.32s) — splash recedes: scale 1→0.96,
+    //                          blur 0→6px, opacity 1→0  (dolly back)
+    //   ACT II  (0.20–0.40s) — matte hard cuts to full black
+    //   ACT III (0.40s)      — match-cut audio cue at full black
+    //   ACT IV  (0.44–1.44s) — slot rack-focuses in: scale 1.07→1,
+    //                          blur 14px→0, opacity 0→1  (1.00s)
+    //   ACT V   (0.52–1.44s) — matte dissolves with the slot reveal
+    //   ACT VI  (0.68s)      — letterbox bars retract
+    //   ACT VII (1.44–1.80s) — genesis safety tail
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     // ── ACT I — Splash recedes / dolly back ──────────────────
@@ -220,19 +219,19 @@ class Director {
       tl.to(splashEl, {
         opacity: 0,
         scale: 0.96,
-        filter: 'blur(8px)',
-        duration: 0.42,
+        filter: 'blur(6px)',
+        duration: 0.32,
         ease: 'power2.in',
       }, 0)
     }
 
-    // ── ACT II — Matte full black cut ────────────────────────
+    // ── ACT II — Matte full black cut (shorter: 200ms ramp) ──
     if (matte) {
-      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.28)
+      tl.to(matte, { opacity: 1, duration: 0.20, ease: 'power3.in' }, 0.20)
     }
 
     // ── ACT III — Match-cut audio cue at full black ───────────
-    tl.addLabel('match_cut_peak', 0.58)
+    tl.addLabel('match_cut_peak', 0.40)
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
     }, [], 'match_cut_peak')
@@ -240,37 +239,34 @@ class Director {
     // ── ACT IV — Slot rack-focuses in + shower starts ─────────
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
-      // V5.8 — kick off the chip/dice shower at the very moment the
-      // slot starts to bloom in. Coins rain from above as the cabinet
-      // resolves out of the matte — recruiter sees the slot machine
-      // arrive in its native casino confetti.
+      // Chip/dice shower starts as slot blooms in
       this.opts.setShowerActive(true)
-    }, [], 0.62)
+    }, [], 0.44)
 
     if (slotEl) {
       tl.fromTo(slotEl,
-        { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
+        { opacity: 0, scale: 1.07, filter: 'blur(14px)' },
         {
           opacity: 1,
           scale: 1,
           filter: 'blur(0px)',
-          duration: 1.10,
+          duration: 1.00,
           ease: 'power3.out',
-        }, 0.62)
+        }, 0.44)
     }
 
     // ── ACT V — Matte dissolves with the slot reveal ──────────
     if (matte) {
-      tl.to(matte, { opacity: 0, duration: 1.00, ease: 'power2.out' }, 0.72)
+      tl.to(matte, { opacity: 0, duration: 0.92, ease: 'power2.out' }, 0.52)
     }
 
     // ── ACT VI — Letterbox retract ────────────────────────────
     tl.call(() => {
       document.body.removeAttribute('data-letterbox')
-    }, [], 1.20)
+    }, [], 0.68)
 
-    // Genesis safety tail (1.55s + buffer)
-    tl.to({}, { duration: 0.50 })
+    // Genesis safety tail
+    tl.to({}, { duration: 0.36 })
   }
 
   private completeSplashToSlot(): void {

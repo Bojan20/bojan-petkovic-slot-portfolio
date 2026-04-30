@@ -287,13 +287,13 @@ function AppMain() {
   }, [])
 
   // V7.3 — Procedural ambience: dynamic synth drone layered on top
-  // of the lounge.mp3 ambient. Re-pitches by section, gain follows
-  // spinPhase. Self-defers until boot:audio_unlocked so it never
-  // tries to start before the user's first gesture.
-  useEffect(() => {
-    startProceduralAmbience()
-    return () => stopProceduralAmbience()
-  }, [])
+  // ProceduralAmbience (drone buzz) — disabled per design decision.
+  // Two detuned oscillators (sawtooth+triangle @ ~110Hz) removed from
+  // main experience. stopProceduralAmbience still exported for manual use.
+  // useEffect(() => {
+  //   startProceduralAmbience()
+  //   return () => stopProceduralAmbience()
+  // }, [])
 
   // Speech announcer — cinematic casino-host voice. Init AFTER boot:tap
   // (the canonical user gesture) so browsers don't drop the first

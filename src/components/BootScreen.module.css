@@ -223,6 +223,29 @@
   to { opacity: 1; }
 }
 
+/* ── Loading status text — cycles through boot steps below progress bar ── */
+.loadStatus {
+  position: absolute;
+  bottom: max(clamp(80px, 13vh, 130px), calc(env(safe-area-inset-bottom, 0px) + 80px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--f-mono);
+  font-size: clamp(9px, 1.0vw, 11px);
+  letter-spacing: 0.22em;
+  color: rgba(34, 232, 255, 0.55);
+  text-shadow: 0 0 8px rgba(34, 232, 255, 0.35);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 6;
+  animation: loadStatusAppear 500ms ease 400ms both;
+}
+
+@keyframes loadStatusAppear {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 /* ── Dead code stubs — .hud/.hudLine/.hudStep/.caret kept for
    CSS module tree-shaking. Removed from JSX so never rendered. ── */
 .hudLine { display: none; }
