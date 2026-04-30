@@ -28,6 +28,7 @@
  */
 
 import gsap from 'gsap'
+import { flushSync } from 'react-dom'
 import { bus } from './EventBus'
 
 export type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
@@ -66,7 +67,7 @@ class Director {
     this.opts = opts
   }
 
-  /** Boot → Splash. Clean cross-dissolve — no blackout hold. */
+  /** Boot → Splash. Matte-guarded flushSync transition — zero artifacts. */
   playBootToSplash(): void {
     this.killActive()
     this.skipped = false
@@ -85,52 +86,68 @@ class Director {
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // V9.1 — Clean cross-dissolve (0.58s total, zero blackout)
+    // V9.2 — Matte-guarded flushSync cross-fade (0.70s total)
     //
-    //   t=0.00  setPhase('splash') → SplashScreen mounts
-    //   t=1 RAF matte iris: opacity 0→0.50 (0.18s) → 0 (0.40s)
-    //           splash: opacity 0→1, scale 1.06→1, blur 10px→0 (0.52s)
-    //   t=0.58  complete, letterbox removed
+    //   t=0.00–0.18s  Matte rises to 0.92 (covers BootScreen exit,
+    //                 sevenStage parallax artifacts, any DOM residue)
+    //   t=0.18s       flushSync setPhase('splash') → React commits
+    //                 SplashScreen synchronously → splashRef is set
+    //                 gsap.set(splash, opacity:0) — hidden before reveal
+    //   t=0.18–0.70s  Matte dissolves + splash reveals simultaneously
     //
-    // No hard blackout, no hold. Iris veil (~0.50 peak) gives a
-    // cinematic camera-blink feel without killing the viewer in darkness.
+    // flushSync is the key: requestAnimationFrame fires BEFORE React
+    // commit, so splashRef.current was null and the pre-hide never ran.
+    // flushSync forces a synchronous render+commit at exactly t=0.18s,
+    // guaranteeing ref availability with zero timing ambiguity.
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // Mount SplashScreen immediately (phase swap is sync React setState)
-    this.opts.setPhase('splash')
-    bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 0 })
+    if (matte) gsap.set(matte, { opacity: 0 })
 
-    // One RAF so React has committed SplashScreen to DOM before GSAP touches it
-    requestAnimationFrame(() => {
-      const splashEl = this.opts.splashRef.current
-
-      if (splashEl) gsap.set(splashEl, { opacity: 0, scale: 1.06, filter: 'blur(10px)' })
-      if (matte) gsap.set(matte, { opacity: 0 })
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          this.currentRun = null
-          document.body.removeAttribute('data-letterbox')
-          bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
-        },
-      })
-      this.tl = tl
-
-      // Iris veil — camera blink, not blackout
-      if (matte) {
-        tl.to(matte, { opacity: 0.50, duration: 0.18, ease: 'power2.in' }, 0)
-        tl.to(matte, { opacity: 0, duration: 0.40, ease: 'power2.out' }, 0.18)
-      }
-
-      // Splash cross-fades in during iris
-      if (splashEl) {
-        tl.fromTo(splashEl,
-          { opacity: 0, scale: 1.06, filter: 'blur(10px)' },
-          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.52, ease: 'power3.out' },
-          0.06,
-        )
-      }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.currentRun = null
+        document.body.removeAttribute('data-letterbox')
+        bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
+      },
     })
+    this.tl = tl
+
+    // ── ACT I — Matte rises, covers boot/splash swap seam ────
+    if (matte) {
+      tl.to(matte, { opacity: 0.92, duration: 0.18, ease: 'power3.in' }, 0)
+    }
+
+    // ── ACT II — flushSync commit at matte peak ───────────────
+    tl.call(() => {
+      // Force synchronous React render+commit — splashRef.current guaranteed
+      flushSync(() => this.opts.setPhase('splash'))
+      bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 0 })
+
+      const splashEl = this.opts.splashRef.current
+      // Pre-hide with visibility:hidden, not just opacity:0.
+      // SplashScreen has will-change:transform children (sevenStage, lensFlare)
+      // that are promoted to GPU compositor layers. opacity:0 on parent does NOT
+      // hide promoted children — browser composites them separately. Only
+      // visibility:hidden is spec-guaranteed to propagate through all layers.
+      if (splashEl) {
+        gsap.set(splashEl, { opacity: 0, scale: 1.05, visibility: 'hidden' })
+        // Reveal: lift visibility the instant animation starts, then fade in
+        gsap.to(splashEl, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.52,
+          ease: 'power3.out',
+          onStart: () => {
+            if (splashEl) splashEl.style.visibility = 'visible'
+          },
+        })
+      }
+    }, [], 0.18)
+
+    // ── ACT III — Matte dissolves, splash blooms through ─────
+    if (matte) {
+      tl.to(matte, { opacity: 0, duration: 0.52, ease: 'power2.out' }, 0.18)
+    }
   }
 
   /** Splash → Slot with match-cut Lucky 7 → reel viewport. */
@@ -286,9 +303,9 @@ class Director {
       this.killActive()
       const matte = this.opts.matteEl
       if (matte) gsap.set(matte, { opacity: 0 })
+      flushSync(() => this.opts.setPhase('splash'))
       const splashEl = this.opts.splashRef.current
-      if (splashEl) gsap.set(splashEl, { opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' })
-      this.opts.setPhase('splash')
+      if (splashEl) gsap.set(splashEl, { opacity: 1, scale: 1, visibility: 'visible' })
       bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
       this.currentRun = null
       return
