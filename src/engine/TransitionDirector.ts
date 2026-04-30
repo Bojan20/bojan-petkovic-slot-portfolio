@@ -66,7 +66,7 @@ class Director {
     this.opts = opts
   }
 
-  /** Boot → Splash. Creates a fresh timeline; previous one is killed. */
+  /** Boot → Splash. Clean cross-dissolve — no blackout hold. */
   playBootToSplash(): void {
     this.killActive()
     this.skipped = false
@@ -74,11 +74,9 @@ class Director {
     const matte = this.opts.matteEl
     const reduced = this.opts.reducedMotion
 
-    // Fire J-cut audio cue 120ms before any picture moves
-    bus.emit('custom:transition:cue', { label: 'boot_to_splash_start', leadMs: 120 })
+    bus.emit('custom:transition:cue', { label: 'boot_to_splash_start', leadMs: 0 })
 
-    if (!matte || reduced) {
-      // No matte element OR reduced motion — instant phase swap
+    if (reduced) {
       document.body.removeAttribute('data-letterbox')
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 0 })
@@ -86,65 +84,53 @@ class Director {
       return
     }
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        this.currentRun = null
-        // Pull letterbox bars out — splash world established
-        document.body.removeAttribute('data-letterbox')
-        bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
-      },
-    })
-    this.tl = tl
-
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // V4.3 — 5-ACT CINEMATIC OPENING (1.55s total)
+    // V9.1 — Clean cross-dissolve (0.58s total, zero blackout)
     //
-    //   ACT I  (0.00–0.20s) — letterbox slides in (camera frames it)
-    //   ACT II (0.10–0.50s) — boot dolly back: scale 1→0.94, blur 0→14px
-    //                          (simultaneous with matte close)
-    //   ACT III(0.20–0.55s) — matte slams to full black (power3.in)
-    //   ACT IV (0.55–0.74s) — HOLD true black 190ms (cinema breath)
-    //   ACT V  (0.74–1.55s) — splash zooms IN: scale 1.18→1, blur 28→0,
-    //                          brightness 0→1, matte fades out
+    //   t=0.00  setPhase('splash') → SplashScreen mounts
+    //   t=1 RAF matte iris: opacity 0→0.50 (0.18s) → 0 (0.40s)
+    //           splash: opacity 0→1, scale 1.06→1, blur 10px→0 (0.52s)
+    //   t=0.58  complete, letterbox removed
+    //
+    // No hard blackout, no hold. Iris veil (~0.50 peak) gives a
+    // cinematic camera-blink feel without killing the viewer in darkness.
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // ── ACT I — letterbox bars slide in immediately ──────────
-    tl.call(() => {
-      document.body.setAttribute('data-letterbox', 'active')
-    }, [], 0)
+    // Mount SplashScreen immediately (phase swap is sync React setState)
+    this.opts.setPhase('splash')
+    bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 0 })
 
-    // ── ACT II — matte slams to full black (lights out) ──────
-    tl.to(matte, { opacity: 1, duration: 0.45, ease: 'power3.in' }, 0)
+    // One RAF so React has committed SplashScreen to DOM before GSAP touches it
+    requestAnimationFrame(() => {
+      const splashEl = this.opts.splashRef.current
 
-    // ── ACT IV — Hold 190ms in true black, swap React phase ──
-    tl.addLabel('blackout', 0.55)
-    tl.call(() => {
-      this.opts.setPhase('splash')
-      bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 80 })
-    }, [], 'blackout+=0.19')
+      if (splashEl) gsap.set(splashEl, { opacity: 0, scale: 1.06, filter: 'blur(10px)' })
+      if (matte) gsap.set(matte, { opacity: 0 })
 
-    // ── ACT V — Matte dissolves, splash rack-focuses in ──────
-    // Splash starts over-scaled + blurred (rack focus reveal —
-    // like a lens pulling from infinity to subject). No brightness
-    // spikes — pure scale + blur → cinema, not epilepsy.
-    const splashEl = this.opts.splashRef.current
-    if (splashEl) {
-      gsap.set(splashEl, { opacity: 0, scale: 1.10, filter: 'blur(18px)' })
-    }
+      const tl = gsap.timeline({
+        onComplete: () => {
+          this.currentRun = null
+          document.body.removeAttribute('data-letterbox')
+          bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
+        },
+      })
+      this.tl = tl
 
-    tl.to(matte, { opacity: 0, duration: 0.52, ease: 'power3.out' }, 'blackout+=0.19')
+      // Iris veil — camera blink, not blackout
+      if (matte) {
+        tl.to(matte, { opacity: 0.50, duration: 0.18, ease: 'power2.in' }, 0)
+        tl.to(matte, { opacity: 0, duration: 0.40, ease: 'power2.out' }, 0.18)
+      }
 
-    if (splashEl) {
-      tl.fromTo(splashEl,
-        { opacity: 0, scale: 1.10, filter: 'blur(18px)' },
-        {
-          opacity: 1,
-          scale: 1,
-          filter: 'blur(0px)',
-          duration: 0.72,
-          ease: 'power3.out',
-        }, 'blackout+=0.22')
-    }
+      // Splash cross-fades in during iris
+      if (splashEl) {
+        tl.fromTo(splashEl,
+          { opacity: 0, scale: 1.06, filter: 'blur(10px)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.52, ease: 'power3.out' },
+          0.06,
+        )
+      }
+    })
   }
 
   /** Splash → Slot with match-cut Lucky 7 → reel viewport. */
@@ -215,13 +201,22 @@ class Director {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     // ── ACT I — Splash recedes / dolly back ──────────────────
+    // No blur tween: animating filter on opacity:0 parent preserves
+    // GPU compositor layers for will-change:transform children (sevenStage)
+    // causing the Lucky 7 RGB ghost. Pure opacity+scale fade, then
+    // visibility:hidden ensures promoted layers are fully hidden.
     if (splashEl) {
       tl.to(splashEl, {
         opacity: 0,
-        scale: 0.96,
-        filter: 'blur(6px)',
-        duration: 0.32,
+        scale: 0.97,
+        duration: 0.28,
         ease: 'power2.in',
+        onComplete: () => {
+          if (splashEl) {
+            splashEl.style.visibility = 'hidden'
+            splashEl.style.willChange = 'auto'
+          }
+        },
       }, 0)
     }
 

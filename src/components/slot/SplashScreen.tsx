@@ -80,7 +80,7 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     // wobble / "weird 7" reported by Boki. New delay starts the 7
     // entrance only after the parent splash has fully settled.
     useEffect(() => {
-      const tl = gsap.timeline({ delay: 0.85 })
+      const tl = gsap.timeline({ delay: 0.40 })
 
       // Step 1a: Corners
       tl.fromTo(cornersRef.current, { opacity: 0 }, {
@@ -161,10 +161,10 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
       return () => { tl.kill() }
     }, [])
 
-    // Countdown ring — fills over 3s after splash is ready, then auto-enters
+    // Countdown ring — fills over 1.5s after splash is ready, then auto-enters
     useEffect(() => {
       if (!ready) return
-      const dur = 3000
+      const dur = 1500
       const start = performance.now()
       let raf: number
       const tick = () => {
