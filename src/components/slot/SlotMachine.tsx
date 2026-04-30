@@ -965,6 +965,40 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
                 }, 1400)
               } catch { /* clipboard denied */ }
             })
+          // V7.1 — DOSSIER badge: opens print-optimized PDF window
+          // for the recruiter. Floating top-right action so it never
+          // crowds the hero or the cta row.
+          if (sectionId) {
+            const dBtn = document.createElement('button')
+            dBtn.type = 'button'
+            dBtn.className = cardDetailStyles.dossierBadge ?? 'dossierBadge'
+            dBtn.dataset.detailDossier = '1'
+            dBtn.textContent = 'DOSSIER'
+            dBtn.title = 'Open printable one-page dossier (PDF)'
+            dBtn.addEventListener('click', async (e) => {
+              e.stopPropagation()
+              dBtn.dataset.pending = '1'
+              try {
+                const cardName = panel.querySelector<HTMLElement>(
+                  `.${cardDetailStyles.heroName ?? 'heroName'}`,
+                )?.textContent ?? sectionId.toUpperCase()
+                const { exportDossier } = await import('../../engine/DossierExport')
+                exportDossier({ sectionId, itemIdx: currentItemIdx, cardName })
+              } finally {
+                setTimeout(() => { dBtn.dataset.pending = '0' }, 600)
+              }
+            })
+            panel.appendChild(dBtn)
+          }
+          // V7.1 — DeepLink: emit detail open so URL gets /detail tail
+          if (sectionId) {
+            try {
+              bus.emit(
+                'custom:deeplink:detail_open' as 'custom:deeplink:detail_open',
+                { sectionId },
+              )
+            } catch { /* bus not available — silent */ }
+          }
         }
       }
 
@@ -987,6 +1021,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       if (detailEl) {
         const el = detailEl
         detailEl = null
+        // V7.1 — DeepLink: emit detail close so URL drops the /detail tail
+        try {
+          bus.emit(
+            'custom:deeplink:detail_close' as 'custom:deeplink:detail_close',
+            undefined as never,
+          )
+        } catch { /* bus not available — silent */ }
         gsap.to(el, {
           opacity: 0,
           x: 36,
@@ -1037,7 +1078,17 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // ── Cleanup ──
     function cleanup() {
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
-      if (detailEl) { detailEl.remove(); detailEl = null }
+      if (detailEl) {
+        detailEl.remove()
+        detailEl = null
+        // V7.1 — emit detail close on cleanup teardown too so URL stays sane
+        try {
+          bus.emit(
+            'custom:deeplink:detail_close' as 'custom:deeplink:detail_close',
+            undefined as never,
+          )
+        } catch { /* silent */ }
+      }
       window.removeEventListener('resize', onResize)
       overlay.remove()
       stage.remove()

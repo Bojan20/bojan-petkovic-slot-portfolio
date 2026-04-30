@@ -983,6 +983,48 @@
   border-bottom-right-radius: 4px;
 }
 
+/* V7.1 — DOSSIER badge button (floating top-right action) */
+.dossierBadge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 4;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--card-glow, #fff);
+  background: color-mix(in srgb, var(--card-glow, #fff) 10%, rgba(0, 0, 0, 0.55));
+  border: 1px solid color-mix(in srgb, var(--card-glow, #fff) 50%, transparent);
+  border-radius: 4px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.55s;
+}
+.dossierBadge::before {
+  content: '⬇';
+  font-size: 9px;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+.dossierBadge:hover {
+  background: color-mix(in srgb, var(--card-glow, #fff) 28%, transparent);
+  border-color: var(--card-glow, #fff);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--card-glow, #fff) 45%, transparent);
+  transform: translateY(-1px);
+}
+.dossierBadge:active { transform: translateY(0); }
+.dossierBadge[data-pending='1'] { opacity: 0.55; pointer-events: none; }
+
 /* Fact cell — left-edge data stripe that lights on hover */
 .factCell {
   position: relative;

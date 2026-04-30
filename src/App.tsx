@@ -50,6 +50,7 @@ import {
   startAudioBus, stopAudioBus, onAudioCue,
   playSynthById,
 } from './engine'
+import { bootDeepLink } from './engine/DeepLink'
 import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
@@ -261,6 +262,13 @@ function AppMain() {
   useEffect(() => {
     const off = bus.on('boot:tap', () => enableWakeLock())
     return off
+  }, [])
+
+  // V7.1 — DeepLink: parse #/section/idx[/detail] on mount, two-way
+  // sync between slot store and URL hash, listen to hashchange so
+  // browser back/forward navigates the slot. Idempotent / disposable.
+  useEffect(() => {
+    return bootDeepLink()
   }, [])
 
   // Speech announcer — cinematic casino-host voice. Init AFTER boot:tap
