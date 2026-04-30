@@ -454,14 +454,13 @@ function AppMain() {
   }, [phase])
 
   const handleShowerDone = useCallback(() => {
+    // V5.7 — shower removed from splash→slot transition. Director
+    // now handles intro unlock + slot reveal directly. This handler
+    // remains wired for the CasinoShower component lifecycle (e.g.
+    // post-jackpot celebration) but is a no-op for the intro path.
     setShowerActive(false)
     setIntroLocked(false)
     bus.emit('transition:complete')
-    // V5.6 — chip/dice shower has settled. Now reveal the slot and
-    // the background world together via the cinematic fade-in. Boki:
-    // "kako se ta animacija zavrsava, zelim cinematik fadein slot
-    //  masine i pozadine u isto vreme".
-    getTransitionDirector()?.revealSlotAfterShower()
   }, [])
 
   return (
