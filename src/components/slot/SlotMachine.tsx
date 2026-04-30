@@ -30,7 +30,6 @@ import {
   CabinetCamera,
   CabinetLensFlare,
   CabinetVoxelFloor,
-  CabinetConnectionLines,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1445,10 +1444,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           intensity, jackpot adds radial sunburst. */}
       <CabinetLensFlare />
 
-      {/* V5.1 — affinity connection lines. On cell hover, draws
-          neon SVG bezier curves to related cells (same row + same
-          type). Pure DOM SVG, no canvas. */}
-      <CabinetConnectionLines />
+      {/* V5.1 connection lines REMOVED from active flow on Boki's
+          request — module stays in cabinet/ folder unused so a
+          future "show affinities" toggle can re-enable it. */}
     </div>
   )
 }
