@@ -8,11 +8,12 @@
 html, body {
   width: 100%;
   height: 100%;
-  /* NOTE: no background-attachment:fixed — Samsung Internet/Chrome
-     repaints the entire `cover` background every time the URL bar
-     shows/hides (1px viewport delta), causing constant flicker on idle.
-     body is overflow:hidden + 100% so default `scroll` works identically. */
-  background: url('/slot-bg.png') center center / cover no-repeat;
+  /* V4.4 QA — was url('/slot-bg.png'). The slot wallpaper showed
+     through the corners of boot + splash because boot has padding /
+     edges where the pillarbox glow doesn't reach 100%. Solid black
+     guarantees no leak between phases. Phase-specific backgrounds
+     below override per data-phase. */
+  background: #000;
   overflow: hidden;
   font-family: var(--f-ui);
   color: var(--chr-hi);
@@ -21,7 +22,10 @@ html, body {
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
-  transition: background-color 800ms ease;
+  /* V4.4 QA — was 800ms which de-syncs with the GSAP matte fade.
+     Set to 0 — TransitionDirector now owns the cross-phase visual,
+     body bg should swap instantly under the matte hold. */
+  transition: none;
 }
 
 /* ── Phase-aware body tint (driven by [data-phase] on <body>) ── */
@@ -36,8 +40,11 @@ body[data-phase='splash'] {
     linear-gradient(180deg, #0a041c 0%, #02010a 100%);
 }
 body[data-phase='entering'] {
-  background:
-    radial-gradient(ellipse at 50% 50%, rgba(34, 232, 255, 0.22) 0%, rgba(177, 76, 255, 0.18) 40%, rgba(2, 3, 8, 0.9) 100%);
+  /* V4.4 QA — was a bright cyan/violet radial that was visible at
+     viewport edges during the splash→slot transition (matte covers
+     center but corners showed colored bleed). Solid black, the
+     hyperspace tunnel + matte own all the colour during this phase. */
+  background: #000;
   cursor: none !important;
 }
 body[data-phase='slot'] {

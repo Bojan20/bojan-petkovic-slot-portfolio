@@ -44,10 +44,31 @@ export function CabinetCamera() {
   useEffect(() => {
     const body = document.body
 
-    // Always set idle-float as the resting camera state
-    body.setAttribute('data-camera', 'idle-float')
+    // V4.4 — gate idle-float on phase=slot only. During boot/splash/
+    // entering the body must NOT animate or the corners of the boot
+    // and splash screens flicker (body-level transform causes paint
+    // reflow that's visible at the viewport edges).
+    const isSlotPhase = () => body.dataset.phase === 'slot'
+    const applyIdleIfSlot = () => {
+      if (isSlotPhase()) {
+        body.setAttribute('data-camera', 'idle-float')
+      } else {
+        body.removeAttribute('data-camera')
+      }
+    }
+    // Initial sync
+    applyIdleIfSlot()
+
+    // Watch body[data-phase] — when phase flips to/from 'slot' we
+    // (de)activate idle-float. The phase attr is set by App.tsx
+    // useEffect on every phase change.
+    const phaseObserver = new MutationObserver(applyIdleIfSlot)
+    phaseObserver.observe(body, { attributes: true, attributeFilter: ['data-phase'] })
 
     const setCam = (state: CamState) => {
+      // Only fire transient camera effects in slot phase. Earlier
+      // phases own their own cinematics (TransitionDirector).
+      if (!isSlotPhase()) return
       body.setAttribute('data-camera', state)
       const dur = TIER_DURATIONS[state]
       if (!dur) return
@@ -89,6 +110,7 @@ export function CabinetCamera() {
       offReelStop()
       offWin()
       offCellClick()
+      phaseObserver.disconnect()
       if (decayRef.current) window.clearTimeout(decayRef.current)
       body.removeAttribute('data-camera')
     }

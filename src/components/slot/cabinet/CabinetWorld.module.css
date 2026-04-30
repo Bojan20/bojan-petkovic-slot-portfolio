@@ -10,6 +10,16 @@
   inset: -10%;
   pointer-events: none;
   z-index: 0;
+  /* V4.4 — hide world while phase ≠ slot. Boot/splash own their own
+     backgrounds; the cabinet world parallax must not leak through their
+     edges (was causing visible flicker on corners during transitions). */
+  display: none;
+}
+
+:global(body[data-phase="slot"]) .far,
+:global(body[data-phase="slot"]) .mid,
+:global(body[data-phase="slot"]) .near {
+  display: block;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
