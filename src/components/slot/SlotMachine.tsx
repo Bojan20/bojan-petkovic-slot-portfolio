@@ -912,6 +912,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       stage.remove()
       cells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })
       window.removeEventListener('keydown', onKey)
+      // V4.3 — release cinematic flags
+      document.body.removeAttribute('data-letterbox')
+      document.body.removeAttribute('data-payline-active')
       takeoverTlRef.current = null
       takeoverCleanupRef.current = null
       // Unlock spin — full cycle (spin + takeover) is now complete
@@ -920,6 +923,12 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
     // Register cleanup for spinToIdx force-kill
     takeoverCleanupRef.current = cleanup
+
+    // V4.3 — cinematic frame: letterbox bars slide in (thick = deeper
+    // 110px bars for the takeover frame), body data-payline-active flag
+    // drives a global rack-focus on whatever's behind the overlay.
+    document.body.setAttribute('data-letterbox', 'thick')
+    document.body.setAttribute('data-payline-active', '')
 
     // ── ENTER TIMELINE ──
     const enterTl = gsap.timeline()

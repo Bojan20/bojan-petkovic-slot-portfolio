@@ -79,6 +79,7 @@ class Director {
 
     if (!matte || reduced) {
       // No matte element OR reduced motion — instant phase swap
+      document.body.removeAttribute('data-letterbox')
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 0 })
       this.currentRun = null
@@ -88,27 +89,61 @@ class Director {
     const tl = gsap.timeline({
       onComplete: () => {
         this.currentRun = null
+        // Pull letterbox bars out — splash world established
+        document.body.removeAttribute('data-letterbox')
         bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
       },
     })
     this.tl = tl
 
-    // ── Cinematic "lights out" iris close ──────────────────────────────
-    // Phase 1 (0–0.38s) — matte slams to FULL BLACK (power3.in = aggressive
-    // acceleration, like a shutter snapping shut). No half-measures.
-    tl.to(matte, { opacity: 1, duration: 0.38, ease: 'power3.in' }, 0)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // V4.3 — 5-ACT CINEMATIC OPENING (1.55s total)
+    //
+    //   ACT I  (0.00–0.20s) — letterbox slides in (camera frames it)
+    //   ACT II (0.10–0.50s) — boot dolly back: scale 1→0.94, blur 0→14px
+    //                          (simultaneous with matte close)
+    //   ACT III(0.20–0.55s) — matte slams to full black (power3.in)
+    //   ACT IV (0.55–0.74s) — HOLD true black 190ms (cinema breath)
+    //   ACT V  (0.74–1.55s) — splash zooms IN: scale 1.18→1, blur 28→0,
+    //                          brightness 0→1, matte fades out
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // Phase 2 — HOLD 90ms at true black (cinema breath — recruiter's eye
-    // has a frame to reset before the splash world materialises).
-    tl.addLabel('boot_dim_peak', 0.38)
+    // ── ACT I — letterbox bars slide in immediately ──────────
+    tl.call(() => {
+      document.body.setAttribute('data-letterbox', 'active')
+    }, [], 0)
+
+    // ── ACT II — matte slams to full black (lights out) ──────
+    tl.to(matte, { opacity: 1, duration: 0.45, ease: 'power3.in' }, 0)
+
+    // ── ACT IV — Hold 190ms in true black, swap React phase ──
+    tl.addLabel('blackout', 0.55)
     tl.call(() => {
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 80 })
-    }, [], 'boot_dim_peak+=0.09')
+    }, [], 'blackout+=0.19')
 
-    // Phase 3 — matte snaps off (power3.out = crisp, confident reveal).
-    // Positioned to start at the same instant as the phase-swap call.
-    tl.to(matte, { opacity: 0, duration: 0.30, ease: 'power3.out' }, 'boot_dim_peak+=0.09')
+    // ── ACT V — Matte dissolves out, splash element zoom-in ──
+    // Splash starts heavily over-scaled + blurred so the reveal
+    // feels like the camera "racks focus" forward into a new room.
+    const splashEl = this.opts.splashRef.current
+    if (splashEl) {
+      gsap.set(splashEl, { opacity: 0, scale: 1.14, filter: 'blur(22px) brightness(0.6)' })
+    }
+
+    tl.to(matte, { opacity: 0, duration: 0.55, ease: 'power3.out' }, 'blackout+=0.19')
+
+    if (splashEl) {
+      tl.fromTo(splashEl,
+        { opacity: 0, scale: 1.14, filter: 'blur(22px) brightness(0.6)' },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: 'blur(0px) brightness(1)',
+          duration: 0.78,
+          ease: 'power3.out',
+        }, 'blackout+=0.22')
+    }
   }
 
   /** Splash → Slot with match-cut Lucky 7 → reel viewport. */
@@ -146,66 +181,95 @@ class Director {
       return
     }
 
-    const tl = gsap.timeline({ onComplete: () => this.completeSplashToSlot() })
+    const tl = gsap.timeline({
+      onComplete: () => {
+        // Cleanup transition flags before completing
+        document.body.removeAttribute('data-hyperspace')
+        document.body.removeAttribute('data-letterbox')
+        this.completeSplashToSlot()
+      },
+    })
     this.tl = tl
 
-    // ── Phase 1 (0–0.48s) — "burned exit" ─────────────────────────────
-    // Splash overexposes before it dies — like a film frame held too long
-    // in the projector gate. power3.in = aggressive accelerating burn.
+    // Reset transition flags on start
+    document.body.setAttribute('data-letterbox', 'active')
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // V4.3 — 6-ACT CINEMATIC MATCH-CUT (2.30s total)
+    //
+    //   ACT I   (0.00–0.50s) — splash WARP: brightness→4.5,
+    //                          scale→1.42, blur→26px, opacity→0
+    //                          (camera punches through the Lucky 7)
+    //   ACT II  (0.30–0.55s) — matte slams to full black (60ms hold)
+    //   ACT III (0.55–1.00s) — HYPERSPACE TUNNEL outward — radial
+    //                          speed lines rush from center outward
+    //   ACT IV  (0.85–1.05s) — matte begins fade out under tunnel
+    //   ACT V   (0.95–1.85s) — slot REVEAL from scale 1.18 + blur
+    //                          24px + opacity 0, matte fully gone
+    //   ACT VI  (1.55–2.30s) — settle tail (waits for genesis)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // ── ACT I — Splash burns through the gate ─────────────────
     if (splashEl) {
       tl.to(splashEl, {
         opacity: 0,
-        scale: 0.95,
-        filter: 'blur(6px) brightness(2.4)',
-        duration: 0.48,
+        scale: 1.42,
+        filter: 'blur(26px) brightness(4.5)',
+        duration: 0.50,
         ease: 'power3.in',
       }, 0)
     }
 
-    // ── Phase 2 (0.28–0.58s) — FULL BLACK CUT ─────────────────────────
-    // Matte hits opacity 1 (not a dim — a real hard cut). The brief pure-
-    // black hold between splash exit and slot reveal is the cinematic
-    // "match-cut" frame — gives the recruiter's eye a reset point and
-    // amplifies the slot reveal that follows.
+    // ── ACT II — Matte hard cut to black ──────────────────────
     if (matte) {
-      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.28)
-      tl.addLabel('match_cut_peak', 0.58)
-      tl.call(() => {
-        bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
-      }, [], 'match_cut_peak')
-      // Matte dissolves WHILE the slot expands — simultaneous reveal
-      tl.to(matte, { opacity: 0, duration: 0.64, ease: 'power2.out' }, 0.74)
+      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.25)
     }
 
-    // ── Phase 3 (0.62s) — audio J-cut just before slot becomes visible
+    // ── ACT III — Trigger hyperspace tunnel (outward) ─────────
+    tl.addLabel('match_cut_peak', 0.55)
+    tl.call(() => {
+      bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
+      document.body.setAttribute('data-hyperspace', 'out')
+    }, [], 'match_cut_peak')
+
+    // Hyperspace runs ~460ms via CSS animation; clear it after 0.46s
+    tl.call(() => {
+      document.body.removeAttribute('data-hyperspace')
+    }, [], 'match_cut_peak+=0.46')
+
+    // ── ACT IV — Matte dissolves under hyperspace ─────────────
+    if (matte) {
+      tl.to(matte, { opacity: 0, duration: 0.55, ease: 'power2.out' }, 'match_cut_peak+=0.30')
+    }
+
+    // ── ACT V — Slot SLAMS in from heavy over-scale ───────────
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
-    }, [], 0.62)
+    }, [], 'match_cut_peak+=0.40')
 
-    // ── Phase 4 (0.62–1.50s) — SLOT SLAMS IN ──────────────────────────
-    // Expands from scale(1.07) → 1 while blur dissolves. power3.out = the
-    // machine "arrives with weight" — fast start, organic settle.
-    // Previous: scale(1.012) barely visible. New: +7% = unmistakeable.
     if (slotEl) {
       tl.fromTo(slotEl,
-        { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
+        { opacity: 0, scale: 1.18, filter: 'blur(24px) brightness(1.4)' },
         {
           opacity: 1,
           scale: 1,
-          filter: 'blur(0px)',
-          duration: 0.88,
+          filter: 'blur(0px) brightness(1)',
+          duration: 0.95,
           ease: 'power3.out',
-        }, 0.62)
+        }, 'match_cut_peak+=0.40')
     }
+
+    // Pull letterbox bars out as slot is settling — cinematic
+    // moment passes, the cabinet takes over the frame.
+    tl.call(() => {
+      document.body.removeAttribute('data-letterbox')
+    }, [], 'match_cut_peak+=1.20')
 
     // CRITICAL — wait for SlotMachine genesis (1.55s once entering=true)
     // to fully reveal cells / tabs / controls BEFORE flipping phase →
-    // 'slot'. Genesis is gated on entering=true; if we transition to
-    // 'slot' mid-genesis it triggers black-screen.
-    // slot-fade: 0.62 + 0.88 = 1.50s, genesis ~1.55s from entering=true
-    // (entering was set at the very top of this method, so clock starts now).
-    // 0.70s tail → total 2.20s → covers genesis with 0.65s margin.
-    tl.to({}, { duration: 0.70 })
+    // 'slot'. Total here: 0.55 (match cut peak) + 1.35s = 1.90s + 0.50
+    // tail = 2.40s → covers genesis with margin.
+    tl.to({}, { duration: 0.50 })
   }
 
   private completeSplashToSlot(): void {
@@ -219,11 +283,17 @@ class Director {
     if (this.skipped) return
     this.skipped = true
 
+    // Clear V4.3 cinematic transition flags on any skip
+    document.body.removeAttribute('data-letterbox')
+    document.body.removeAttribute('data-hyperspace')
+
     if (this.currentRun === 'boot_to_splash') {
       // We're mid boot→splash. Jump to splash_intro_settle (post-fade).
       this.killActive()
       const matte = this.opts.matteEl
       if (matte) gsap.set(matte, { opacity: 0 })
+      const splashEl = this.opts.splashRef.current
+      if (splashEl) gsap.set(splashEl, { opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' })
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_intro_settle', leadMs: 0 })
       this.currentRun = null
@@ -237,7 +307,7 @@ class Director {
       const slotEl = this.opts.slotWrapRef.current
       if (splashEl) gsap.set(splashEl, { opacity: 0 })
       if (matte) gsap.set(matte, { opacity: 0 })
-      if (slotEl) gsap.set(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px)' })
+      if (slotEl) gsap.set(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' })
       this.completeSplashToSlot()
       return
     }

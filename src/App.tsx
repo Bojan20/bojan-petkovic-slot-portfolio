@@ -54,6 +54,8 @@ import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
 import { SkipIntroButton } from './components/SkipIntroButton'
+import { CabinetLetterbox } from './components/CabinetLetterbox'
+import { CabinetHyperspace } from './components/CabinetHyperspace'
 import { useInputBridges } from './hooks/useInputBridges'
 import { useSensorium } from './hooks/useSensorium'
 import { useSessionCapture } from './hooks/useSessionCapture'
@@ -560,6 +562,17 @@ function AppMain() {
           Click → TransitionDirector.skip() runs splash→slot animation
           shortcutting any in-flight cinematic. */}
       <SkipIntroButton visible={phase !== 'slot'} />
+
+      {/* V4.3 — cinematic letterbox bars (2.39:1 scope ratio).
+          Driven by body[data-letterbox] set by TransitionDirector +
+          paylineTakeover. Bars slide in during cinematic moments. */}
+      <CabinetLetterbox />
+
+      {/* V4.3 — hyperspace tunnel layer for warp transitions.
+          Driven by body[data-hyperspace="out"|"in"]. Used between
+          splash and slot to replace flat black hold with 460ms
+          radial speed-line tunnel. */}
+      <CabinetHyperspace />
     </>
   )
 }

@@ -1,0 +1,131 @@
+/**
+ * Hyperspace tunnel CSS — radial speed-line streaks that rush
+ * outward or inward depending on body[data-hyperspace].
+ * z-index 9700 — sits above letterbox bars during the warp frame.
+ */
+
+.tunnel {
+  position: fixed;
+  inset: 0;
+  z-index: 9700;
+  pointer-events: none;
+  display: none;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.85) 80%);
+}
+
+body[data-hyperspace="out"] .tunnel,
+body[data-hyperspace="in"] .tunnel {
+  display: block;
+}
+
+.streak {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 24%;
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.0) 6%,
+    rgba(177, 76, 255, 0.65) 32%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(34, 232, 255, 0.65) 68%,
+    transparent 100%
+  );
+  filter: blur(0.6px);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+/* OUTWARD — streaks rush from center to edges */
+body[data-hyperspace="out"] .streak {
+  animation: streakOut 0.46s cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: calc(var(--i) * -0.005s);
+}
+
+@keyframes streakOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(0) scaleY(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(0) scaleY(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(180vh) scaleY(2.4);
+  }
+}
+
+/* INWARD — streaks collapse from edges to center */
+body[data-hyperspace="in"] .streak {
+  animation: streakIn 0.42s cubic-bezier(0.55, 0, 0.7, 1);
+  animation-delay: calc(var(--i) * -0.004s);
+}
+
+@keyframes streakIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(180vh) scaleY(2.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(60vh) scaleY(1.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0) rotate(var(--angle)) translateY(0) scaleY(0.2);
+  }
+}
+
+/* Core flash — bright dot at center that pulses during the tunnel */
+.coreFlash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(177, 76, 255, 0.6) 25%,
+    rgba(34, 232, 255, 0.4) 50%,
+    transparent 75%);
+  filter: blur(20px);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+body[data-hyperspace="out"] .coreFlash {
+  animation: coreFlashOut 0.46s ease-out;
+}
+
+body[data-hyperspace="in"] .coreFlash {
+  animation: coreFlashIn 0.42s ease-out;
+}
+
+@keyframes coreFlashOut {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+}
+
+@keyframes coreFlashIn {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tunnel { display: none !important; }
+}
+
+body[data-perf-pressure="critical"] .tunnel {
+  display: none !important;
+}

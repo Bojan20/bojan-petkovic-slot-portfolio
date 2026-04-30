@@ -1,0 +1,57 @@
+/**
+ * Cinematic letterbox bars CSS.
+ * z-index 9500 — above payline takeover (10000) we'd block it, so bars
+ * sit just below the takeover overlay. Above world + cabinet + winFx.
+ */
+
+.bar {
+  position: fixed;
+  left: -2%;
+  right: -2%;
+  height: clamp(56px, 9vh, 110px);
+  background: linear-gradient(
+    180deg,
+    #000000 0%,
+    rgba(8, 4, 14, 1) 50%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  z-index: 9500;
+  pointer-events: none;
+  /* Slight outer glow simulating film grain at the bar edge */
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.85);
+  transition: transform 0.62s cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+.barTop {
+  top: 0;
+  transform: translateY(-100%);
+  border-bottom: 1px solid rgba(255, 224, 102, 0.12);
+}
+
+.barBottom {
+  bottom: 0;
+  transform: translateY(100%);
+  border-top: 1px solid rgba(255, 224, 102, 0.12);
+}
+
+/* Activated by body[data-letterbox] attribute set by transitions */
+body[data-letterbox="active"] .barTop,
+body[data-letterbox="thick"] .barTop {
+  transform: translateY(0);
+}
+
+body[data-letterbox="active"] .barBottom,
+body[data-letterbox="thick"] .barBottom {
+  transform: translateY(0);
+}
+
+body[data-letterbox="thick"] .bar {
+  height: clamp(80px, 13vh, 160px);
+}
+
+/* Reduced-motion — no slide, just instant */
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}
