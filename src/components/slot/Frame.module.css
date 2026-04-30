@@ -5,6 +5,36 @@
   overflow: visible;
   display: flex;
   flex-direction: column;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     P4.2 — Chrome dimming.
+     The frame "chrome" (pillars + medallions + topStrip + holographic
+     edge) is bezel — recruiter doesn't apply for the cabinet, they
+     apply for the content inside it. So at idle the chrome rides at
+     0.22 strength; on hover or while spinning we ramp to 1.0.
+
+     This is the V2 hierarchy: content first, theatre second. Bezel
+     should announce itself only when invited.
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --chrome-strength: 0.22;
+  transition: --chrome-strength 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.frame:hover,
+.frame[data-frame-active] {
+  --chrome-strength: 1;
+}
+
+@property --chrome-strength {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    transition: none;
+  }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -32,16 +62,18 @@
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  opacity: 0.55;
+  /* P4.2 — chromatic edge tied to --chrome-strength.
+     Idle 0.55 × 0.22 ≈ 0.12 (whisper); active 0.55 × 1 = 0.55 */
+  opacity: calc(0.55 * var(--chrome-strength));
   mix-blend-mode: screen;
   filter: hue-rotate(0deg) blur(0.5px);
   animation: frameChromaCycle 20s linear infinite;
 }
 
 @keyframes frameChromaCycle {
-  0%   { filter: hue-rotate(0deg)   blur(0.5px); opacity: 0.45; }
-  50%  { filter: hue-rotate(180deg) blur(1px);   opacity: 0.70; }
-  100% { filter: hue-rotate(360deg) blur(0.5px); opacity: 0.45; }
+  0%   { filter: hue-rotate(0deg)   blur(0.5px); }
+  50%  { filter: hue-rotate(180deg) blur(1px);   }
+  100% { filter: hue-rotate(360deg) blur(0.5px); }
 }
 
 /* WoO Fluted gold pillars */
@@ -68,6 +100,10 @@
       var(--g200) 80%, var(--g300) 92%, var(--g500) 100%
     );
   box-shadow: 0 0 14px var(--g-shadow), inset 0 0 5px rgba(0, 0, 0, 0.5);
+  /* P4.2 — pillar opacity scales with --chrome-strength.
+     Idle 0.22 (gold whisper, doesn't grab eye), active 1.0. */
+  opacity: var(--chrome-strength);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .left {
@@ -181,6 +217,10 @@
   animation:
     medalRotate 55s linear infinite,
     medalShine 8s ease-in-out infinite;
+  /* P4.2 — medallion dims at idle (0.22) so they don't compete with
+     the hero tile or content cells. Wake on hover/spin. */
+  opacity: var(--chrome-strength);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Neon inner glow pulse (sync'd with jackpot pulse feel) */
@@ -259,6 +299,9 @@
     rgba(34, 232, 255, 0.32) 85%, transparent 100%
   );
   animation: topStripHue 18s linear infinite;
+  /* P4.2 — top strip dims with chrome */
+  opacity: var(--chrome-strength);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes topStripHue {

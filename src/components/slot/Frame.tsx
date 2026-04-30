@@ -52,11 +52,17 @@ export function Frame({ children, isSpinning, cellHeight = 0 }: FrameProps) {
     return off
   }, [])
 
+  // P4.2 — chrome dimming. Frame chrome (pillars + medallions +
+  // topStrip + chromatic edge) idles at --chrome-strength 0.22 so
+  // the recruiter's eye lands on content, not bezel. Spinning the
+  // reels OR hovering the cabinet brightens chrome to full via CSS
+  // — cabinet "wakes up" when interacted with.
   return (
     <div
       ref={frameRef}
       className={styles.frame}
       style={cellHeight > 0 ? { '--cell-h': `${cellHeight}px` } as React.CSSProperties : undefined}
+      {...(isSpinning ? { 'data-frame-active': '' } : {})}
     >
       {/* Left pillar */}
       <div className={`${styles.pillar} ${styles.left}`} />
