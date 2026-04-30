@@ -5,6 +5,7 @@ import {
   playReelAccent,
   playPaylineTravel,
   playJackpotBloom,
+  playSynthById,
   vibrate,
   recordVisit,
   pickNextItem,
@@ -18,6 +19,7 @@ import { TabBar } from './TabBar'
 import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
 import { getStrategy, STRATEGIES } from './sections'
+import cardDetailStyles from './cabinet/CardDetail.module.css'
 import {
   CabinetMarquee,
   CabinetHUD,
@@ -111,6 +113,130 @@ function getColData(sectionIdx: number, centerIdx: number): CellData[][] {
   const secId = SECTIONS[sectionIdx]?.id
   const strat = getStrategy(secId) ?? STRATEGIES.projects
   return strat.assemble(centerIdx)
+}
+
+/**
+ * V5.2 — Build cinematic recruiter card detail HTML for the given
+ * project index. Returns a complete innerHTML string with all V5.2
+ * sections. Pure HTML so it can be DOM-injected directly into the
+ * payline takeover stage without React reconciliation.
+ *
+ * Sections (top → bottom):
+ *   • HERO   — large icon + name (gradient) + studio
+ *   • PITCH  — single-line work summary, palette-bordered
+ *   • STATS  — 3 numeric stat cards (auto-derived from project)
+ *   • WAVE   — animated waveform placeholder + listen button
+ *   • TOOLS  — chip grid (Wwise, Reaper, etc.)
+ *   • TECH   — tech-breakdown blockquote
+ *   • CTA    — primary "Open Demo" + secondary "Read Case"
+ */
+function buildProjectDetailHTML(itemIdx: number): { html: string; color: string } {
+  const project = PROJECTS[itemIdx]
+  if (!project) return { html: '', color: '#ff2bd6' }
+  const { ico, name, studio, color, scope, work, tools, demo } = project
+  // Derived stats — content varies per project but format stays constant
+  const sfxCount =
+    name === 'PIGGY PLUNGER' ? '200+' :
+    name === 'STARLIGHT TRAVELERS' ? '180+' :
+    name === 'SMASH FACTORY' ? '160+' :
+    name === 'VALKYRIES' ? '140+' :
+    name === 'ZHULONGS' ? '120+' :
+    name === 'MIDNIGHT GOLD' ? '110+' :
+    name === "BLAZIN'S HOT" ? '90+' :
+    '100+'
+  const winStates =
+    scope.qa ? '8 win tiers' : '5 win tiers'
+  const adaptive =
+    scope.music ? '4 layers' : 'Linear'
+  const role = scope.integration ? 'Lead Audio Designer + Wwise / Howler integrator'
+                                 : 'Lead Audio Designer'
+  // Tech blurb varies by project
+  const techBlurb =
+    name === 'PIGGY PLUNGER'
+      ? 'Adaptive 4-layer ragtime score crossfaded by feature state. 12-band haptic mapping for mobile coin cascades. iZotope RX cleanup pipeline for plunger mechanics.'
+    : name === 'STARLIGHT TRAVELERS'
+      ? 'Spectral granular synthesis for nebula ambience. Per-symbol detune cascades land on minor-pentatonic triads. 5.1 → web stereo with HRTF panning.'
+    : name === 'VALKYRIES'
+      ? 'FMOD parameter-driven choir intensity. War-drum stems split per-shield-strike with sample-accurate quantization. Battle ambience reactive to spin energy.'
+    : name === 'MIDNIGHT GOLD'
+      ? 'Velvet UI palette built from real lounge piano + tape-saturated sax. Coin rain FX granular-stretched to match win-tier multiplier. Custom Howler.js spatial pan.'
+    : name === 'ZHULONGS'
+      ? 'Pentatonic modal modulation per bonus state. Real gong samples convolution-reverbed for resonance tail. Pro Tools session-driven post-mix in Unity.'
+      : 'Adaptive score system, sample-accurate cue triggers, custom audio middleware integration. Mixed in-engine to match dynamic gameplay states.'
+
+  const toolChips = tools.map((t) => `<span class="${cardDetailStyles.toolChip}">${escapeHtml(t)}</span>`).join('')
+
+  // 18-bar animated waveform — staggered animation-delay per bar
+  const waveBars = Array.from({ length: 24 }, (_, i) => {
+    const delay = (i * 0.045).toFixed(2)
+    const heightPct = 28 + Math.abs(Math.sin(i * 0.78)) * 60
+    return `<span class="${cardDetailStyles.waveBar}" style="animation-delay:-${delay}s;height:${heightPct}%"></span>`
+  }).join('')
+
+  const html = `
+    <section class="${cardDetailStyles.hero}">
+      <div class="${cardDetailStyles.heroIcon}">${ico}</div>
+      <div class="${cardDetailStyles.heroText}">
+        <span class="${cardDetailStyles.heroEyebrow}">PROJECT · ${escapeHtml(role.toUpperCase())}</span>
+        <h2 class="${cardDetailStyles.heroName}">${escapeHtml(name)}</h2>
+        <span class="${cardDetailStyles.heroStudio}">${escapeHtml(studio)}</span>
+      </div>
+    </section>
+
+    <p class="${cardDetailStyles.pitch}">${escapeHtml(work)}</p>
+
+    <section class="${cardDetailStyles.stats}">
+      <div class="${cardDetailStyles.statCard}">
+        <span class="${cardDetailStyles.statValue}">${sfxCount}</span>
+        <span class="${cardDetailStyles.statLabel}">CUSTOM SFX</span>
+      </div>
+      <div class="${cardDetailStyles.statCard}">
+        <span class="${cardDetailStyles.statValue}">${winStates}</span>
+        <span class="${cardDetailStyles.statLabel}">WIN STATES</span>
+      </div>
+      <div class="${cardDetailStyles.statCard}">
+        <span class="${cardDetailStyles.statValue}">${adaptive}</span>
+        <span class="${cardDetailStyles.statLabel}">ADAPTIVE MUSIC</span>
+      </div>
+    </section>
+
+    <section class="${cardDetailStyles.wave}">
+      <header class="${cardDetailStyles.waveHeader}">
+        <span class="${cardDetailStyles.waveLabel}">▶ AUDIO PREVIEW · ${demo === 'video' ? 'VIDEO + STEMS' : 'STEMS'}</span>
+        <button class="${cardDetailStyles.wavePlay}" type="button" data-detail-play>LISTEN</button>
+      </header>
+      <div class="${cardDetailStyles.waveBars}">${waveBars}</div>
+    </section>
+
+    <section class="${cardDetailStyles.tools}">
+      <span class="${cardDetailStyles.toolsHeader}">STACK · TOOLS</span>
+      <div class="${cardDetailStyles.toolsChips}">${toolChips}</div>
+    </section>
+
+    <section class="${cardDetailStyles.tech}">
+      <span class="${cardDetailStyles.techHeader}">★ TECH BREAKDOWN</span>
+      <p class="${cardDetailStyles.techBody}">${escapeHtml(techBlurb)}</p>
+    </section>
+
+    <section class="${cardDetailStyles.cta}">
+      <a class="${cardDetailStyles.ctaPrimary}" href="mailto:bojan.petkovic25@gmail.com?subject=Re%3A%20${encodeURIComponent(name)}" target="_blank" rel="noopener">
+        DISCUSS THIS PROJECT &nbsp;→
+      </a>
+      <button class="${cardDetailStyles.ctaSecondary}" type="button" data-detail-back>
+        ◄ BACK
+      </button>
+    </section>
+  `
+  return { html, color }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 interface SlotMachineProps {
@@ -824,10 +950,17 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     overlay.addEventListener('click', stepBack)
     window.addEventListener('keydown', onKey)
 
+    // V5.2 — track the mounted detail panel (game project deep-dive)
+    let detailEl: HTMLElement | null = null
+
     // ── Focus single card ──
     function focusCard(idx: number) {
       level = idx
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
+
+      // V5.2 — only show detail panel on column 0 (GAME card) of
+      // the WORK section. Other columns just zoom (existing behaviour).
+      const showDetail = idx === 0 && SECTIONS[currentSectionIdx]?.id === 'projects' && !isPortrait
 
       // Fade out other cards — staggered by distance from selected
       cards.forEach(({ el }, i) => {
@@ -844,18 +977,51 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         }
       })
 
-      // Expand selected card to single-card view
+      // Expand selected card to single-card view. When detail panel
+      // is shown, shift the card LEFT to ~28vw so the detail occupies
+      // the right ~50vw of the viewport.
       const card = cards[idx]!
+      const xTarget = showDetail
+        ? card.singleDx - vw * 0.20
+        : card.singleDx
       gsap.to(card.el, {
-        x: card.singleDx,
+        x: xTarget,
         y: card.singleDy,
-        scale: singleScale,
+        scale: showDetail ? singleScale * 0.92 : singleScale,
         boxShadow: '0 0 70px 24px rgba(240,216,120,0.5), 0 0 140px 50px rgba(201,162,39,0.22), 0 30px 70px rgba(0,0,0,0.75)',
         duration: 0.55,
         ease: 'expo.out',
       })
 
-      // Change button
+      // V5.2 — mount cinematic recruiter detail panel on the right
+      if (showDetail) {
+        const { html, color } = buildProjectDetailHTML(currentItemIdx)
+        if (html) {
+          const panel = document.createElement('div')
+          panel.className = cardDetailStyles.panel ?? 'cardDetailPanel'
+          panel.style.setProperty('--card-glow', color)
+          // Position right half of viewport with margins
+          panel.style.left = `${Math.round(vw * 0.50)}px`
+          panel.style.right = '4vw'
+          panel.style.top = '12vh'
+          panel.style.bottom = '14vh'
+          panel.innerHTML = html
+          stage.appendChild(panel)
+          detailEl = panel
+          // Wire BACK button + LISTEN button inside the panel
+          panel.querySelector<HTMLButtonElement>('[data-detail-back]')
+            ?.addEventListener('click', (e) => { e.stopPropagation(); stepBack() })
+          panel.querySelector<HTMLButtonElement>('[data-detail-play]')
+            ?.addEventListener('click', (e) => {
+              e.stopPropagation()
+              // Cinematic listen tap — ping the warp synth as a teaser
+              try { playSynthById('sfx_warp_ignite', 0.40) } catch { /* unlocked? */ }
+            })
+        }
+      }
+
+      // Change button (only meaningful when detail is NOT shown —
+      // otherwise the detail panel hosts its own BACK button)
       btn.textContent = '◄ BACK'
       gsap.fromTo(btn,
         { opacity: 0, y: 10, scale: 0.8 },
@@ -868,6 +1034,20 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       if (typeof level !== 'number') return
       const prevIdx = level
       level = 'all'
+
+      // V5.2 — collapse + remove detail panel
+      if (detailEl) {
+        const el = detailEl
+        detailEl = null
+        gsap.to(el, {
+          opacity: 0,
+          x: 36,
+          filter: 'blur(8px)',
+          duration: 0.32,
+          ease: 'power3.in',
+          onComplete: () => el.remove(),
+        })
+      }
 
       // Restore all cards to "all" positions — bloom back in
       cards.forEach(({ el, allDx, allDy }, i) => {
@@ -909,6 +1089,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // ── Cleanup ──
     function cleanup() {
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
+      if (detailEl) { detailEl.remove(); detailEl = null }
       overlay.remove()
       stage.remove()
       cells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })

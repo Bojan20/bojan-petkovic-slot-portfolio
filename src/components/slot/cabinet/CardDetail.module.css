@@ -1,0 +1,400 @@
+/**
+ * CardDetail — V5.2 cinematic recruiter card detail.
+ *
+ * Mounted dynamically into the payline takeover stage when a card is
+ * focused (single-level deep-dive). Takes up the right two-thirds of
+ * the viewport on desktop, full width below the card on mobile.
+ *
+ * Layout (desktop):
+ *   [scaled card] | [HERO · PITCH · STATS · WAVEFORM · TOOLS · TECH · CTA]
+ *
+ * All animations stagger on mount so the recruiter sees content
+ * unfold step by step, not dumped at once. CSS-only animations.
+ */
+
+.panel {
+  position: fixed;
+  z-index: 10003;
+  pointer-events: auto;
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  color: #e8e6ff;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 30px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(20, 14, 36, 0.92) 0%, rgba(8, 6, 22, 0.96) 100%);
+  border: 1px solid color-mix(in srgb, var(--card-glow, #ff2bd6) 35%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 50px color-mix(in srgb, var(--card-glow, #ff2bd6) 22%, transparent),
+    0 30px 80px rgba(0, 0, 0, 0.7);
+  /* Holographic outer ring — animated conic */
+  isolation: isolate;
+  overflow: hidden;
+  /* Stagger the panel itself in, then children stagger via :nth-child */
+  animation: panelIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 14px;
+  padding: 1.4px;
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--card-glow, #ff2bd6) 60%, transparent) 0%,
+    color-mix(in srgb, var(--card-glow, #ff2bd6) 12%, transparent) 25%,
+    color-mix(in srgb, var(--card-glow, #ff2bd6) 60%, transparent) 50%,
+    color-mix(in srgb, var(--card-glow, #ff2bd6) 12%, transparent) 75%,
+    color-mix(in srgb, var(--card-glow, #ff2bd6) 60%, transparent) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0.55;
+  animation: rimRotate 18s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rimRotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes panelIn {
+  0%   { opacity: 0; transform: translateX(36px) scale(0.96); filter: blur(8px); }
+  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+
+/* ── HERO HEADER ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--card-glow, #fff) 25%, transparent);
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.10s;
+}
+
+.heroIcon {
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--card-glow, #fff) 60%, transparent));
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.heroEyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--card-glow, #ffe066);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--card-glow) 50%, transparent);
+}
+
+.heroName {
+  margin: 0;
+  font-size: clamp(28px, 3.6vw, 44px);
+  font-weight: 900;
+  letter-spacing: 3px;
+  line-height: 1.05;
+  background: linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--card-glow) 90%, white) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+}
+
+.heroStudio {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(220, 215, 255, 0.7);
+  text-transform: uppercase;
+}
+
+/* ── PITCH ── */
+.pitch {
+  position: relative;
+  z-index: 1;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(232, 230, 255, 0.92);
+  font-weight: 500;
+  padding-left: 14px;
+  border-left: 2px solid var(--card-glow, #fff);
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.18s;
+}
+
+/* ── STATS GRID ── */
+.stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.26s;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.statCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--card-glow) 35%, transparent);
+  transform: translateY(-2px);
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--card-glow, #ffe066);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--card-glow) 45%, transparent);
+  font-feature-settings: 'tnum';
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(180, 175, 220, 0.7);
+  text-transform: uppercase;
+}
+
+/* ── AUDIO WAVEFORM ── */
+.wave {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.34s;
+}
+
+.waveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: rgba(180, 175, 220, 0.7);
+}
+
+.waveLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wavePlay {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--card-glow) 60%, transparent);
+  background: color-mix(in srgb, var(--card-glow) 14%, transparent);
+  color: var(--card-glow, #fff);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wavePlay:hover {
+  background: color-mix(in srgb, var(--card-glow) 28%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--card-glow) 40%, transparent);
+}
+
+.waveBars {
+  display: flex;
+  align-items: flex-end;
+  height: 70px;
+  gap: 3px;
+  padding: 0 4px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.waveBar {
+  flex: 1;
+  background: var(--card-glow, #ff2bd6);
+  border-radius: 1.5px;
+  opacity: 0.85;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--card-glow) 50%, transparent);
+  animation: waveBeat 1.4s ease-in-out infinite;
+}
+
+@keyframes waveBeat {
+  0%, 100% { transform: scaleY(0.5); }
+  50%      { transform: scaleY(1); }
+}
+
+/* ── TOOLS GRID ── */
+.tools {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.42s;
+}
+
+.toolsHeader {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: rgba(180, 175, 220, 0.7);
+}
+
+.toolsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.toolChip {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(220, 215, 255, 0.9);
+}
+
+/* ── TECH BREAKDOWN ── */
+.tech {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed rgba(255, 255, 255, 0.10);
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.50s;
+}
+
+.techHeader {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--card-glow, #fff);
+}
+
+.techBody {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(220, 215, 255, 0.8);
+}
+
+/* ── CTA ROW ── */
+.cta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  animation: childIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.58s;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  flex: 1;
+  appearance: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.22s;
+}
+
+.ctaPrimary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card-glow) 80%, white), var(--card-glow, #ffe066));
+  color: #0a0612;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--card-glow) 50%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 30px color-mix(in srgb, var(--card-glow) 70%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ctaSecondary {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--card-glow) 45%, transparent);
+  color: var(--card-glow, #fff);
+}
+
+.ctaSecondary:hover {
+  background: color-mix(in srgb, var(--card-glow) 14%, transparent);
+  border-color: var(--card-glow, #fff);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--card-glow) 40%, transparent);
+}
+
+@keyframes childIn {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel, .hero, .pitch, .stats, .wave, .tools, .tech, .cta,
+  .panel::before, .waveBar { animation: none; }
+}
+
+/* Responsive — mobile portrait stacks under the card */
+@media (max-width: 720px) {
+  .panel {
+    padding: 18px 20px;
+    gap: 14px;
+  }
+  .heroIcon { font-size: 42px; }
+  .heroName { font-size: clamp(22px, 6vw, 32px); letter-spacing: 2px; }
+  .pitch { font-size: 13px; }
+  .statValue { font-size: 18px; }
+}
