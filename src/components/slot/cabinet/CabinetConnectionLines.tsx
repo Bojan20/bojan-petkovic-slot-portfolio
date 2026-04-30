@@ -32,12 +32,37 @@ interface Line {
   color: string
 }
 
+const MAX_LINES = 4
+const HOVER_THROTTLE_MS = 28 // ~36Hz cap
+
 export function CabinetConnectionLines() {
   const [lines, setLines] = useState<Line[]>([])
   const fadeTimerRef = useRef<number>(0)
+  const lastEmitRef = useRef<number>(0)
+  const suspendedRef = useRef<boolean>(false)
 
   useEffect(() => {
+    // V7.2 — gate: skip while payline takeover is up (recruiter is
+    // already focused on a single card — affinity lines would be
+    // visual noise overlaying the cinematic stage). Also skip on
+    // prefers-reduced-motion + critical perf pressure (CSS already
+    // hides via display:none, but skipping the work avoids reads).
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
     const offStart = bus.on('custom:cell:hover:start', (p) => {
+      if (reduced) return
+      if (typeof document !== 'undefined' && document.body.hasAttribute('data-payline-active')) return
+      if (suspendedRef.current) return
+
+      // Throttle — Cell hovers fire on every pointermove; we only need
+      // ~30Hz to feel live, and the getBoundingClientRect()s below are
+      // not free.
+      const now = performance.now()
+      if (now - lastEmitRef.current < HOVER_THROTTLE_MS) return
+      lastEmitRef.current = now
+
       const tools = p.tools ?? []
       const color = p.color
       const sourceId = p.cellId
@@ -73,8 +98,9 @@ export function CabinetConnectionLines() {
         const r = cell.getBoundingClientRect()
         const toX = r.left + r.width / 2
         const toY = r.top + r.height / 2
-        // Cap to ~6 lines so the canvas doesn't get crowded
-        if (newLines.length >= 6) return
+        // V7.2 — cap reduced from 6 → 4 lines so the canvas reads
+        // immediately, doesn't wash out the active hover target.
+        if (newLines.length >= MAX_LINES) return
         newLines.push({
           id: `${sourceId ?? 'src'}-${idx}`,
           fromX, fromY, toX, toY,
@@ -92,9 +118,30 @@ export function CabinetConnectionLines() {
       fadeTimerRef.current = window.setTimeout(() => setLines([]), 360)
     })
 
+    // V7.2 — perf pressure gate: serious/critical → suspend until
+    // we recover. Lines are an idle-loop ornament; nothing breaks
+    // when they go quiet during heavy spin sequences.
+    const offPerf = bus.on('custom:perf:pressure' as 'custom:perf:pressure', (p: { level: string }) => {
+      const lvl = p?.level
+      const next = lvl === 'serious' || lvl === 'critical'
+      if (next !== suspendedRef.current) {
+        suspendedRef.current = next
+        if (next) setLines([])
+      }
+    })
+
+    // V7.2 — clear on spin start so dashed flow lines never fight the
+    // GSAP reel-strip animation for attention.
+    const offSpin = bus.on('slot:spin:start', () => {
+      if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current)
+      setLines([])
+    })
+
     return () => {
       offStart()
       offEnd()
+      offPerf()
+      offSpin()
       if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current)
     }
   }, [])

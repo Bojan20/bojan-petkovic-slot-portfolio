@@ -96,9 +96,55 @@
   50%      { opacity: 1;   transform: translateY(-6px); }
 }
 
+/* V7.2 — Reactive scan ripple. Mounted transiently when reel lands.
+   A radial ring expands outward from the cabinet baseline along the
+   floor's perspective plane. Self-removes after 1.4s via opacity. */
+.ripple {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 900px;
+  max-height: 900px;
+  margin-left: -30vw;
+  margin-bottom: -30vw;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 232, 255, 0.85);
+  box-shadow:
+    0 0 30px rgba(34, 232, 255, 0.55),
+    inset 0 0 30px rgba(34, 232, 255, 0.40);
+  transform: translate(-50%, 50%) rotateX(64deg) scale(0.05);
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  opacity: 1;
+  animation: rippleScan 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  mix-blend-mode: screen;
+}
+
+@keyframes rippleScan {
+  0%   {
+    transform: translate(-50%, 50%) rotateX(64deg) scale(0.05);
+    opacity: 0;
+    border-color: rgba(34, 232, 255, 0.95);
+  }
+  10%  {
+    opacity: 1;
+  }
+  60%  {
+    border-color: rgba(177, 76, 255, 0.55);
+  }
+  100% {
+    transform: translate(-50%, 50%) rotateX(64deg) scale(2.2);
+    opacity: 0;
+    border-color: rgba(177, 76, 255, 0.0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .grid { animation: none; }
   .haze { animation: none; }
+  .ripple { display: none; }
 }
 
 /* Mobile — flatter floor, less aggressive perspective */

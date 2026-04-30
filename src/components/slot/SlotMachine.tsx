@@ -33,6 +33,7 @@ import {
   CabinetCamera,
   CabinetLensFlare,
   CabinetVoxelFloor,
+  CabinetConnectionLines,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1481,6 +1482,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
       {/* V5.0 — Tron-style perspective grid floor under the cabinet */}
       <CabinetVoxelFloor />
+
+      {/* V7.2 — Affinity connection lines: SVG bezier paths drawn
+          between hovered cell and matching cells (color/row/type).
+          Self-gates on payline takeover, prefers-reduced-motion,
+          perf pressure (serious/critical), and slot:spin:start;
+          mobile hides via CSS. ~36Hz throttle, cap 4 lines. */}
+      <CabinetConnectionLines />
 
       {/* CSS Houdini Paint — procedural cyberpunk circuit-grid base
           (paint(cyberPattern) on Chromium-based browsers; falls back
