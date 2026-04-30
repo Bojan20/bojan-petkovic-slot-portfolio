@@ -112,8 +112,11 @@
 }
 
 @keyframes panelIn {
-  0%   { opacity: 0; transform: translateX(36px) scale(0.96); filter: blur(8px); }
-  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  /* V9.5 — blur uklonjen: blur(8px)→blur(0) na panel entrance je
+     per-frame rasterizacija celog card detail panel-a. Opacity+scale
+     daju isti cinematic feel bez GPU troška. */
+  0%   { opacity: 0; transform: translateX(36px) scale(0.96); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 /* ── HERO HEADER ── */

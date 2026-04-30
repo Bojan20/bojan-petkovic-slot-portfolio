@@ -141,8 +141,10 @@
 }
 
 @keyframes tabUnderlineShift {
-  0%, 100% { filter: hue-rotate(0deg); }
-  50%      { filter: hue-rotate(40deg); }
+  /* V9.5 — hue-rotate → opacity breath. Filter animation na
+     promovovanim GPU layer-ima izaziva per-frame rasterizaciju. */
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
 }
 
 @keyframes tabHaloPulse {
@@ -193,9 +195,11 @@
 }
 
 @keyframes tabCharRise {
-  0%   { opacity: 0;    transform: translateY(0.5em);  filter: blur(3px); }
-  60%  { opacity: 1;    transform: translateY(-0.04em); filter: blur(0); }
-  100% { opacity: 1;    transform: translateY(0);       filter: blur(0); }
+  /* V9.5 — blur uklonjen: blur(3px)→blur(0) na kinetic tipografiji
+     je per-frame re-rasterizacija × broj karaktera u labeli. */
+  0%   { opacity: 0;    transform: translateY(0.5em); }
+  60%  { opacity: 1;    transform: translateY(-0.04em); }
+  100% { opacity: 1;    transform: translateY(0); }
 }
 
 /* ─── V8.0 — CRT scan beam across tab strip ──────────────────────

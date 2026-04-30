@@ -410,7 +410,10 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           if (!strip) return
           gsap.killTweensOf(strip)
           gsap.set(strip, { y: 0 })
-          strip.style.filter = 'blur(4px) brightness(0.68)'
+          // V9.5 — blur uklonjen: blur(4px) tokom spina = per-frame
+          // rasterizacija sve 5 strip-ova × 60fps = dominantni uzrok flickera.
+          // Samo brightness tamni reel tokom kretanja (GPU-friendly).
+          strip.style.filter = 'brightness(0.72)'
 
           const t = gsap.to(strip, {
             y: cellStep,

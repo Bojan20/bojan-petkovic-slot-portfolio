@@ -38,8 +38,10 @@
 }
 
 @keyframes statEdgeHue {
-  0%   { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  /* V9.5 — hue-rotate → opacity breath. Hue-rotate 360° na pseudo-
+     elementu je stalna color-space konverzija bez vizuelnog benefita. */
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
 }
 
 .statLbl {
@@ -251,12 +253,14 @@
 }
 
 @keyframes woBtnIdleGlow {
+  /* V9.5 — brightness() uklonjen: brightness filter animation na
+     button element-u izaziva per-frame re-rasterizaciju celog dugmeta.
+     Čist drop-shadow pulse zadržava glow efekt bez troška. */
   0%, 100% {
-    filter: brightness(1)
-      drop-shadow(0 0 8px rgba(255, 200, 100, 0.3));
+    filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.3));
   }
   50% {
-    filter: brightness(1.08)
+    filter:
       drop-shadow(0 0 18px rgba(255, 200, 100, 0.55))
       drop-shadow(0 0 28px rgba(177, 76, 255, 0.25));
   }

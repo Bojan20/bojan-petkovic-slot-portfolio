@@ -130,7 +130,10 @@
   flex-direction: column;
   position: absolute;
   width: 100%;
-  will-change: transform, filter;
+  /* V9.5 — uklonjen will-change: filter. Pošto blur animacija više
+     nije na strip-u, filter layer-promotion je nepotraban i izaziva
+     GPU compositor layer invalidation na svaki frame. */
+  will-change: transform;
   transform-origin: center bottom;
 }
 
@@ -175,23 +178,24 @@
 }
 
 @keyframes hyperSnap {
-  0%   {
-    filter: none;
-    text-shadow: none;
-  }
+  /* V9.5 — drop-shadow filter → box-shadow. drop-shadow izaziva
+     per-frame rasterizaciju cele kolone (children + all layers).
+     box-shadow je GPU-driven (compositor) — isti vizuelni efekat,
+     nula troška rasterizacije. */
+  0%   { box-shadow: none; }
   25%  {
-    filter:
-      drop-shadow(-2.5px 0 0 rgba(255, 43, 214, 0.85))
-      drop-shadow(2.5px 0 0 rgba(34, 232, 255, 0.85));
+    box-shadow:
+      -2px 0 0 rgba(255, 43, 214, 0.65),
+       2px 0 0 rgba(34, 232, 255, 0.65),
+       0 0 14px rgba(255, 43, 214, 0.35),
+       0 0 14px rgba(34, 232, 255, 0.35);
   }
   55%  {
-    filter:
-      drop-shadow(-1px 0 0 rgba(255, 43, 214, 0.45))
-      drop-shadow(1px 0 0 rgba(34, 232, 255, 0.45));
+    box-shadow:
+      -1px 0 0 rgba(255, 43, 214, 0.3),
+       1px 0 0 rgba(34, 232, 255, 0.3);
   }
-  100% {
-    filter: none;
-  }
+  100% { box-shadow: none; }
 }
 
 /* Landing pulse */

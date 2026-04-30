@@ -835,8 +835,11 @@
 }
 
 @keyframes cellIdleBreath {
-  0%, 100% { transform: scale(1);     filter: brightness(1); }
-  50%      { transform: scale(1.004); filter: brightness(1.04); }
+  /* V9.5 — brightness uklonjen: brightness animation na svakoj dim
+     ćeliji (×4 ne-center ćelija) = 4 GPU re-rasterizacije/frame.
+     Čist scale breath daje isti "živući kabinet" osećaj. */
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.004); }
 }
 
 /* Pause breath while user hovers the cell (3D tilt takes over) */
@@ -1105,17 +1108,17 @@
 }
 
 @keyframes cellPeelIn {
+  /* V9.5 — brightness/saturate uklonjeni iz keyframes. Statičan filter
+     na .cellPeel klasi (~line 1103) i dalje osvetljava izabranu karticu,
+     ali bez animiranog filter-a koji izaziva per-frame re-rasterizaciju. */
   0%   {
     transform: perspective(820px) rotateX(0deg) translateZ(0) scale(1);
-    filter: brightness(1) saturate(1);
   }
   60%  {
     transform: perspective(820px) rotateX(-4deg) translateZ(36px) scale(1.08);
-    filter: brightness(1.18) saturate(1.18);
   }
   100% {
     transform: perspective(820px) rotateX(-3deg) translateZ(28px) scale(1.06);
-    filter: brightness(1.12) saturate(1.15);
   }
 }
 

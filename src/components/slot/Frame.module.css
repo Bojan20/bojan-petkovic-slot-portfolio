@@ -67,14 +67,14 @@
           mask-composite: exclude;
   opacity: calc(0.85 * var(--chrome-strength));
   mix-blend-mode: screen;
-  filter: hue-rotate(0deg) blur(0.4px);
-  animation: frameChromaCycle 18s linear infinite;
+  /* V9.5 — hue-rotate uklonjen: per-frame color-space conversion
+     je dominantni uzrok flickera na GPU-promoted compositor layers.
+     Konstantan blur(0.4px) + opacity breath umesto animiranog filtera. */
+  filter: blur(0.4px);
 }
 
 @keyframes frameChromaCycle {
-  0%   { filter: hue-rotate(0deg)   blur(0.4px); }
-  50%  { filter: hue-rotate(180deg) blur(0.7px); }
-  100% { filter: hue-rotate(360deg) blur(0.4px); }
+  /* Legacy label zadržan — keyframes su prazni, animacija uklonjena */
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -102,8 +102,10 @@
 }
 
 @keyframes innerGlowPulse {
-  0%, 100% { opacity: 0.55; filter: hue-rotate(0deg); }
-  50%      { opacity: 1;    filter: hue-rotate(40deg); }
+  /* V9.5 — hue-rotate uklonjen (isti razlog kao frameChromaCycle).
+     Čisti opacity breath bez filter re-rasterizacije. */
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
 }
 
 /* Content slot */
