@@ -1046,6 +1046,204 @@
 }
 .factCell:hover::before { opacity: 1; transform: scaleY(1); }
 
+/* ──────────────────────────────────────────────────────────────────
+ * V8.0 — HOLOGRAPHIC MATERIALIZATION INTRO
+ * Mounted as the FIRST child of .panel by detailBuilders. Three layers
+ * stacked over the panel for ~900ms during entrance, then fade away:
+ *   .holoIntro          — wrapper, auto-fades + auto-removes via anim
+ *   .holoIntro__slice   — clip-path "blinds" reveal: top + bottom slices
+ *                         retract toward edges to expose content
+ *   .holoIntro__beam    — single bright top→bottom scan beam
+ *   .holoIntro__static  — short-lived noise dust particles
+ *   .holoIntro__bootline— "▮ MATERIALIZING…" mono caption
+ * Pure CSS — fires automatically on mount, GPU-friendly transforms only.
+ * ────────────────────────────────────────────────────────────────── */
+
+.holoIntro {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+  animation: holoIntroFade 1.05s cubic-bezier(0.4, 0, 0.2, 1) 0.55s forwards;
+}
+
+/* Two-strip blinds reveal — top half retracts UP, bottom half retracts DOWN */
+.holoIntro__slice {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--card-glow, #ff2bd6) 18%, #04060f) 0%,
+      color-mix(in srgb, var(--card-glow, #ff2bd6) 6%, #02030a) 50%,
+      transparent 50%,
+      transparent 100%
+    );
+  background-size: 100% 200%;
+  animation: holoSliceTop 0.65s cubic-bezier(0.7, 0, 0.3, 1) both;
+}
+.holoIntro__slice + .holoIntro__slice {
+  background:
+    linear-gradient(0deg,
+      color-mix(in srgb, var(--card-glow, #ff2bd6) 18%, #04060f) 0%,
+      color-mix(in srgb, var(--card-glow, #ff2bd6) 6%, #02030a) 50%,
+      transparent 50%,
+      transparent 100%
+    );
+  background-size: 100% 200%;
+  animation: holoSliceBot 0.65s cubic-bezier(0.7, 0, 0.3, 1) 0.04s both;
+}
+@keyframes holoSliceTop {
+  0%   { clip-path: inset(0 0 0 0); transform: translateY(0); }
+  100% { clip-path: inset(0 0 100% 0); transform: translateY(-6%); }
+}
+@keyframes holoSliceBot {
+  0%   { clip-path: inset(0 0 0 0); transform: translateY(0); }
+  100% { clip-path: inset(100% 0 0 0); transform: translateY(6%); }
+}
+
+/* Bright single-pass scan beam — fires once during the open */
+.holoIntro__beam {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--card-glow, #fff) 65%, transparent) 49%,
+    #fff 50%,
+    color-mix(in srgb, var(--card-glow, #fff) 65%, transparent) 51%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 100% 280%;
+  background-position: 0 -180%;
+  mix-blend-mode: screen;
+  filter: blur(1.5px);
+  animation: holoBeam 0.95s cubic-bezier(0.5, 0, 0.5, 1) both;
+}
+@keyframes holoBeam {
+  0%   { background-position: 0 -180%; opacity: 0.0; }
+  10%  { opacity: 1; }
+  100% { background-position: 0 100%; opacity: 0; }
+}
+
+/* Crackle noise dust — 1-frame texture ping */
+.holoIntro__static {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.045) 0px,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 0px,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  mix-blend-mode: screen;
+  opacity: 0.0;
+  animation: holoStatic 0.7s steps(7, end) both;
+}
+@keyframes holoStatic {
+  0%, 100% { opacity: 0; }
+  10%      { opacity: 0.85; }
+  30%      { opacity: 0.32; }
+  55%      { opacity: 0.62; }
+  80%      { opacity: 0.12; }
+}
+
+/* MATERIALIZING… mono caption (top center) */
+.holoIntro__bootline {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--card-glow, #fff) 85%, white);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--card-glow) 60%, transparent);
+  white-space: nowrap;
+  animation: holoBootline 1.05s steps(12, end) both;
+}
+@keyframes holoBootline {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  20%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  85%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes holoIntroFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * V8.0 — HERONAME PER-CHARACTER GLITCH REVEAL
+ * detailBuilders wraps each char in <span class="ch"> with --i index.
+ * Each char drops in with stagger, gets a brief mono "scrambled" twin,
+ * then settles. Layered on top of the existing infinite RGB shimmer.
+ * ────────────────────────────────────────────────────────────────── */
+
+.heroName .heroChar {
+  display: inline-block;
+  position: relative;
+  opacity: 0;
+  transform: translateY(0.45em) translateZ(0);
+  filter: blur(6px);
+  animation: charDrop 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.18s + var(--i, 0) * 0.025s);
+}
+.heroName .heroCharSpace {
+  width: 0.32em;
+}
+@keyframes charDrop {
+  0%   { opacity: 0; transform: translateY(0.45em); filter: blur(6px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * V8.0 — CAMERA SHAKE for big/jackpot wins
+ * body[data-cabinet-shake="big"|"jackpot"] drives a brief translate +
+ * rotate jitter on the slot wrapper. Effect lives on body so any
+ * descendant (slot, takeover, even body bg) inherits the motion.
+ * Scoped via CSS var so other elements can subscribe optionally.
+ * ────────────────────────────────────────────────────────────────── */
+:global(body[data-cabinet-shake='big'] [data-cabinet-shake-target]) {
+  animation: cabinetShakeBig 0.55s cubic-bezier(0.36, 0, 0.66, -0.56) both;
+}
+:global(body[data-cabinet-shake='jackpot'] [data-cabinet-shake-target]) {
+  animation: cabinetShakeJackpot 1.1s cubic-bezier(0.36, 0, 0.66, -0.56) both;
+}
+@keyframes cabinetShakeBig {
+  0%   { transform: translate3d(0, 0, 0); }
+  15%  { transform: translate3d(-4px, -2px, 0) rotate(-0.18deg); }
+  30%  { transform: translate3d(5px, 3px, 0) rotate(0.18deg); }
+  45%  { transform: translate3d(-3px, 2px, 0) rotate(-0.10deg); }
+  60%  { transform: translate3d(3px, -2px, 0) rotate(0.10deg); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+@keyframes cabinetShakeJackpot {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10%      { transform: translate3d(-7px, -3px, 0) rotate(-0.32deg); }
+  20%      { transform: translate3d(8px, 4px, 0) rotate(0.32deg); }
+  35%      { transform: translate3d(-6px, 5px, 0) rotate(-0.22deg); }
+  50%      { transform: translate3d(6px, -4px, 0) rotate(0.22deg); }
+  70%      { transform: translate3d(-4px, 2px, 0) rotate(-0.12deg); }
+  85%      { transform: translate3d(3px, -2px, 0) rotate(0.08deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .panel, .hero, .pitch, .stats, .wave, .tools, .tech, .cta,
   .skillMeter, .factGrid, .timeline, .contactBig,
@@ -1053,7 +1251,12 @@
   .skillBarFill::after, .timelineDotActive, .timelineDotActive::after,
   .heroName::before, .heroName::after, .heroEyebrow::after,
   .contactBig::after, .toolChip::before, .statCard::before,
-  .ctaPrimary::before, .wavePlay::after { animation: none; }
+  .ctaPrimary::before, .wavePlay::after,
+  .holoIntro, .holoIntro__slice, .holoIntro__beam,
+  .holoIntro__static, .holoIntro__bootline,
+  .heroName .heroChar { animation: none; opacity: 1; transform: none; filter: none; }
+  .holoIntro { display: none; }
+  :global(body[data-cabinet-shake] [data-cabinet-shake-target]) { animation: none; }
 }
 
 /* Responsive — mobile portrait stacks under the card */

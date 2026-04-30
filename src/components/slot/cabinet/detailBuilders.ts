@@ -75,16 +75,48 @@ function hero(
 ): string {
   // V7.0 — data-glitch carries the name to ::before/::after pseudos
   // for the RGB-split chromatic shimmer (CardDetail.module.css)
+  // V8.0 — also wrap each char in span.ch for staggered drop-in reveal
   const safeName = escapeHtml(name)
   return `
     <section class="${cls(styles, 'hero')}">
       <div class="${cls(styles, 'heroIcon')}">${ico}</div>
       <div class="${cls(styles, 'heroText')}">
         <span class="${cls(styles, 'heroEyebrow')}">${escapeHtml(eyebrow)}</span>
-        <h2 class="${cls(styles, 'heroName')}" data-glitch="${safeName}">${safeName}</h2>
+        <h2 class="${cls(styles, 'heroName')}" data-glitch="${safeName}">${heroNameChars(styles, name)}</h2>
         ${studio ? `<span class="${cls(styles, 'heroStudio')}">${escapeHtml(studio)}</span>` : ''}
       </div>
     </section>
+  `
+}
+
+// V8.0 — split heroName into per-character spans so each glyph can
+// stagger-drop in. Spaces become a fixed-width spacer to avoid layout
+// collapse + still index in the CSS variable cadence.
+function heroNameChars(styles: Styles, name: string): string {
+  const baseCls = cls(styles, 'heroChar')
+  const spaceCls = cls(styles, 'heroCharSpace')
+  let i = 0
+  return Array.from(name).map((char) => {
+    const isSpace = /\s/.test(char)
+    const safe = isSpace ? '&nbsp;' : escapeHtml(char)
+    const klass = isSpace ? `${baseCls} ${spaceCls}` : baseCls
+    const idx = i++
+    return `<span class="${klass}" style="--i:${idx}">${safe}</span>`
+  }).join('')
+}
+
+// V8.0 — Holographic materialization intro layer. Mounted as the FIRST
+// child of every detail panel; auto-fades + auto-removes via CSS
+// keyframes so no JS cleanup needed.
+export function holoIntroHTML(styles: Styles): string {
+  return `
+    <div class="${cls(styles, 'holoIntro')}" aria-hidden="true">
+      <div class="${cls(styles, 'holoIntro__slice')}"></div>
+      <div class="${cls(styles, 'holoIntro__slice')}"></div>
+      <div class="${cls(styles, 'holoIntro__beam')}"></div>
+      <div class="${cls(styles, 'holoIntro__static')}"></div>
+      <div class="${cls(styles, 'holoIntro__bootline')}">▮ MATERIALIZING DOSSIER</div>
+    </div>
   `
 }
 
@@ -484,12 +516,19 @@ export function buildDetailHTML(
   itemIdx: number,
   styles: Styles,
 ): { html: string; color: string } {
+  let result: { html: string; color: string }
   switch (sectionId) {
-    case 'projects': return buildProjectDetailHTML(itemIdx, styles)
-    case 'skills':   return buildSkillDetailHTML(itemIdx, styles)
-    case 'about':    return buildAboutDetailHTML(itemIdx, styles)
-    case 'career':   return buildCareerDetailHTML(itemIdx, styles)
-    case 'contact':  return buildContactDetailHTML(itemIdx, styles)
+    case 'projects': result = buildProjectDetailHTML(itemIdx, styles); break
+    case 'skills':   result = buildSkillDetailHTML(itemIdx, styles); break
+    case 'about':    result = buildAboutDetailHTML(itemIdx, styles); break
+    case 'career':   result = buildCareerDetailHTML(itemIdx, styles); break
+    case 'contact':  result = buildContactDetailHTML(itemIdx, styles); break
     default:         return { html: '', color: '#ff2bd6' }
   }
+  // V8.0 — every panel gets the holographic materialization intro
+  // layer prepended; CSS keyframes auto-fade it out within 1.6s.
+  if (result.html) {
+    result.html = holoIntroHTML(styles) + result.html
+  }
+  return result
 }

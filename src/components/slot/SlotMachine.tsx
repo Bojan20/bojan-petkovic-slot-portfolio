@@ -34,6 +34,7 @@ import {
   CabinetLensFlare,
   CabinetVoxelFloor,
   CabinetConnectionLines,
+  CabinetAura,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1478,7 +1479,17 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     : 'idle'
 
   return (
-    <div ref={machineRef} className={styles.machine} data-ambient-phase={ambientPhase}>
+    <div
+      ref={machineRef}
+      className={styles.machine}
+      data-ambient-phase={ambientPhase}
+      data-cabinet-shake-target=""
+    >
+      {/* V8.0 — Audio-reactive backdrop bloom: three radial spotlights
+          tinted by section/persona, scaled by live FFT. Sits behind
+          everything else inside the cabinet. */}
+      <CabinetAura />
+
       {/* V3.7 — World parallax layers (far nebula + mid grid + near
           sparkle field reactive to spin). All position:fixed behind
           the cabinet. */}

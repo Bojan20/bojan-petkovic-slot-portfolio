@@ -300,10 +300,56 @@
   font-feature-settings: 'tnum';
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   V8.0 — SCREEN SURGE
+   Universal full-viewport tint pulse for medium / big / jackpot.
+   A radial bloom from center expands + fades, color tinted per tier.
+   Layered above everything via the .overlay (z=9000).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.screenSurge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    var(--surge-color, rgba(255, 215, 0, 0.7)) 0%,
+    color-mix(in srgb, var(--surge-color, rgba(255, 215, 0, 0.5)) 50%, transparent) 25%,
+    transparent 60%
+  );
+  opacity: 0;
+  transform: scale(0.6);
+  animation: screenSurge 700ms cubic-bezier(0.2, 0.8, 0.4, 1);
+  filter: blur(8px);
+}
+@keyframes screenSurge {
+  0%   { opacity: 0;   transform: scale(0.55); }
+  20%  { opacity: 0.95; transform: scale(1.02); }
+  60%  { opacity: 0.45; transform: scale(1.32); }
+  100% { opacity: 0;   transform: scale(1.55); }
+}
+
+.surge_medium {
+  --surge-color: rgba(34, 232, 255, 0.8);
+  animation-duration: 600ms;
+}
+.surge_big {
+  --surge-color: rgba(255, 43, 214, 0.92);
+  animation-duration: 1100ms;
+}
+.surge_jackpot {
+  --surge-color: rgba(255, 215, 0, 0.95);
+  animation-duration: 2200ms;
+  /* extra outward pulse train on jackpot */
+  animation-iteration-count: 2;
+  animation-direction: alternate;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lineSmall, .beamMedium, .spark, .darken, .scanlineKick,
   .burstParticle, .darkenJackpot, .bloomCore, .chromaSplit,
-  .goldDrop, .amount { animation: none; }
+  .goldDrop, .amount, .screenSurge { animation: none; }
+  .screenSurge { display: none; }
 }
 
 /* Performance gate — when --perf-pressure approaches 1 (set by

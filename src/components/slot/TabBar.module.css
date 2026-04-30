@@ -198,10 +198,57 @@
   100% { opacity: 1;    transform: translateY(0);       filter: blur(0); }
 }
 
+/* ─── V8.0 — CRT scan beam across tab strip ──────────────────────
+   A faint horizontal scanline traverses the tabs every 9 seconds
+   so the bar feels alive between section changes. Zero perf cost
+   (single transform animation). Gated off below 720px to keep the
+   small-screen header clean. */
+.tabs::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 14%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(34, 232, 255, 0.0) 20%,
+    rgba(34, 232, 255, 0.18) 50%,
+    rgba(177, 76, 255, 0.10) 70%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(2px);
+  opacity: 0;
+  animation: tabsScan 9s cubic-bezier(0.6, 0.04, 0.4, 0.96) infinite;
+}
+
+@keyframes tabsScan {
+  0%   { transform: translateX(-30%); opacity: 0; }
+  6%   { opacity: 1; }
+  92%  { opacity: 0.9; }
+  100% { transform: translateX(820%); opacity: 0; }
+}
+
+/* V8.0 — soft cyber backdrop glow that breathes on the active tab.
+   Layered behind the kinetic label so the active tab visibly "warms". */
+.active::after {
+  /* Override the existing 2px underline rule to add a thicker glow band */
+  height: 3px;
+  filter: drop-shadow(0 -2px 6px rgba(34, 232, 255, 0.45));
+}
+
+@media (max-width: 720px) {
+  /* On phones the scan beam becomes a distraction; disable. */
+  .tabs::after { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tabLabelKinetic .tabChar {
     animation: none;
     opacity: 1;
     transform: none;
   }
+  .tabs::after { animation: none; opacity: 0; }
 }

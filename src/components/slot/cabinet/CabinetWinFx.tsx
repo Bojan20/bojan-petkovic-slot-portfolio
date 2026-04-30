@@ -23,6 +23,11 @@ import { useEffect, useState } from 'react'
 import { bus } from '../../../engine'
 import styles from './CabinetWinFx.module.css'
 
+const REDUCED_MOTION =
+  typeof window !== 'undefined' &&
+  window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 type WinTier = 'small' | 'medium' | 'big' | 'jackpot'
 
 interface ActiveWin {
@@ -44,16 +49,34 @@ export function CabinetWinFx() {
 
   useEffect(() => {
     let timer = 0
+    let shakeTimer = 0
     const off = bus.on('slot:win', (p) => {
       const tier = (p.type ?? 'small') as WinTier
       const amount = p.amount ?? 0
       setActive({ tier, amount, key: Date.now() })
       if (timer) window.clearTimeout(timer)
       timer = window.setTimeout(() => setActive(null), TIER_HOLD_MS[tier])
+
+      // V8.0 — camera shake for big/jackpot tiers. body[data-cabinet-shake]
+      // selector lives in CardDetail.module.css → drives a transform
+      // animation on [data-cabinet-shake-target] (the .machine root).
+      // Auto-clears on a slightly longer timer than the animation length
+      // so the keyframe runs to completion before being removed.
+      if (!REDUCED_MOTION && (tier === 'big' || tier === 'jackpot')) {
+        const body = document.body
+        body.setAttribute('data-cabinet-shake', tier)
+        if (shakeTimer) window.clearTimeout(shakeTimer)
+        const shakeMs = tier === 'jackpot' ? 1100 : 550
+        shakeTimer = window.setTimeout(() => {
+          body.removeAttribute('data-cabinet-shake')
+        }, shakeMs + 80)
+      }
     })
     return () => {
       off()
       if (timer) window.clearTimeout(timer)
+      if (shakeTimer) window.clearTimeout(shakeTimer)
+      document.body.removeAttribute('data-cabinet-shake')
     }
   }, [])
 
@@ -65,6 +88,11 @@ export function CabinetWinFx() {
       className={`${styles.overlay} ${styles[`tier_${active.tier}`]}`}
       aria-hidden="true"
     >
+      {/* V8.0 — universal screen-tint surge for medium+ tiers */}
+      {active.tier !== 'small' && (
+        <div className={`${styles.screenSurge} ${styles[`surge_${active.tier}`]}`} />
+      )}
+
       {/* Tier-specific layers */}
       {active.tier === 'small' && <SmallFx />}
       {active.tier === 'medium' && <MediumFx />}
