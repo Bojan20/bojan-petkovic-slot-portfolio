@@ -457,6 +457,11 @@ function AppMain() {
     setShowerActive(false)
     setIntroLocked(false)
     bus.emit('transition:complete')
+    // V5.6 — chip/dice shower has settled. Now reveal the slot and
+    // the background world together via the cinematic fade-in. Boki:
+    // "kako se ta animacija zavrsava, zelim cinematik fadein slot
+    //  masine i pozadine u isto vreme".
+    getTransitionDirector()?.revealSlotAfterShower()
   }, [])
 
   return (

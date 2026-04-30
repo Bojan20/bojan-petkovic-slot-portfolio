@@ -72,8 +72,15 @@ export const SplashScreen = forwardRef<HTMLDivElement, SplashScreenProps>(
     }, [ref])
 
     // Entrance animation — GSAP timeline + EventBus events for SFX
+    // V5.6 — delay raised from 0.2s → 0.85s. TransitionDirector boot→
+    // splash rack-focus runs from t=0.74s to t=1.32s (splash element
+    // blur 22→0, scale 1.10→1). Old 0.2s start meant the 7's own
+    // entrance (blur 28→0, scale 0.75→1) overlapped the parent
+    // dissolve — two blur+scale tweens on the same element = visible
+    // wobble / "weird 7" reported by Boki. New delay starts the 7
+    // entrance only after the parent splash has fully settled.
     useEffect(() => {
-      const tl = gsap.timeline({ delay: 0.2 })
+      const tl = gsap.timeline({ delay: 0.85 })
 
       // Step 1a: Corners
       tl.fromTo(cornersRef.current, { opacity: 0 }, {
