@@ -823,10 +823,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     }
 
     // ── SINGLE-CARD layout ──
+    // V5.4 — bigger takeover card. Was 0.55vw × 0.65vh on desktop —
+    // looked too small in the middle of a wide viewport. Now 0.72vw ×
+    // 0.78vh so the card dominates the frame the moment it lands.
     const singleScale = isPortrait
-      ? Math.min((vw * 0.92) / cW, (vh * 0.65) / cH)
-      : Math.min((vw * 0.55) / cW, (vh * 0.65) / cH)
-    const singleCY = isPortrait ? vh * 0.42 : vh * 0.40
+      ? Math.min((vw * 0.94) / cW, (vh * 0.72) / cH)
+      : Math.min((vw * 0.72) / cW, (vh * 0.78) / cH)
+    const singleCY = isPortrait ? vh * 0.42 : vh * 0.45
 
     // ── State ──
     let level: 'all' | number = 'all'
@@ -971,30 +974,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // V5.2 — track the mounted detail panel (game project deep-dive)
     let detailEl: HTMLElement | null = null
 
-    // V5.2 QA — resize listener that pulls focused card + panel
-    // back to layout when the window changes mid-takeover. Also
-    // catches portrait↔landscape rotations.
-    function onResize() {
-      if (typeof level !== 'number' || !detailEl) return
-      const idx = level as number
-      const card = cards[idx]
-      if (!card) return
-      const newVw = window.innerWidth
-      const newVh = window.innerHeight
-      const newOrigCX = newVw / 2 - card.singleDx
-      const newScale = Math.min(
-        (newVw * 0.26) / cW,
-        (newVh * 0.56) / cH,
-      )
-      const newCx = newVw * 0.22
-      gsap.set(card.el, {
-        x: newCx - newOrigCX,
-        scale: newScale,
-      })
-      // Panel position is already viewport-relative (vw/vh) so
-      // CSS handles it automatically; no JS resize needed.
-    }
-    window.addEventListener('resize', onResize)
+    // V5.4 — resize is now a CSS-only concern. Panel uses vw/vh
+    // (handled by browser) and the card is faded out while detail
+    // is open, so no JS resize handler is needed. Kept as no-op
+    // for code-shape symmetry with previous versions.
+    const onResize = () => { /* no-op since V5.4 */ }
 
     // ── Focus single card ──
     function focusCard(idx: number) {
@@ -1034,46 +1018,48 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         }
       })
 
-      // Expand selected card to single-card view. When detail panel
-      // is shown, recompute card scale + position so card occupies
-      // the LEFT third (~30vw centered at 18vw) and the panel takes
-      // the right two-thirds (40vw–96vw, with 4vw margin each side).
+      // V5.4 — when detail opens, the takeover card FADES OUT and is
+      // replaced by a fullscreen-centered detail panel. Card is just
+      // the entry point, panel takes over the frame.
       const card = cards[idx]!
-      const cardOrigCX = vw / 2 - card.singleDx  // back-derive origCX
-      // Detail-mode card target: width 26vw, height 56vh, centered at 22vw
-      const detailScaleW = (vw * 0.26) / cW
-      const detailScaleH = (vh * 0.56) / cH
-      const detailScale = Math.min(detailScaleW, detailScaleH)
-      const detailCardCX = vw * 0.22
-      const xTarget = showDetail
-        ? detailCardCX - cardOrigCX
-        : card.singleDx
-      gsap.to(card.el, {
-        x: xTarget,
-        y: card.singleDy,
-        scale: showDetail ? detailScale : singleScale,
-        boxShadow: '0 0 70px 24px rgba(240,216,120,0.5), 0 0 140px 50px rgba(201,162,39,0.22), 0 30px 70px rgba(0,0,0,0.75)',
-        duration: 0.55,
-        ease: 'expo.out',
-      })
+      if (showDetail) {
+        // Card collapses + fades — it morphs into the detail panel
+        gsap.to(card.el, {
+          opacity: 0,
+          scale: singleScale * 0.88,
+          filter: 'blur(8px)',
+          duration: 0.36,
+          ease: 'power3.in',
+        })
+      } else {
+        // No detail (e.g. on mobile): zoom card to single-card view as before
+        gsap.to(card.el, {
+          x: card.singleDx,
+          y: card.singleDy,
+          scale: singleScale,
+          boxShadow: '0 0 70px 24px rgba(240,216,120,0.5), 0 0 140px 50px rgba(201,162,39,0.22), 0 30px 70px rgba(0,0,0,0.75)',
+          duration: 0.55,
+          ease: 'expo.out',
+        })
+      }
 
-      // V5.2 — mount cinematic recruiter detail panel on the right.
-      // QA fix — use viewport-relative units everywhere so a window
-      // resize while the panel is open doesn't break the layout.
+      // V5.4 — mount fullscreen-centered detail panel
       if (showDetail) {
         const { html, color } = buildProjectDetailHTML(currentItemIdx)
         if (html) {
           const panel = document.createElement('div')
           panel.className = cardDetailStyles.panel ?? 'cardDetailPanel'
           panel.style.setProperty('--card-glow', color)
-          // Right two-thirds of viewport — 42vw left, 4vw right margin
-          panel.style.left = '42vw'
-          panel.style.right = '4vw'
-          panel.style.top = '10vh'
-          panel.style.bottom = '12vh'
+          // V5.4 — CENTERED full-frame detail panel. Was right-half
+          // beside the card; now panel takes most of the viewport
+          // with comfortable margins on all sides.
+          panel.style.left = '7vw'
+          panel.style.right = '7vw'
+          panel.style.top = '8vh'
+          panel.style.bottom = '10vh'
           panel.innerHTML = html
-          // QA fix — clicks INSIDE the detail panel must NOT propagate
-          // to the overlay click handler (which would call stepBack).
+          // Click inside panel must NOT bubble to overlay (which
+          // would call stepBack)
           panel.addEventListener('click', (e) => e.stopPropagation())
           stage.appendChild(panel)
           detailEl = panel
@@ -1083,7 +1069,6 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           panel.querySelector<HTMLButtonElement>('[data-detail-play]')
             ?.addEventListener('click', (e) => {
               e.stopPropagation()
-              // Cinematic listen tap — ping the warp synth as a teaser
               try { playSynthById('sfx_warp_ignite', 0.40) } catch { /* unlocked? */ }
             })
         }
