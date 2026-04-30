@@ -12,7 +12,7 @@
  * Section + visited come straight from store/CellMemory.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { bus, getCurrentPersona, getVisitedKeys, type Persona } from '../../../engine'
 import { useSlotStore } from '../../../store'
 import { SECTIONS } from '../../../data'
@@ -23,6 +23,13 @@ export function CabinetHUD() {
   const [streak, setStreak] = useState(0)
   const [persona, setPersona] = useState<Persona>('balanced')
   const [visitedCount, setVisitedCount] = useState(0)
+  // V3.4 — animated jackpot. We display a tween value and lerp it
+  // toward the real jackpot whenever it changes, so the number ticks
+  // smoothly upward instead of jumping integer-by-integer.
+  const [displayJackpot, setDisplayJackpot] = useState(jackpot)
+  // V3.4 — jackpot just-bumped flash flag for a quick CSS pulse
+  const [jpFlash, setJpFlash] = useState(0)
+  const jpRafRef = useRef<number>(0)
 
   // Streak — increments on every spin start, resets on win
   useEffect(() => {
@@ -36,7 +43,6 @@ export function CabinetHUD() {
     const off = bus.on('custom:persona:inferred', (p) => {
       setPersona(p.persona as Persona)
     })
-    // initial pull
     setPersona(getCurrentPersona())
     return off
   }, [])
@@ -50,17 +56,58 @@ export function CabinetHUD() {
     return off
   }, [])
 
+  // V3.4 — jackpot tween. Whenever the real jackpot changes, lerp
+  // displayJackpot toward it over ~600ms via RAF. Avoids the jarring
+  // integer step that the V1 ticker had.
+  useEffect(() => {
+    if (jpRafRef.current) cancelAnimationFrame(jpRafRef.current)
+    const start = displayJackpot
+    const target = jackpot
+    if (start === target) return
+    const t0 = performance.now()
+    const dur = 600
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / dur)
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3)
+      const next = Math.round(start + (target - start) * eased)
+      setDisplayJackpot(next)
+      if (t < 1) jpRafRef.current = requestAnimationFrame(tick)
+    }
+    jpRafRef.current = requestAnimationFrame(tick)
+    setJpFlash((f) => f + 1)  // trigger keyed flash class
+    return () => { if (jpRafRef.current) cancelAnimationFrame(jpRafRef.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jackpot])
+
   const sectionName = SECTIONS[currentSectionIdx]?.label ?? 'WORK'
 
   return (
     <div className={styles.hud} aria-label="Cabinet info HUD">
-      <Item label="SECTION" value={sectionName} />
+      {/* V3.4 — section item with online status dot */}
+      <div className={styles.item}>
+        <span className={styles.label}>SECTION</span>
+        <span className={styles.value}>
+          <span className={styles.statusDot} aria-hidden="true" />
+          {sectionName}
+        </span>
+      </div>
       <Sep />
       <Item label="VISITED" value={<>{visitedCount}<small>/24</small></>} />
       <Sep />
-      <Item label="STREAK" value={`×${streak}`} glow={streak > 0 ? 'cyan' : undefined} />
+      <Item
+        label="STREAK"
+        value={`×${streak}`}
+        glow={streak > 0 ? 'cyan' : undefined}
+      />
       <Sep />
-      <Item label="JACKPOT" value={`$${jackpot.toLocaleString()}`} glow="gold" />
+      {/* V3.4 — jackpot ticker with smooth tween + flash on change */}
+      <div className={styles.item} key={`jp-${jpFlash}`}>
+        <span className={styles.label}>JACKPOT</span>
+        <span className={`${styles.value} ${styles.jackpotFlash}`} data-glow="gold">
+          ${displayJackpot.toLocaleString()}
+        </span>
+      </div>
       <Sep />
       <Item label="PERSONA" value={persona.replace(/_/g, ' ').toUpperCase()} compact />
     </div>
