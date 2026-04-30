@@ -123,24 +123,25 @@ class Director {
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 80 })
     }, [], 'blackout+=0.19')
 
-    // ── ACT V — Matte dissolves out, splash element zoom-in ──
-    // Splash starts heavily over-scaled + blurred so the reveal
-    // feels like the camera "racks focus" forward into a new room.
+    // ── ACT V — Matte dissolves, splash rack-focuses in ──────
+    // Splash starts over-scaled + blurred (rack focus reveal —
+    // like a lens pulling from infinity to subject). No brightness
+    // spikes — pure scale + blur → cinema, not epilepsy.
     const splashEl = this.opts.splashRef.current
     if (splashEl) {
-      gsap.set(splashEl, { opacity: 0, scale: 1.14, filter: 'blur(22px) brightness(0.6)' })
+      gsap.set(splashEl, { opacity: 0, scale: 1.10, filter: 'blur(18px)' })
     }
 
-    tl.to(matte, { opacity: 0, duration: 0.55, ease: 'power3.out' }, 'blackout+=0.19')
+    tl.to(matte, { opacity: 0, duration: 0.52, ease: 'power3.out' }, 'blackout+=0.19')
 
     if (splashEl) {
       tl.fromTo(splashEl,
-        { opacity: 0, scale: 1.14, filter: 'blur(22px) brightness(0.6)' },
+        { opacity: 0, scale: 1.10, filter: 'blur(18px)' },
         {
           opacity: 1,
           scale: 1,
-          filter: 'blur(0px) brightness(1)',
-          duration: 0.78,
+          filter: 'blur(0px)',
+          duration: 0.72,
           ease: 'power3.out',
         }, 'blackout+=0.22')
     }
@@ -183,93 +184,77 @@ class Director {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        // Cleanup transition flags before completing
-        document.body.removeAttribute('data-hyperspace')
         document.body.removeAttribute('data-letterbox')
         this.completeSplashToSlot()
       },
     })
     this.tl = tl
 
-    // Reset transition flags on start
-    document.body.setAttribute('data-letterbox', 'active')
-
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // V4.3 — 6-ACT CINEMATIC MATCH-CUT (2.30s total)
+    // CINEMATIC MATCH-CUT — Blade Runner / Dune approach:
+    // scale + blur only. NO brightness spikes. No epilepsy.
     //
-    //   ACT I   (0.00–0.50s) — splash WARP: brightness→4.5,
-    //                          scale→1.42, blur→26px, opacity→0
-    //                          (camera punches through the Lucky 7)
-    //   ACT II  (0.30–0.55s) — matte slams to full black (60ms hold)
-    //   ACT III (0.55–1.00s) — HYPERSPACE TUNNEL outward — radial
-    //                          speed lines rush from center outward
-    //   ACT IV  (0.85–1.05s) — matte begins fade out under tunnel
-    //   ACT V   (0.95–1.85s) — slot REVEAL from scale 1.18 + blur
-    //                          24px + opacity 0, matte fully gone
-    //   ACT VI  (1.55–2.30s) — settle tail (waits for genesis)
+    //   ACT I   (0.00–0.42s) — splash recedes: scale 1→0.96,
+    //                          blur 0→8px, opacity 1→0  (dolly back)
+    //   ACT II  (0.28–0.58s) — matte hard cuts to full black
+    //   ACT III (0.58s)      — brief black hold (cinema breath)
+    //   ACT IV  (0.62–1.50s) — slot rack-focuses in: scale 1.07→1,
+    //                          blur 16px→0, opacity 0→1
+    //   ACT V   (0.70–1.34s) — matte dissolves under slot reveal
+    //   ACT VI  (1.50–2.20s) — tail (genesis safety margin)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // ── ACT I — Splash burns through the gate ─────────────────
+    // ── ACT I — Splash recedes / dolly back ──────────────────
     if (splashEl) {
       tl.to(splashEl, {
         opacity: 0,
-        scale: 1.42,
-        filter: 'blur(26px) brightness(4.5)',
-        duration: 0.50,
-        ease: 'power3.in',
+        scale: 0.96,
+        filter: 'blur(8px)',
+        duration: 0.42,
+        ease: 'power2.in',
       }, 0)
     }
 
-    // ── ACT II — Matte hard cut to black ──────────────────────
+    // ── ACT II — Matte full black cut ────────────────────────
     if (matte) {
-      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.25)
+      tl.to(matte, { opacity: 1, duration: 0.30, ease: 'power3.in' }, 0.28)
     }
 
-    // ── ACT III — Trigger hyperspace tunnel (outward) ─────────
-    tl.addLabel('match_cut_peak', 0.55)
+    // ── ACT III — Brief hold, then audio cue ─────────────────
+    tl.addLabel('match_cut_peak', 0.58)
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
-      document.body.setAttribute('data-hyperspace', 'out')
     }, [], 'match_cut_peak')
 
-    // Hyperspace runs ~460ms via CSS animation; clear it after 0.46s
-    tl.call(() => {
-      document.body.removeAttribute('data-hyperspace')
-    }, [], 'match_cut_peak+=0.46')
-
-    // ── ACT IV — Matte dissolves under hyperspace ─────────────
-    if (matte) {
-      tl.to(matte, { opacity: 0, duration: 0.55, ease: 'power2.out' }, 'match_cut_peak+=0.30')
-    }
-
-    // ── ACT V — Slot SLAMS in from heavy over-scale ───────────
+    // ── ACT IV — Slot rack-focuses in (no brightness) ────────
     tl.call(() => {
       bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
-    }, [], 'match_cut_peak+=0.40')
+    }, [], 0.62)
 
     if (slotEl) {
       tl.fromTo(slotEl,
-        { opacity: 0, scale: 1.18, filter: 'blur(24px) brightness(1.4)' },
+        { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
         {
           opacity: 1,
           scale: 1,
-          filter: 'blur(0px) brightness(1)',
-          duration: 0.95,
+          filter: 'blur(0px)',
+          duration: 0.88,
           ease: 'power3.out',
-        }, 'match_cut_peak+=0.40')
+        }, 0.62)
     }
 
-    // Pull letterbox bars out as slot is settling — cinematic
-    // moment passes, the cabinet takes over the frame.
+    // ── ACT V — Matte dissolves as slot settles ───────────────
+    if (matte) {
+      tl.to(matte, { opacity: 0, duration: 0.64, ease: 'power2.out' }, 0.70)
+    }
+
+    // Pull letterbox — cabinet established
     tl.call(() => {
       document.body.removeAttribute('data-letterbox')
-    }, [], 'match_cut_peak+=1.20')
+    }, [], 1.20)
 
-    // CRITICAL — wait for SlotMachine genesis (1.55s once entering=true)
-    // to fully reveal cells / tabs / controls BEFORE flipping phase →
-    // 'slot'. Total here: 0.55 (match cut peak) + 1.35s = 1.90s + 0.50
-    // tail = 2.40s → covers genesis with margin.
-    tl.to({}, { duration: 0.50 })
+    // CRITICAL — genesis safety tail (see comment in reduced-motion path)
+    tl.to({}, { duration: 0.70 })
   }
 
   private completeSplashToSlot(): void {
@@ -283,9 +268,8 @@ class Director {
     if (this.skipped) return
     this.skipped = true
 
-    // Clear V4.3 cinematic transition flags on any skip
+    // Clear cinematic transition flags on any skip
     document.body.removeAttribute('data-letterbox')
-    document.body.removeAttribute('data-hyperspace')
 
     if (this.currentRun === 'boot_to_splash') {
       // We're mid boot→splash. Jump to splash_intro_settle (post-fade).

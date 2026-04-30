@@ -1030,17 +1030,17 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       })
 
       // ── Cards implode in forward order ────────────────────────────────
-      // Each card: brief overscale flash (0.07s) → collapse to near-zero
-      // while sliding back to origin, accelerating hard (power3.in).
+      // Each card: brief scale pulse (no brightness flash) → collapse to
+      // near-zero with blur, accelerating hard (power3.in).
       // Forward stagger (0→4) = "vacuum pull" into the machine center.
+      // NO brightness spikes — clean scale + blur only.
       cards.forEach(({ el }, i) => {
         const t = 0.06 + i * 0.038  // stagger start (absolute tl position)
 
-        // 1. Flash pulse — card "charges up" before imploding
+        // 1. Brief scale pulse — card swells slightly before collapsing
         exitTl.to(el, {
-          scale: allScale * 1.08,
-          filter: 'brightness(2.0)',
-          duration: 0.07,
+          scale: allScale * 1.05,
+          duration: 0.09,
           ease: 'power2.out',
         }, t)
 
@@ -1050,20 +1050,12 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           y: 0,
           scale: allScale * 0.06,
           opacity: 0,
-          filter: 'blur(14px) brightness(0.3)',
+          filter: 'blur(12px)',
           boxShadow: '0 0 0 0 transparent',
           duration: 0.36,
           ease: 'power3.in',
-        }, t + 0.07)
+        }, t + 0.09)
       })
-
-      // Machine flash — reels briefly brighten as cards slam back in
-      if (reelsInnerRef.current) {
-        gsap.fromTo(reelsInnerRef.current,
-          { filter: 'brightness(2.2)' },
-          { filter: 'brightness(1)', duration: 0.55, ease: 'power2.out' },
-        )
-      }
 
       // Overlay + blur dissolve — overlaps with last card imploding
       const lastImplosionStart = 0.06 + (cards.length - 1) * 0.038 + 0.07
