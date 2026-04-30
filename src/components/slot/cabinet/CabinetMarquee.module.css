@@ -1,0 +1,62 @@
+.marquee {
+  position: relative;
+  height: 32px;
+  background: linear-gradient(180deg, #0d1024 0%, #050811 100%);
+  border-bottom: 1px solid rgba(255, 224, 102, 0.32);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+/* LED dot grid behind text — gives marquee that "real cabinet" feel */
+.marquee::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 12px,
+    rgba(255, 224, 102, 0.05) 13px,
+    transparent 14px
+  );
+  pointer-events: none;
+}
+
+.track {
+  display: flex;
+  gap: 38px;
+  white-space: nowrap;
+  animation: marqueeRoll 28s linear infinite;
+  /* Pre-offset so the loop doesn't have a visible seam — first span
+     enters from the left as third span exits right. */
+  padding-left: 100%;
+}
+
+.text {
+  display: inline-block;
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #ffe066;
+  text-shadow: 0 0 12px rgba(255, 224, 102, 0.55);
+}
+
+@keyframes marqueeRoll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track { animation: none; padding-left: 14px; }
+}
+
+/* Mobile — tighter letter spacing, smaller font */
+@media (max-width: 640px) {
+  .marquee { height: 26px; }
+  .text { font-size: 9px; letter-spacing: 2.5px; }
+  .track { gap: 24px; }
+}

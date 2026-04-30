@@ -1,3 +1,15 @@
+/**
+ * Frame V3 — cabinet bezel CSS.
+ *
+ * V1 had: fluted gold pillars + 4 corner medallions + top reflection
+ *         strip + inner glow.
+ * V3 has: holographic chromatic edge + LED side rails (own component)
+ *         + inner spin glow + ripple animation on jackpot wins.
+ *
+ * Pillars/medallions/topStrip CSS removed — DOM elements no longer
+ * rendered. Old --chrome-strength variable kept (still gates holo edge).
+ */
+
 .frame {
   position: relative;
   flex: 1;
@@ -6,17 +18,9 @@
   display: flex;
   flex-direction: column;
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     P4.2 — Chrome dimming.
-     The frame "chrome" (pillars + medallions + topStrip + holographic
-     edge) is bezel — recruiter doesn't apply for the cabinet, they
-     apply for the content inside it. So at idle the chrome rides at
-     0.22 strength; on hover or while spinning we ramp to 1.0.
-
-     This is the V2 hierarchy: content first, theatre second. Bezel
-     should announce itself only when invited.
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --chrome-strength: 0.22;
+  /* P4.2 — chrome dimming. Frame chrome (holographic edge) idles at
+     0.42 strength so content reads cleanly; on hover/spin ramps to 1. */
+  --chrome-strength: 0.42;
   transition: --chrome-strength 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -28,18 +32,17 @@
 @property --chrome-strength {
   syntax: '<number>';
   inherits: true;
-  initial-value: 0.22;
+  initial-value: 0.42;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .frame {
-    transition: none;
-  }
+  .frame { transition: none; }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   HOLOGRAPHIC CHROMATIC EDGE (cyberpunk ring)
-   Full frame halo — slow hue-rotate cycle ~20s
+   HOLOGRAPHIC CHROMATIC EDGE (V3 ring around the cabinet)
+   Slow hue-rotate cycle ~20s. The only ornamental edge that
+   survived V3 — replaces the gold-pillars + medallion frame.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .frame::before {
   content: '';
@@ -48,277 +51,45 @@
   pointer-events: none;
   z-index: 108;
   border-radius: 6px;
-  padding: 2px;
+  padding: 1.5px;
   background: linear-gradient(
     135deg,
-    rgba(177, 76, 255, 0.35) 0%,
-    rgba(34, 232, 255, 0.28) 25%,
-    rgba(255, 43, 214, 0.30) 50%,
-    rgba(34, 232, 255, 0.28) 75%,
-    rgba(177, 76, 255, 0.35) 100%
+    rgba(255, 43, 214, 0.50) 0%,
+    rgba(34, 232, 255, 0.40) 25%,
+    rgba(177, 76, 255, 0.55) 50%,
+    rgba(255, 224, 102, 0.45) 75%,
+    rgba(255, 43, 214, 0.50) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  /* P4.2 — chromatic edge tied to --chrome-strength.
-     Idle 0.55 × 0.22 ≈ 0.12 (whisper); active 0.55 × 1 = 0.55 */
-  opacity: calc(0.55 * var(--chrome-strength));
+  opacity: calc(0.85 * var(--chrome-strength));
   mix-blend-mode: screen;
-  filter: hue-rotate(0deg) blur(0.5px);
-  animation: frameChromaCycle 20s linear infinite;
+  filter: hue-rotate(0deg) blur(0.4px);
+  animation: frameChromaCycle 18s linear infinite;
 }
 
 @keyframes frameChromaCycle {
-  0%   { filter: hue-rotate(0deg)   blur(0.5px); }
-  50%  { filter: hue-rotate(180deg) blur(1px);   }
-  100% { filter: hue-rotate(360deg) blur(0.5px); }
+  0%   { filter: hue-rotate(0deg)   blur(0.4px); }
+  50%  { filter: hue-rotate(180deg) blur(0.7px); }
+  100% { filter: hue-rotate(360deg) blur(0.4px); }
 }
 
-/* WoO Fluted gold pillars */
-.pillar {
-  position: absolute;
-  /* Full height of reel zone */
-  top: 0;
-  bottom: 0;
-  width: clamp(22px, 3.5vw, 38px);
-  z-index: 110;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(240, 216, 120, 0.38) 0px, rgba(219, 184, 64, 0.42) 1px,
-      rgba(100, 70, 20, 0.42) 2px, rgba(70, 50, 15, 0.52) 3px,
-      rgba(100, 70, 20, 0.42) 4px, rgba(180, 140, 40, 0.38) 5px,
-      rgba(219, 184, 64, 0.42) 6px, rgba(240, 216, 120, 0.38) 7px
-    ),
-    linear-gradient(
-      180deg,
-      var(--g500) 0%, var(--g300) 8%, var(--g200) 20%,
-      var(--g400) 38%, var(--g500) 50%, var(--g400) 62%,
-      var(--g200) 80%, var(--g300) 92%, var(--g500) 100%
-    );
-  box-shadow: 0 0 14px var(--g-shadow), inset 0 0 5px rgba(0, 0, 0, 0.5);
-  /* Always at least 0.55 visible — pillars define the cabinet frame
-     visually and should never disappear. Full brightness on hover/spin. */
-  opacity: max(0.55, var(--chrome-strength));
-  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.left {
-  left: 0;
-  clip-path: polygon(
-    0% 0%, 100% 0%,
-    100% 14%, 72% 34%, 62% 50%, 72% 66%, 100% 86%,
-    100% 100%, 0% 100%,
-    0% 86%, 28% 66%, 38% 50%, 28% 34%, 0% 14%
-  );
-}
-
-.right {
-  right: 0;
-  clip-path: polygon(
-    100% 0%, 0% 0%,
-    0% 14%, 28% 34%, 38% 50%, 28% 66%, 0% 86%,
-    0% 100%, 100% 100%,
-    100% 86%, 72% 66%, 62% 50%, 72% 34%, 100% 14%
-  );
-}
-
-/* Gleam highlight on pillars */
-.pillar::before {
-  content: '';
-  position: absolute;
-  top: 8%;
-  bottom: 8%;
-  width: 3px;
-  z-index: 5;
-  background: linear-gradient(
-    180deg,
-    transparent 0%, rgba(177, 76, 255, 0.22) 8%,
-    rgba(255, 255, 255, 0.82) 26%, rgba(34, 232, 255, 0.58) 42%,
-    rgba(255, 255, 255, 0.72) 58%, rgba(255, 43, 214, 0.35) 76%,
-    rgba(240, 216, 120, 0.38) 88%, transparent 100%
-  );
-  border-radius: 2px;
-  animation: gleamPulse 6s ease-in-out infinite;
-}
-
-.left::before { left: 3px; }
-.right::before { right: 3px; }
-
-/* ANIMATED NEON SCANLINE — vertical pulse that sweeps the pillar */
-.pillar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  z-index: 6;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(34, 232, 255, 0.0) 40%,
-    rgba(34, 232, 255, 0.85) 48%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(177, 76, 255, 0.85) 52%,
-    rgba(177, 76, 255, 0.0) 60%,
-    transparent 100%
-  );
-  filter: blur(1.5px);
-  mix-blend-mode: screen;
-  animation: pillarScanline 7s ease-in-out infinite;
-  opacity: 0.85;
-  border-radius: 3px;
-}
-
-.right::after { animation-delay: 3.5s; }
-
-@keyframes pillarScanline {
-  0%   { transform: translateX(-50%) translateY(-60%); opacity: 0; }
-  10%  { opacity: 0.85; }
-  50%  { transform: translateX(-50%) translateY(60%); opacity: 0.85; }
-  60%  { opacity: 0; }
-  100% { transform: translateX(-50%) translateY(60%); opacity: 0; }
-}
-
-@keyframes gleamPulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.82; }
-}
-
-/* Corner medallions — slow rotation + neon inner glow */
-.medallion {
-  position: absolute;
-  width: clamp(20px, 2.8vw, 32px);
-  height: clamp(20px, 2.8vw, 32px);
-  border-radius: 50%;
-  z-index: 120;
-  pointer-events: none;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(240, 216, 120, 0.38) 0deg, rgba(219, 184, 64, 0.48) 3deg,
-      rgba(100, 70, 20, 0.48) 6deg, rgba(70, 50, 15, 0.58) 9deg,
-      rgba(100, 70, 20, 0.48) 12deg, rgba(180, 140, 40, 0.38) 15deg,
-      rgba(240, 216, 120, 0.38) 18deg
-    ),
-    radial-gradient(circle, var(--g200) 0%, var(--g300) 40%, var(--g500) 80%, var(--g600) 100%);
-  box-shadow:
-    0 0 0 2px var(--g500),
-    0 0 0 4px var(--g300),
-    0 2px 8px rgba(0, 0, 0, 0.5),
-    inset 0 2px 3px rgba(240, 216, 120, 0.35),
-    inset 0 -2px 3px rgba(80, 50, 10, 0.5),
-    0 0 6px var(--g-shadow);
-  animation:
-    medalRotate 55s linear infinite,
-    medalShine 8s ease-in-out infinite;
-  opacity: max(0.50, var(--chrome-strength));
-  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Neon inner glow pulse (sync'd with jackpot pulse feel) */
-.medallion::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(
-    circle,
-    rgba(34, 232, 255, 0.55) 0%,
-    rgba(177, 76, 255, 0.30) 40%,
-    transparent 70%
-  );
-  mix-blend-mode: screen;
-  filter: blur(3px);
-  animation: medalInnerGlow 3.2s ease-in-out infinite;
-}
-
-@keyframes medalRotate {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes medalInnerGlow {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 0.90; }
-}
-
-/* Position medallions at pillar edges (vertically centered with pillars) */
-.tl { top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); left: 0; }
-.tr { top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 0s, 2s; }
-.bl { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); left: 0; animation-delay: 0s, 2s; }
-.br { bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px); right: 0; animation-delay: 0s, 4s; }
-
-/* Counter-rotate the even medallions for cinematic variety */
-.tr { animation-direction: reverse, normal; }
-.bl { animation-direction: reverse, normal; }
-
-@keyframes medalShine {
-  0%, 100% {
-    box-shadow:
-      0 0 0 2px var(--g500),
-      0 0 0 4px var(--g300),
-      0 2px 8px rgba(0, 0, 0, 0.5),
-      inset 0 2px 3px rgba(240, 216, 120, 0.35),
-      inset 0 -2px 3px rgba(80, 50, 10, 0.5),
-      0 0 6px var(--g-shadow);
-  }
-  50% {
-    box-shadow:
-      0 0 0 2px var(--g400),
-      0 0 0 4px var(--g200),
-      0 2px 8px rgba(0, 0, 0, 0.5),
-      inset 0 2px 3px rgba(255, 240, 180, 0.5),
-      inset 0 -2px 3px rgba(80, 50, 10, 0.4),
-      0 0 14px var(--g-shadow),
-      0 0 22px rgba(34, 232, 255, 0.22);
-  }
-}
-
-/* Top cold-light reflection strip */
-.topStrip {
-  position: absolute;
-  top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px);
-  left: clamp(22px, 3.5vw, 38px);
-  right: clamp(22px, 3.5vw, 38px);
-  height: 2px;
-  z-index: 115;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%, rgba(177, 76, 255, 0.32) 15%,
-    rgba(255, 255, 255, 0.72) 50%,
-    rgba(34, 232, 255, 0.32) 85%, transparent 100%
-  );
-  animation: topStripHue 18s linear infinite;
-  opacity: max(0.60, var(--chrome-strength));
-  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes topStripHue {
-  0%   { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-
-/* Inner glow — activates during spin */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INNER GLOW — activates during spin
+   Violet wash inside the cabinet that pulses while reels spin.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .innerGlow {
   position: absolute;
-  top: calc(50% - 1.5 * var(--cell-h, 80px) - 9px);
-  bottom: calc(50% - 1.5 * var(--cell-h, 80px) - 9px);
-  left: clamp(22px, 3.5vw, 38px);
-  right: clamp(22px, 3.5vw, 38px);
+  inset: 0;
   z-index: 4;
   pointer-events: none;
   background: radial-gradient(
     ellipse 80% 60% at 50% 50%,
-    rgba(177, 76, 255, 0.14) 0%,
-    rgba(34, 232, 255, 0.06) 45%,
+    rgba(177, 76, 255, 0.18) 0%,
+    rgba(34, 232, 255, 0.08) 45%,
     transparent 70%
   );
   opacity: 0;
@@ -343,12 +114,11 @@
   flex-direction: column;
 }
 
-/* ─── Cabinet ripple on jackpot wins (P1.11) ─────────────────────
-   Damped sine-wave deformation that fires on slot:win events.
-   Mid-magnitude class for big wins, full strength for jackpot.
-   Total duration ≤ 720ms — felt as a single "ring" of the cabinet,
-   not a distraction. */
-
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CABINET RIPPLE on jackpot/big wins (P1.11)
+   Damped sine-wave deformation. Total ≤ 720ms — felt as a single
+   "ring" of the cabinet, not a distraction.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @keyframes cabinetRippleJackpot {
   0%   { transform: scale(1)      rotate(0);      filter: brightness(1); }
   18%  { transform: scale(1.024)  rotate(-0.6deg); filter: brightness(1.18); }

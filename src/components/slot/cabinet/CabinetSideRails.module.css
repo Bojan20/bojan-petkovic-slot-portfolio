@@ -1,0 +1,55 @@
+.rail {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  z-index: 110;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(34, 232, 255, 0.0),
+    rgba(34, 232, 255, 0.18),
+    rgba(34, 232, 255, 0.0)
+  );
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.railLeft  { left: 4px; }
+.railRight { right: 4px; }
+
+.chase {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(34, 232, 255, 0.95) 35%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 43, 214, 0.95) 65%,
+    transparent 100%
+  );
+  filter: blur(0.6px);
+  animation: railChase 3.4s ease-in-out infinite;
+}
+
+.railRight .chase { animation-delay: -1.7s; }
+
+@keyframes railChase {
+  0%   { top: -28%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chase { animation: none; opacity: 0.5; top: 36%; }
+}
+
+@media (max-width: 640px) {
+  .rail { width: 3px; }
+  .railLeft  { left: 2px; }
+  .railRight { right: 2px; }
+}

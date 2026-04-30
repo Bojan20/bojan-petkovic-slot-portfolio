@@ -1,0 +1,48 @@
+.subFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 18px;
+  background: linear-gradient(90deg, #050811 0%, #0d1024 50%, #050811 100%);
+  border-top: 1px solid rgba(34, 232, 255, 0.32);
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+.text {
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(34, 232, 255, 0.85);
+  text-shadow: 0 0 10px rgba(34, 232, 255, 0.45);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22e8ff;
+  box-shadow: 0 0 10px rgba(34, 232, 255, 0.85);
+  flex-shrink: 0;
+  animation: dotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .subFrame { padding: 5px 10px; gap: 8px; }
+  .text { font-size: 8px; letter-spacing: 1.8px; }
+}

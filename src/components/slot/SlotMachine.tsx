@@ -19,6 +19,12 @@ import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
 import { SpinButton } from './SpinButton'
 import { getStrategy, STRATEGIES } from './sections'
+import {
+  CabinetMarquee,
+  CabinetHUD,
+  CabinetWinStrip,
+  CabinetSubFrame,
+} from './cabinet'
 import styles from './SlotMachine.module.css'
 
 /**
@@ -1219,6 +1225,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           to a radial gradient on Safari/Firefox via CSS layering). */}
       <div className={styles.cyberPaintBg} aria-hidden="true" />
 
+      {/* V3.0 — Cabinet marquee (top scrolling brand ticker) */}
+      <CabinetMarquee />
+
       {/* Tab Bar */}
       <TabBar
         ref={tabBarWrapRef}
@@ -1227,6 +1236,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         onChange={handleSectionChange}
         disabled={isSpinning}
       />
+
+      {/* V3.0 — Info HUD strip (SECTION · VISITED · STREAK · JACKPOT · PERSONA) */}
+      <CabinetHUD />
 
       {/* Reel Headers */}
       <div ref={reelHeadersRef} className={styles.reelHeaders}>
@@ -1317,6 +1329,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         </Frame>
       </div>
 
+      {/* V3.0 — Win strip (LAST WIN · COMBO meter) */}
+      <CabinetWinStrip />
+
       {/* Controls */}
       <div ref={controlsRef} className={styles.controls}>
         <SpinButton
@@ -1327,15 +1342,10 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         />
       </div>
 
-      {/* Bottom strip */}
-      <div className={styles.bottomStrip}>
-        <div className={styles.bottomLeft}>VANVINKL STUDIO</div>
-        <div className={styles.bottomCenter}>PORTFOLIO · 2026</div>
-        <div className={styles.bottomRight}>
-          <span className={styles.jpLbl}>JACKPOT</span>
-          <span className={styles.jpVal}>${jackpot.toLocaleString()}</span>
-        </div>
-      </div>
+      {/* V3.0 — Sub-frame ticker (AVAILABLE FOR HIRE · contact)
+          Replaces V1 bottomStrip, gives recruiters a permanent
+          one-line CTA at the cabinet base. */}
+      <CabinetSubFrame />
     </div>
   )
 }
