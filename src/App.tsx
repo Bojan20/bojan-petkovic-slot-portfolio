@@ -48,6 +48,7 @@ import { RecIndicator } from './components/RecIndicator'
 import { AriaAnnouncer } from './components/AriaAnnouncer'
 import { HardwareToast } from './components/HardwareToast'
 import { SkipIntroButton } from './components/SkipIntroButton'
+import { CinematicTeaser } from './components/CinematicTeaser'
 import { useInputBridges } from './hooks/useInputBridges'
 import { useSensorium } from './hooks/useSensorium'
 import { useSessionCapture } from './hooks/useSessionCapture'
@@ -65,7 +66,7 @@ import { VoiceIndicator } from './components/VoiceIndicator'
 import { PlatformChips } from './components/PlatformChip'
 import { useAudioStore } from './store'
 
-type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
+type AppPhase = 'boot' | 'splash' | 'teaser' | 'entering' | 'slot'
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>('boot')
@@ -394,11 +395,19 @@ export default function App() {
     getTransitionDirector()?.playBootToSplash()
   }, [])
 
-  // Splash → Slot: delegate to TransitionDirector
+  // Splash → Teaser: 30-second cinematic montage between splash and
+  // the slot machine. Recruiter who has 30 seconds gets a complete
+  // narrative; recruiter who skips lands in the slot directly.
   const handleEnter = useCallback(() => {
     if (phase !== 'splash') return
-    getTransitionDirector()?.playSplashToSlot()
+    setPhase('teaser')
   }, [phase])
+
+  // Teaser → Slot: delegate to TransitionDirector for the cinematic
+  // splash→slot animation. Same final destination as a direct skip.
+  const handleTeaserComplete = useCallback(() => {
+    getTransitionDirector()?.playSplashToSlot()
+  }, [])
 
   const handleShowerDone = useCallback(() => {
     setShowerActive(false)
@@ -444,6 +453,14 @@ export default function App() {
       {/* Splash — attract mode with auto SFX */}
       {(phase === 'splash' || phase === 'entering') && (
         <SplashScreen ref={splashRef} onEnter={handleEnter} />
+      )}
+
+      {/* Cinematic Teaser — 30s auto-play montage between splash and
+          slot machine. Recruiter who has 30 seconds sees the whole
+          narrative; recruiter who hits Skip Intro lands directly in
+          the slot. Strategy C from the senior panel review. */}
+      {phase === 'teaser' && (
+        <CinematicTeaser onComplete={handleTeaserComplete} />
       )}
 
       {/* Boot screen — on top of everything, removed after tap */}
@@ -496,8 +513,9 @@ export default function App() {
           gesture-required pair picker. */}
       <HardwareToast />
 
-      {/* Skip Intro — courtesy escape during boot/splash/entering.
-          Click → TransitionDirector.skip() jumps to slot_ready. */}
+      {/* Skip Intro — courtesy escape during boot/splash/teaser/entering.
+          Click → TransitionDirector.skip() runs splash→slot animation
+          shortcutting any in-flight cinematic. */}
       <SkipIntroButton visible={phase !== 'slot'} />
     </>
   )

@@ -30,7 +30,7 @@
 import gsap from 'gsap'
 import { bus } from './EventBus'
 
-export type AppPhase = 'boot' | 'splash' | 'entering' | 'slot'
+export type AppPhase = 'boot' | 'splash' | 'teaser' | 'entering' | 'slot'
 
 export type TransitionLabel =
   | 'boot_to_splash_start'
@@ -229,10 +229,12 @@ class Director {
       return
     }
 
-    // Idle (no active run) — start splash→slot directly if we're on splash
-    // Otherwise no-op.
-    this.opts.setPhase('slot')
-    bus.emit('custom:transition:cue', { label: 'slot_ready', leadMs: 0 })
+    // Idle (no active run) — most common case is the recruiter
+    // skipping the CinematicTeaser. Run the actual splash→slot
+    // animation so the slot reveal still has the cinematic moment
+    // (faded splash, matte dip, slot rises). Skipping is a
+    // courtesy — it shouldn't replace one cinema with a hard cut.
+    this.playSplashToSlot()
   }
 
   private killActive(): void {
