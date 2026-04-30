@@ -784,52 +784,23 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // ── Orientation ──
     const isPortrait = vh > vw
 
-    // ── ALL-CARDS layout ──
-    let allScale: number
-    let allTargets: { cx: number; cy: number }[]  // center of each card
+    // ── Card layout — single card, always centered ───────────────────
+    // Scale limited by both width AND height so card never overflows.
+    // Button area reserved at the bottom.
+    const btnAreaH = Math.max(vh * 0.13, 92)
+    const availH = vh - btnAreaH
+    const wFrac = isPortrait ? 0.92 : 0.86
+    const scaleByW = (vw * wFrac) / cW
+    const scaleByH = (availH * 0.94) / cH
+    const allScale = Math.min(scaleByW, scaleByH)
+    const singleScale = allScale  // single-card == all-card (same layout)
 
-    if (isPortrait) {
-      // VERTICAL column — fit ALL cards on screen + room for button
-      const btnAreaH = Math.max(vh * 0.10, 52)
-      const availH = vh - btnAreaH
-      const allGapV = Math.min(8, Math.max(4, vh * 0.008))
-      // Scale limited by BOTH width AND height so all cards fit
-      const scaleByW = (vw * 0.88) / cW
-      const maxCardH = (availH * 0.94 - (n - 1) * allGapV) / n
-      const scaleByH = maxCardH / cH
-      allScale = Math.min(scaleByW, scaleByH)
-      const allCardHP = cH * allScale
-      const allTotalH = n * allCardHP + (n - 1) * allGapV
-      // Vertically center in available area, slight top bias
-      const startCY = (availH - allTotalH) / 2 + allCardHP / 2 + vh * 0.03
-      const centerX = vw / 2
-      allTargets = Array.from({ length: n }, (_, i) => ({
-        cx: centerX,
-        cy: startCY + i * (allCardHP + allGapV),
-      }))
-    } else {
-      // HORIZONTAL row — cards spread left-to-right, 92% viewport width total
-      const allGapH = Math.min(16, Math.max(5, vw * 0.008))
-      const allAvailW = vw * 0.92
-      const allCardWL = (allAvailW - (n - 1) * allGapH) / n
-      allScale = allCardWL / cW
-      const allTotalW = n * allCardWL + (n - 1) * allGapH
-      const startCX = (vw - allTotalW) / 2 + allCardWL / 2
-      const centerY = vh * 0.40
-      allTargets = Array.from({ length: n }, (_, i) => ({
-        cx: startCX + i * (allCardWL + allGapH),
-        cy: centerY,
-      }))
-    }
-
-    // ── SINGLE-CARD layout ──
-    // V5.4 — bigger takeover card. Was 0.55vw × 0.65vh on desktop —
-    // looked too small in the middle of a wide viewport. Now 0.72vw ×
-    // 0.78vh so the card dominates the frame the moment it lands.
-    const singleScale = isPortrait
-      ? Math.min((vw * 0.94) / cW, (vh * 0.72) / cH)
-      : Math.min((vw * 0.72) / cW, (vh * 0.78) / cH)
-    const singleCY = isPortrait ? vh * 0.42 : vh * 0.45
+    // ── Final resting position of the card in the takeover ──────────
+    // Place the card CSS `left/top` so its NATURAL (unscaled) center
+    // sits at viewport horizontal center + available-height vertical center.
+    // This eliminates translate-math entirely — GSAP `x:0, y:0` IS center.
+    const finalLeft = Math.round((vw - cW) / 2)
+    const finalTop = Math.round((availH - cH) / 2)
 
     // ── State ──
     let level: 'all' | number = 'all'
@@ -858,12 +829,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       card.className = cell.className
       card.innerHTML = cell.innerHTML
 
+      // Card CSS position = final resting place (CENTERED, no translate needed)
       Object.assign(card.style, {
         position: 'fixed',
-        left: `${r.left}px`,
-        top: `${r.top}px`,
-        width: `${r.width}px`,
-        height: `${r.height}px`,
+        left: `${finalLeft}px`,
+        top: `${finalTop}px`,
+        width: `${cW}px`,
+        height: `${cH}px`,
         margin: '0',
         opacity: '0',
         transformOrigin: 'center center',
@@ -874,16 +846,19 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       })
       stage.appendChild(card)
 
-      const origCX = r.left + r.width / 2
-      const origCY = r.top + r.height / 2
-      const target = allTargets[i]!
+      // origDx/origDy = offset from final center to original reel cell.
+      // Used only for entrance animation start position.
+      const origDx = Math.round(r.left - finalLeft)
+      const origDy = Math.round(r.top - finalTop)
 
       return {
         el: card,
-        allDx: target.cx - origCX,
-        allDy: target.cy - origCY,
-        singleDx: vw / 2 - origCX,
-        singleDy: singleCY - origCY,
+        allDx: 0,      // final: no x translate — CSS left IS center
+        allDy: 0,      // final: no y translate — CSS top IS center
+        singleDx: 0,   // single view = same center
+        singleDy: 0,
+        origDx,        // entrance anim start offset
+        origDy,
       }
     })
 
@@ -1172,19 +1147,18 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     const enterTl = gsap.timeline()
     takeoverTlRef.current = enterTl
 
-    // ── ENTER: initial state — cards start FAR from final position ──────
-    // Big blur + aggressive scale-down so the fly-in lands with real drama.
-    // Previous: scale*0.80, 18–28px offset — barely perceptible.
-    // New: scale*0.55, 65px vertical / 48px horizontal, blur(14px).
-    cards.forEach(({ el, allDx, allDy }, i) => {
+    // ── ENTER: initial state — card starts at original reel position ───
+    // origDx/origDy places card at its reel cell origin. Extra offset
+    // adds dramatic travel so fly-in feels like it's arriving from depth.
+    cards.forEach(({ el, origDx, origDy }, i) => {
       const initOffY = isPortrait ? 65 : 0
       const initOffX = isPortrait ? 0 : (i < n / 2 ? -48 : 48)
       gsap.set(el, {
         opacity: 0,
         scale: allScale * 0.55,
         filter: 'blur(14px)',
-        x: allDx + initOffX,
-        y: allDy + initOffY,
+        x: origDx + initOffX,   // reel origin + cinematic offset
+        y: origDy + initOffY,
       })
     })
 
