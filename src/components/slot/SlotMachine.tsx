@@ -17,13 +17,13 @@ import type { CellData } from '../../types'
 import { TabBar } from './TabBar'
 import { Frame } from './Frame'
 import { ReelColumn } from './ReelColumn'
-import { SpinButton } from './SpinButton'
 import { getStrategy, STRATEGIES } from './sections'
 import {
   CabinetMarquee,
   CabinetHUD,
   CabinetWinStrip,
   CabinetSubFrame,
+  CabinetControlDeck,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1332,13 +1332,13 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       {/* V3.0 — Win strip (LAST WIN · COMBO meter) */}
       <CabinetWinStrip />
 
-      {/* Controls */}
+      {/* V3.5 — Control deck — AUTO · BET- · SPIN · BET+ · MAX */}
       <div ref={controlsRef} className={styles.controls}>
-        <SpinButton
+        <CabinetControlDeck
           isSpinning={isSpinning}
           credits={credits}
           jackpot={jackpot}
-          onClick={handleSpin}
+          onSpin={handleSpin}
         />
       </div>
 
