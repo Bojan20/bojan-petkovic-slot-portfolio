@@ -953,14 +953,53 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     // V5.2 — track the mounted detail panel (game project deep-dive)
     let detailEl: HTMLElement | null = null
 
+    // V5.2 QA — resize listener that pulls focused card + panel
+    // back to layout when the window changes mid-takeover. Also
+    // catches portrait↔landscape rotations.
+    function onResize() {
+      if (typeof level !== 'number' || !detailEl) return
+      const idx = level as number
+      const card = cards[idx]
+      if (!card) return
+      const newVw = window.innerWidth
+      const newVh = window.innerHeight
+      const newOrigCX = newVw / 2 - card.singleDx
+      const newScale = Math.min(
+        (newVw * 0.26) / cW,
+        (newVh * 0.56) / cH,
+      )
+      const newCx = newVw * 0.22
+      gsap.set(card.el, {
+        x: newCx - newOrigCX,
+        scale: newScale,
+      })
+      // Panel position is already viewport-relative (vw/vh) so
+      // CSS handles it automatically; no JS resize needed.
+    }
+    window.addEventListener('resize', onResize)
+
     // ── Focus single card ──
     function focusCard(idx: number) {
       level = idx
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
 
       // V5.2 — only show detail panel on column 0 (GAME card) of
-      // the WORK section. Other columns just zoom (existing behaviour).
-      const showDetail = idx === 0 && SECTIONS[currentSectionIdx]?.id === 'projects' && !isPortrait
+      // the WORK section + viewport wide enough to host card+panel.
+      // Mobile portrait suppresses; landscape with vw≥760 enables.
+      const hasRoomForDetail = vw >= 760 && vh >= 480
+      const showDetail =
+        idx === 0 &&
+        SECTIONS[currentSectionIdx]?.id === 'projects' &&
+        hasRoomForDetail
+
+      // QA fix — always clear any stale detail panel from a prior
+      // focus cycle BEFORE proceeding. Repeated clicks would otherwise
+      // leak the previous detailEl into the DOM.
+      if (detailEl) {
+        const stale = detailEl
+        detailEl = null
+        stale.remove()
+      }
 
       // Fade out other cards — staggered by distance from selected
       cards.forEach(({ el }, i) => {
@@ -978,34 +1017,46 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       })
 
       // Expand selected card to single-card view. When detail panel
-      // is shown, shift the card LEFT to ~28vw so the detail occupies
-      // the right ~50vw of the viewport.
+      // is shown, recompute card scale + position so card occupies
+      // the LEFT third (~30vw centered at 18vw) and the panel takes
+      // the right two-thirds (40vw–96vw, with 4vw margin each side).
       const card = cards[idx]!
+      const cardOrigCX = vw / 2 - card.singleDx  // back-derive origCX
+      // Detail-mode card target: width 26vw, height 56vh, centered at 22vw
+      const detailScaleW = (vw * 0.26) / cW
+      const detailScaleH = (vh * 0.56) / cH
+      const detailScale = Math.min(detailScaleW, detailScaleH)
+      const detailCardCX = vw * 0.22
       const xTarget = showDetail
-        ? card.singleDx - vw * 0.20
+        ? detailCardCX - cardOrigCX
         : card.singleDx
       gsap.to(card.el, {
         x: xTarget,
         y: card.singleDy,
-        scale: showDetail ? singleScale * 0.92 : singleScale,
+        scale: showDetail ? detailScale : singleScale,
         boxShadow: '0 0 70px 24px rgba(240,216,120,0.5), 0 0 140px 50px rgba(201,162,39,0.22), 0 30px 70px rgba(0,0,0,0.75)',
         duration: 0.55,
         ease: 'expo.out',
       })
 
-      // V5.2 — mount cinematic recruiter detail panel on the right
+      // V5.2 — mount cinematic recruiter detail panel on the right.
+      // QA fix — use viewport-relative units everywhere so a window
+      // resize while the panel is open doesn't break the layout.
       if (showDetail) {
         const { html, color } = buildProjectDetailHTML(currentItemIdx)
         if (html) {
           const panel = document.createElement('div')
           panel.className = cardDetailStyles.panel ?? 'cardDetailPanel'
           panel.style.setProperty('--card-glow', color)
-          // Position right half of viewport with margins
-          panel.style.left = `${Math.round(vw * 0.50)}px`
+          // Right two-thirds of viewport — 42vw left, 4vw right margin
+          panel.style.left = '42vw'
           panel.style.right = '4vw'
-          panel.style.top = '12vh'
-          panel.style.bottom = '14vh'
+          panel.style.top = '10vh'
+          panel.style.bottom = '12vh'
           panel.innerHTML = html
+          // QA fix — clicks INSIDE the detail panel must NOT propagate
+          // to the overlay click handler (which would call stepBack).
+          panel.addEventListener('click', (e) => e.stopPropagation())
           stage.appendChild(panel)
           detailEl = panel
           // Wire BACK button + LISTEN button inside the panel
@@ -1090,6 +1141,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     function cleanup() {
       if (pulseTween) { pulseTween.kill(); pulseTween = null }
       if (detailEl) { detailEl.remove(); detailEl = null }
+      window.removeEventListener('resize', onResize)
       overlay.remove()
       stage.remove()
       cells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })
