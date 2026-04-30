@@ -167,52 +167,36 @@ class Director {
     }
 
     this.opts.setPhase('entering')
-    // V5.8 — chip/dice shower restored: starts AT THE MOMENT the slot
-    // becomes visible (act IV of the timeline below), so the cabinet
-    // emerges from a rain of coins+dice, not before. Triggered via
-    // tl.call at 0.62s, see ACT IV.
     bus.emit('splash:enter')
     bus.emit('transition:splash_to_slot')
 
     if (reduced) {
-      // Reduced motion — flat 800ms splash exit + slot fade-in
-      const tl = gsap.timeline({
-        onComplete: () => {
-          document.body.removeAttribute('data-letterbox')
-          this.completeSplashToSlot()
-        },
-      })
+      // Reduced motion — splash exit + matte black + shower start.
+      // Slot reveal deferred to revealSlotAfterShower() (called by
+      // App.handleShowerDone when the physics settles).
+      const tl = gsap.timeline()
       this.tl = tl
       if (splashEl) tl.to(splashEl, { opacity: 0, duration: 0.4 }, 0)
-      if (slotEl) tl.to(slotEl, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4 }, 0)
-      if (matte) tl.to(matte, { opacity: 0, duration: 0.4 }, 0.2)
-      // V5.8 — shower also fires under reduced motion; it has its
-      // own reduced-motion handling (slower, fewer particles)
-      tl.call(() => this.opts.setShowerActive(true), [], 0.2)
+      if (matte) tl.to(matte, { opacity: 1, duration: 0.4 }, 0)
+      tl.call(() => this.opts.setShowerActive(true), [], 0.3)
       return
     }
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        document.body.removeAttribute('data-letterbox')
-        this.completeSplashToSlot()
-      },
-    })
+    const tl = gsap.timeline()
     this.tl = tl
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // V5.7 — Single-pass cinematic match-cut, no chip shower.
+    // V5.9 — Two-stage cinematic. Director does splash exit +
+    // matte to black + shower spawn. Slot reveal is deferred to
+    // revealSlotAfterShower() (called by App.handleShowerDone
+    // when the chip/dice physics settles). Boki: "kad se ta
+    // animacija zavrsi, uvedi slot masinu i pozadinu sa fadein".
     //
-    //   ACT I   (0.00–0.42s) — splash recedes: scale 1→0.96,
-    //                          blur 0→8px, opacity 1→0  (dolly back)
-    //   ACT II  (0.28–0.58s) — matte hard cuts to full black
-    //   ACT III (0.58s)      — match-cut audio cue at full black
-    //   ACT IV  (0.62–1.72s) — slot rack-focuses in: scale 1.07→1,
-    //                          blur 16px→0, opacity 0→1  (1.10s)
-    //   ACT V   (0.72–1.72s) — matte dissolves with the slot reveal
-    //                          (world + cabinet bloom together)
-    //   ACT VI  (0.85s)      — letterbox bars retract
-    //   ACT VII (1.72–2.20s) — genesis safety tail
+    //   ACT I   (0.00–0.42s) — splash recedes (dolly back)
+    //   ACT II  (0.28–0.58s) — matte full black cut
+    //   ACT III (0.58s)      — match-cut audio cue
+    //   ACT IV  (0.62s)      — shower starts; slot stays opacity 0
+    //   (HOLD black under shower until handleShowerDone fires)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     // ── ACT I — Splash recedes / dolly back ──────────────────
@@ -237,46 +221,88 @@ class Director {
       bus.emit('custom:transition:cue', { label: 'match_cut_peak', leadMs: 0 })
     }, [], 'match_cut_peak')
 
-    // ── ACT IV — Slot rack-focuses in + shower starts ─────────
+    // ── ACT IV — Spawn shower; slot stays opacity 0 ───────────
     tl.call(() => {
-      bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
-      // V5.8 — kick off the chip/dice shower at the very moment the
-      // slot starts to bloom in. Coins rain from above as the cabinet
-      // resolves out of the matte — recruiter sees the slot machine
-      // arrive in its native casino confetti.
       this.opts.setShowerActive(true)
     }, [], 0.62)
 
-    if (slotEl) {
-      tl.fromTo(slotEl,
-        { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
-        {
-          opacity: 1,
-          scale: 1,
-          filter: 'blur(0px)',
-          duration: 1.10,
-          ease: 'power3.out',
-        }, 0.62)
+    // No slot reveal here. revealSlotAfterShower() does it after
+    // handleShowerDone fires (when chip physics has settled).
+  }
+
+  /**
+   * V5.9 — slot + background fade-in triggered by App.handleShowerDone
+   * AFTER the chip/dice shower physics settles. Boki direction:
+   * "kad se ta animacija zavrsi, uvedi slot masinu i pozadinu sa
+   *  fadein. nista drugo ne menjaj."
+   */
+  revealSlotAfterShower(): void {
+    const slotEl = this.opts.slotWrapRef.current
+    const matte = this.opts.matteEl
+    const reduced = this.opts.reducedMotion
+    if (!slotEl) {
+      document.body.removeAttribute('data-letterbox')
+      this.completeSplashToSlot()
+      return
     }
 
-    // ── ACT V — Matte dissolves with the slot reveal ──────────
+    this.killActive()
+
+    if (reduced) {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          document.body.removeAttribute('data-letterbox')
+          this.completeSplashToSlot()
+        },
+      })
+      this.tl = tl
+      tl.to(slotEl, { opacity: 1, duration: 0.5 }, 0)
+      if (matte) tl.to(matte, { opacity: 0, duration: 0.5 }, 0)
+      return
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        document.body.removeAttribute('data-letterbox')
+        this.completeSplashToSlot()
+      },
+    })
+    this.tl = tl
+
+    bus.emit('custom:transition:cue', { label: 'slot_reveal', leadMs: 0 })
+
+    // Slot rack-focuses in: blur 16px → 0, scale 1.07 → 1, opacity
+    // 0 → 1 over 1.10s (generous, soft).
+    tl.fromTo(slotEl,
+      { opacity: 0, scale: 1.07, filter: 'blur(16px)' },
+      {
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.10,
+        ease: 'power3.out',
+      }, 0)
+
+    // Matte dissolves WITH the slot reveal — slot + background
+    // bloom in together.
     if (matte) {
-      tl.to(matte, { opacity: 0, duration: 1.00, ease: 'power2.out' }, 0.72)
+      tl.to(matte, { opacity: 0, duration: 1.00, ease: 'power2.out' }, 0.10)
     }
 
-    // ── ACT VI — Letterbox retract ────────────────────────────
+    // Letterbox retract
     tl.call(() => {
       document.body.removeAttribute('data-letterbox')
-    }, [], 1.20)
+    }, [], 0.85)
 
-    // Genesis safety tail (1.55s + buffer)
-    tl.to({}, { duration: 0.50 })
+    // Tail
+    tl.to({}, { duration: 0.40 })
   }
 
   private completeSplashToSlot(): void {
     this.opts.setPhase('slot')
-    // V5.7 — was unlocked via App.handleShowerDone, but the shower is
-    // no longer part of the transition. Director now owns the unlock.
+    // V5.9 — handleShowerDone unlocks introLocked when shower settles;
+    // we also unlock here as a safety so the user can interact even
+    // if the shower path doesn't fire (edge cases / reduced motion).
     this.opts.setIntroLocked(false)
     this.currentRun = null
     bus.emit('custom:transition:cue', { label: 'slot_ready', leadMs: 0 })
