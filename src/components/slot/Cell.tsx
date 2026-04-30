@@ -31,6 +31,25 @@ interface CellProps {
   onGameCellClick?: (itemIndex: number) => void
 }
 
+/**
+ * V3.1 — center-only type tag. Shows the cell type in a small pill at
+ * top-left of the focused (center) cell only. Off-row cells in the
+ * same column are the same type, so showing the tag on every row
+ * would be visual noise. Tag inherits per-type --cell-glow color.
+ */
+function tagLabel(type: string | undefined): string | null {
+  switch (type) {
+    case 'game':   return 'GAME'
+    case 'scope':  return 'SCOPE'
+    case 'tools':  return 'TOOLS'
+    case 'demo':   return 'DEMO'
+    case 'detail': return 'DETAIL'
+    case 'work':   return 'WORK'
+    case 'simple': return null
+    default:       return null
+  }
+}
+
 export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
   const cellId = useId()
   const isCenter = data.center
@@ -83,6 +102,9 @@ export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
     bus.emit('custom:cell:hover:end', { cellId })
   }, [cellId])
 
+  // V3.1 — type tag for the center cell (GAME / SCOPE / TOOLS / DEMO …)
+  const v3Tag = isCenter ? tagLabel(data.type) : null
+
   return (
     <CellContext.Provider value={{ data, isCenter }}>
       <div
@@ -101,6 +123,21 @@ export function Cell({ data, height, colIndex, onGameCellClick }: CellProps) {
         {...(isCenter ? { 'data-center-cell': '' } : {})}
       >
         <CellBackground />
+
+        {/* V3.1 — holographic conic rim. Idle invisible; on hover OR
+            when the cell is centered, the conic gradient rotates
+            once per 8s with per-type --cell-glow tint. */}
+        <div className={styles.v3HoloRim} aria-hidden="true" />
+
+        {/* V3.1 — center cell type tag. Tells the recruiter at a
+            glance "this column = GAME" without dropping into the
+            payline takeover. */}
+        {v3Tag && (
+          <div className={styles.v3CellTag} aria-hidden="true">
+            {v3Tag}
+          </div>
+        )}
+
         <CellContent />
       </div>
     </CellContext.Provider>
