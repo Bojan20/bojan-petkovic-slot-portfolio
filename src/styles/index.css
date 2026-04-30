@@ -101,72 +101,48 @@ body::before {
    stacked drop-shadow filters so the moment reads like a CRT cut
    rather than a simple wipe. */
 
+/* OLD frame: subtle scale-down + chromatic split, fades out */
 @keyframes vtSectionOut {
-  0%   { opacity: 1; transform: scale(1);     filter: saturate(1) brightness(1) blur(0); }
-  100% { opacity: 0; transform: scale(0.965); filter: saturate(1.6) brightness(0.85) blur(4px); }
+  0%   { opacity: 1; transform: scale(1);     filter: saturate(1)   brightness(1); }
+  100% { opacity: 0; transform: scale(0.985); filter: saturate(1.4) brightness(0.92); }
 }
 
+/* NEW frame: rises in from slight zoom + brightness with a brief
+   RGB chroma kick at midpoint. CSS-only — no mask-image SVG (the
+   mask path produced a stray white frame on some Chromium builds
+   when paired with drop-shadow filters). */
 @keyframes vtSectionIn {
-  /* mask-position 0% 100% places the mask's black half over the new
-     frame → fully hidden. As it animates to 0% 0%, the white half
-     slides in from the bottom and the new frame tears through the
-     noise edge moving upward. */
   0% {
     opacity: 0;
-    mask-position: 0% 100%;
-    -webkit-mask-position: 0% 100%;
-    filter:
-      drop-shadow(4px 0 rgba(255, 50, 100, 0.0))
-      drop-shadow(-4px 0 rgba(40, 220, 255, 0.0))
-      brightness(1.25);
-    transform: scale(1.012);
+    transform: scale(1.015);
+    filter: brightness(1.15) blur(2px);
   }
-  /* RGB chromatic aberration peaks at 50% — the point where the
-     noise mask edge is in the middle of its sweep. Red shifts +6px,
-     cyan shifts -6px, creating a CRT-style chroma split. */
   50% {
     opacity: 1;
-    filter:
-      drop-shadow(6px 0 rgba(255, 50, 100, 0.55))
-      drop-shadow(-6px 0 rgba(40, 220, 255, 0.55))
-      brightness(1.10);
+    filter: brightness(1.06)
+      drop-shadow(3px 0 rgba(255, 50, 100, 0.35))
+      drop-shadow(-3px 0 rgba(40, 220, 255, 0.35))
+      blur(0);
   }
   100% {
     opacity: 1;
-    mask-position: 0% 0%;
-    -webkit-mask-position: 0% 0%;
-    filter: drop-shadow(0 0 transparent) brightness(1);
     transform: scale(1);
+    filter: brightness(1) blur(0);
   }
 }
 
 body[data-vt='section-change']::view-transition-old(root) {
-  animation: vtSectionOut 320ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: vtSectionOut 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 body[data-vt='section-change']::view-transition-new(root) {
-  animation: vtSectionIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  /* Noise-displaced mask. 100% × 200% size + position animation
-     makes the white half sweep up from below. luminance mode so
-     bright pixels = visible, dark = hidden. */
-  mask-image: url('/section-mask.svg');
-  -webkit-mask-image: url('/section-mask.svg');
-  mask-size: 100% 200%;
-  -webkit-mask-size: 100% 200%;
-  mask-repeat: no-repeat;
-  -webkit-mask-repeat: no-repeat;
-  mask-mode: luminance;
-  -webkit-mask-mode: luminance;
+  animation: vtSectionIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Honor reduced-motion — instant swap, no animation, no mask. */
+/* Honor reduced-motion — near-instant swap, no animation. */
 @media (prefers-reduced-motion: reduce) {
   body[data-vt='section-change']::view-transition-old(root),
   body[data-vt='section-change']::view-transition-new(root) {
     animation-duration: 1ms;
-  }
-  body[data-vt='section-change']::view-transition-new(root) {
-    mask-image: none;
-    -webkit-mask-image: none;
   }
 }
 

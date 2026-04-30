@@ -93,21 +93,24 @@ class Director {
     })
     this.tl = tl
 
-    // Phase 1 — fade to black (image catches up to audio rumble)
-    tl.to(matte, { opacity: 1, duration: 0.6, ease: 'power2.inOut' }, 0)
+    // Cross-dissolve through DIM (not full black). Total ~0.85s, no
+    // pure-black frame, matte peaks at 0.92 instead of 1.0 so the
+    // incoming splash is visible underneath as it materializes.
+    //
+    // Phase 1 (0–0.42s) — matte rises 0 → 0.92, boot dims out
+    tl.to(matte, { opacity: 0.92, duration: 0.42, ease: 'power2.in' }, 0)
 
-    // Phase 2 — at full black, swap React to splash (no flash)
-    tl.addLabel('boot_black_dip', 0.6)
+    // Phase 2 — at peak dim, swap React to splash. Splash is now
+    // mounted underneath the matte. NO hold — go straight into
+    // matte fade-out so we never have a static dim frame.
+    tl.addLabel('boot_dim_peak', 0.42)
     tl.call(() => {
       this.opts.setPhase('splash')
       bus.emit('custom:transition:cue', { label: 'splash_enter', leadMs: 80 })
-    }, [], 'boot_black_dip')
+    }, [], 'boot_dim_peak')
 
-    // Phase 3 — hold for 180ms so React can mount splash
-    tl.to({}, { duration: 0.18 }, 'boot_black_dip')
-
-    // Phase 4 — fade matte back out, splash visible
-    tl.to(matte, { opacity: 0, duration: 0.75, ease: 'power2.inOut' })
+    // Phase 3 — matte fades out, splash reveals through
+    tl.to(matte, { opacity: 0, duration: 0.43, ease: 'power2.out' })
   }
 
   /** Splash → Slot with match-cut Lucky 7 → reel viewport. */
