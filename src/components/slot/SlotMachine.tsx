@@ -25,6 +25,7 @@ import {
   CabinetSubFrame,
   CabinetControlDeck,
   CabinetWinFx,
+  CabinetWorld,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1221,6 +1222,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
   return (
     <div ref={machineRef} className={styles.machine} data-ambient-phase={ambientPhase}>
+      {/* V3.7 — World parallax layers (far nebula + mid grid + near
+          sparkle field reactive to spin). All position:fixed behind
+          the cabinet. */}
+      <CabinetWorld />
+
       {/* CSS Houdini Paint — procedural cyberpunk circuit-grid base
           (paint(cyberPattern) on Chromium-based browsers; falls back
           to a radial gradient on Safari/Firefox via CSS layering). */}

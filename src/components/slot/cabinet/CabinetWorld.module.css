@@ -1,0 +1,118 @@
+/**
+ * CabinetWorld CSS — three parallax layers behind the cabinet.
+ * All position:fixed at z-index < cabinet (which sits at z-index 1).
+ */
+
+.far,
+.mid,
+.near {
+  position: fixed;
+  inset: -10%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FAR — slow drifting nebula clouds
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.far {
+  background:
+    radial-gradient(circle at 18% 30%, rgba(177, 76, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 78% 22%, rgba(34, 232, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 50% 90%, rgba(255, 43, 214, 0.10), transparent 35%),
+    radial-gradient(circle at 88% 70%, rgba(255, 224, 102, 0.06), transparent 30%);
+  filter: blur(50px);
+  animation: nebulaDrift 38s ease-in-out infinite;
+}
+
+@keyframes nebulaDrift {
+  0%, 100% { transform: translate(0, 0); }
+  33%      { transform: translate(-1.5%, -0.8%); }
+  66%      { transform: translate(1.2%, -1.2%); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MID — subtle grid scroll
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.mid {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 78px,
+      rgba(177, 76, 255, 0.04) 79px,
+      transparent 80px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 78px,
+      rgba(34, 232, 255, 0.04) 79px,
+      transparent 80px
+    );
+  opacity: 0.55;
+  animation: gridScroll 60s linear infinite;
+}
+
+@keyframes gridScroll {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 80px 80px, 80px 80px; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NEAR — sparkle field that intensifies during spin
+   Pre-baked positions via repeating-radial-gradient.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.near {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.45) 0px, transparent 1.5px),
+    radial-gradient(circle at 32% 72%, rgba(255, 224, 102, 0.4) 0px, transparent 1.5px),
+    radial-gradient(circle at 56% 28%, rgba(34, 232, 255, 0.45) 0px, transparent 1.5px),
+    radial-gradient(circle at 76% 84%, rgba(255, 255, 255, 0.4) 0px, transparent 1.5px),
+    radial-gradient(circle at 88% 12%, rgba(177, 76, 255, 0.45) 0px, transparent 1.5px),
+    radial-gradient(circle at 22% 56%, rgba(255, 255, 255, 0.4) 0px, transparent 1.5px),
+    radial-gradient(circle at 64% 44%, rgba(255, 43, 214, 0.4) 0px, transparent 1.5px),
+    radial-gradient(circle at 8% 88%, rgba(34, 232, 255, 0.4) 0px, transparent 1.5px);
+  background-size:
+    160px 160px,
+    180px 180px,
+    140px 140px,
+    200px 200px,
+    170px 170px,
+    150px 150px,
+    190px 190px,
+    220px 220px;
+  opacity: 0.6;
+  animation: sparkleDrift 24s linear infinite;
+}
+
+@keyframes sparkleDrift {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position:
+    160px -100px, -180px 140px, 140px 100px, -200px -160px,
+    170px 130px, -150px 110px, 190px -150px, -220px 160px;
+  }
+}
+
+/* On spin — sparkles speed up + brighten */
+.nearSpin {
+  opacity: 0.95;
+  filter: brightness(1.4);
+  animation-duration: 6s;
+}
+
+/* Vignette the edges so the world fades to dark at viewport corners,
+   keeping focus on the cabinet center. Uses a separate fixed layer
+   above .near via box-shadow:inset on the near element. */
+.near::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%,
+    transparent 30%, rgba(0, 0, 0, 0.55) 90%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .far, .mid, .near { animation: none; }
+}
