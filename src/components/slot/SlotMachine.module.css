@@ -87,9 +87,12 @@
   opacity: 1;
 }
 
+/* V9.4 — flicker fix: drop hue-rotate (color-space conversion every
+   frame) and clamp blur swing 28-32 → constant 26 so the layer stops
+   re-rasterizing. Pure opacity breath remains. */
 @keyframes ambientSpin {
-  0%, 100% { filter: blur(28px) hue-rotate(0deg);   opacity: 0.85; }
-  50%      { filter: blur(32px) hue-rotate(25deg); opacity: 1;    }
+  0%, 100% { filter: blur(26px); opacity: 0.85; }
+  50%      { filter: blur(26px); opacity: 1;    }
 }
 
 /* CRT SCANLINE OVERLAY — applied on top of everything in the machine */

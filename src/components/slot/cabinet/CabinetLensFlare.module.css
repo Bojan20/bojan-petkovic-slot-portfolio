@@ -80,7 +80,9 @@
       transparent 337deg,
       rgba(255, 224, 102, 0.55) 360deg
     );
-  filter: blur(8px);
+  /* V9.4 — flicker fix: blur 8→3px. Conic gradient + heavy blur
+     re-rasterizes per frame on Chromium and reads as flicker. */
+  filter: blur(3px);
   mix-blend-mode: screen;
   -webkit-mask: radial-gradient(circle, black 5%, transparent 60%);
           mask: radial-gradient(circle, black 5%, transparent 60%);

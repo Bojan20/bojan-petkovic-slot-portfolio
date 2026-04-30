@@ -32,9 +32,10 @@ import {
   CabinetAnticipation,
   CabinetCamera,
   CabinetLensFlare,
-  CabinetVoxelFloor,
-  // CabinetConnectionLines removed from active render (visual noise).
+  // CabinetVoxelFloor removed from active render (V9.4): the Tron
+  // grid floor was the "pod ispod slot mašine" the user asked to drop.
   // Module still exported by ./cabinet for future re-enable.
+  // CabinetConnectionLines also disabled (visual noise on hover).
   CabinetAura,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
@@ -262,26 +263,30 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
     bus.emit('slot:genesis:start')
 
-    // Set initial hidden states immediately so first paint is from 0
-    if (tabBar) gsap.set(tabBar, { opacity: 0, y: -36, filter: 'blur(8px)' })
-    if (headers) gsap.set(headers, { opacity: 0, y: -22, filter: 'blur(6px)' })
+    // V9.4 — REMOVED filter:blur from genesis tweens. The CSS
+    // re-rasterization on every frame of a blur tween combined with
+    // the cabinet's own animated layers (aura, lens flare, voxel
+    // grid) caused visible flicker on entry. Plain opacity + y +
+    // scale moves are GPU-cheap and read just as cinematic.
+    if (tabBar) gsap.set(tabBar, { opacity: 0, y: -36 })
+    if (headers) gsap.set(headers, { opacity: 0, y: -22 })
     cols.forEach((col) => {
-      gsap.set(col, { opacity: 0, scale: 0.82, filter: 'blur(14px) brightness(1.4)', y: 14 })
+      gsap.set(col, { opacity: 0, scale: 0.82, y: 14 })
     })
-    if (controls) gsap.set(controls, { opacity: 0, y: 48, scale: 0.78, filter: 'blur(8px)' })
+    if (controls) gsap.set(controls, { opacity: 0, y: 48, scale: 0.78 })
 
     const tl = gsap.timeline()
 
     // ── 0.05s: Tab bar drops from above with elastic ──
     tl.to(tabBar, {
-      opacity: 1, y: 0, filter: 'blur(0px)',
+      opacity: 1, y: 0,
       duration: 0.55, ease: 'expo.out',
       onStart: () => bus.emit('slot:genesis:tabs'),
     }, 0.05)
 
     // ── 0.20s: Reel headers slide in + light sweep (CSS-driven) ──
     tl.to(headers, {
-      opacity: 1, y: 0, filter: 'blur(0px)',
+      opacity: 1, y: 0,
       duration: 0.55, ease: 'expo.out',
       onStart: () => {
         bus.emit('slot:genesis:headers')
@@ -300,7 +305,6 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         opacity: 1,
         scale: 1,
         y: 0,
-        filter: 'blur(0px) brightness(1)',
         duration: 0.62,
         ease: 'expo.out',
         onStart: () => bus.emit('slot:genesis:cells', { col: i }),
@@ -309,7 +313,7 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
 
     // ── 1.10s: Controls (SpinButton) rises with elastic ──
     tl.to(controls, {
-      opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
+      opacity: 1, y: 0, scale: 1,
       duration: 0.7, ease: 'back.out(1.6)',
       onStart: () => bus.emit('slot:genesis:controls'),
     }, 1.05)
@@ -1496,8 +1500,10 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           the cabinet. */}
       <CabinetWorld />
 
-      {/* V5.0 — Tron-style perspective grid floor under the cabinet */}
-      <CabinetVoxelFloor />
+      {/* V9.4 — Tron voxel floor REMOVED per user feedback. The
+          perspective grid + animated drop-shadow combo was reading
+          as flicker noise under the cabinet. Module kept in
+          ./cabinet/CabinetVoxelFloor.tsx for future re-enable. */}
 
       {/* V7.2 — Affinity connection lines REMOVED per user feedback.
           Hover-triggered bezier paths read as visual noise on top of

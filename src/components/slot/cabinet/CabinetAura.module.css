@@ -83,13 +83,12 @@
     color-mix(in srgb, var(--aura-tint-a) 6%, transparent) 35%,
     transparent 70%
   );
-  filter: blur(36px);
+  /* V9.4 — flicker fix: blur 36→18px, drop the 80ms transition
+     that was fighting the per-frame RAF custom-property writes,
+     drop will-change so the browser can decide layer promotion. */
+  filter: blur(18px);
   mix-blend-mode: screen;
   opacity: calc(0.45 + var(--aura-bass) * 0.55);
-  transition:
-    opacity 80ms linear,
-    transform 80ms linear;
-  will-change: opacity, transform;
 }
 
 /* Mid — lateral arc, drifts subtly over time, color-mix from tint-b */
@@ -106,14 +105,12 @@
     color-mix(in srgb, var(--aura-tint-b) 5%, transparent) 40%,
     transparent 75%
   );
-  filter: blur(46px);
+  /* V9.4 — flicker fix: blur 46→22px, drop transition fighting RAF,
+     drop midDrift animation (its 18s loop produced visible breathing
+     when stacked under the bass + treble layers). */
+  filter: blur(22px);
   mix-blend-mode: screen;
   opacity: calc(0.35 + var(--aura-mid) * 0.55);
-  transition:
-    opacity 60ms linear,
-    transform 60ms linear;
-  will-change: opacity, transform;
-  animation: midDrift 18s ease-in-out infinite;
 }
 @keyframes midDrift {
   0%, 100% { translate: 0 0; }
@@ -134,13 +131,10 @@
     color-mix(in srgb, var(--aura-tint-c) 4%, transparent) 30%,
     transparent 70%
   );
-  filter: blur(28px);
+  /* V9.4 — flicker fix: blur 28→14px, drop transition + will-change. */
+  filter: blur(14px);
   mix-blend-mode: screen;
   opacity: calc(0.25 + var(--aura-treble) * 0.65);
-  transition:
-    opacity 40ms linear,
-    transform 40ms linear;
-  will-change: opacity, transform;
 }
 
 /* Persona-driven palette shift — the recruiter's inferred persona
