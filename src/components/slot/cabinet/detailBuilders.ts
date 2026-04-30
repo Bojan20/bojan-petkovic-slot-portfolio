@@ -73,12 +73,15 @@ function hero(
   name: string,
   studio: string,
 ): string {
+  // V7.0 — data-glitch carries the name to ::before/::after pseudos
+  // for the RGB-split chromatic shimmer (CardDetail.module.css)
+  const safeName = escapeHtml(name)
   return `
     <section class="${cls(styles, 'hero')}">
       <div class="${cls(styles, 'heroIcon')}">${ico}</div>
       <div class="${cls(styles, 'heroText')}">
         <span class="${cls(styles, 'heroEyebrow')}">${escapeHtml(eyebrow)}</span>
-        <h2 class="${cls(styles, 'heroName')}">${escapeHtml(name)}</h2>
+        <h2 class="${cls(styles, 'heroName')}" data-glitch="${safeName}">${safeName}</h2>
         ${studio ? `<span class="${cls(styles, 'heroStudio')}">${escapeHtml(studio)}</span>` : ''}
       </div>
     </section>
