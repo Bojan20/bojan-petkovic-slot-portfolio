@@ -1,0 +1,83 @@
+/**
+ * HoloCursor — V7.5 holographic pointer ring stylesheet.
+ *
+ * Single fixed <div>, positioned via translate3d for GPU compositing.
+ * pointer-events: none everywhere (the ring must NEVER intercept).
+ * Hidden on touch devices via @media (hover: none).
+ */
+
+.ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 11999; /* below CommandPalette overlay (12000) */
+  border: 1.5px solid rgba(34, 232, 255, 0.85);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(34, 232, 255, 0.18) 0%,
+    rgba(34, 232, 255, 0.0)  60%
+  );
+  box-shadow:
+    0 0 12px rgba(34, 232, 255, 0.55),
+    inset 0 0 8px rgba(34, 232, 255, 0.30);
+  opacity: 0;
+  mix-blend-mode: screen;
+  will-change: transform;
+  transition:
+    width 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.18s,
+    opacity 0.18s;
+}
+
+/* Mounted + cursor visible */
+.ring[data-show='1'] { opacity: 0.95; }
+
+/* Over interactive target */
+.ring[data-hot='1'] {
+  width: 44px;
+  height: 44px;
+  border-color: rgba(177, 76, 255, 0.95);
+  box-shadow:
+    0 0 18px rgba(177, 76, 255, 0.65),
+    inset 0 0 12px rgba(177, 76, 255, 0.35);
+}
+
+/* mousedown → quick squash */
+.ring[data-press='1'] {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(255, 0, 120, 0.95);
+}
+
+/* Inner hot dot — emerges over interactive targets */
+.ring::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(34, 232, 255, 0.0);
+  transition: background 0.18s;
+}
+.ring[data-hot='1']::after { background: rgba(255, 255, 255, 0.95); }
+
+/* Don't render on touch / coarse pointers */
+@media (hover: none), (pointer: coarse) {
+  .ring { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    transition: none;
+    /* Simpler static cursor accent — no animated colour family */
+    background: rgba(34, 232, 255, 0.15);
+  }
+}

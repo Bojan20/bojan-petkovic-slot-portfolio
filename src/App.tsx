@@ -76,6 +76,15 @@ const SlotAudioManager = lazy(() =>
 const DevOverlay = lazy(() =>
   import('./components/DevOverlay').then((m) => ({ default: m.DevOverlay })),
 )
+// V7.5 — Cmd/Ctrl+K palette + holographic cursor halo. Both lazy:
+// palette only loads on first ⌘K (rarely used), HoloCursor only
+// loads on devices with fine pointer (touch devices skip it).
+const CommandPalette = lazy(() =>
+  import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })),
+)
+const HoloCursor = lazy(() =>
+  import('./components/HoloCursor').then((m) => ({ default: m.HoloCursor })),
+)
 import { VoiceIndicator } from './components/VoiceIndicator'
 import { PlatformChips } from './components/PlatformChip'
 import { ReachPill } from './components/ReachPill'
@@ -581,6 +590,21 @@ function AppMain() {
       {/* ARIA live region (P0.5) — visually-hidden polite announcer
           that mirrors SpeechAnnouncer events to assistive tech. */}
       <AriaAnnouncer />
+
+      {/* V7.5 — Cmd/Ctrl+K command palette. Lazy: ~3KB only when
+          the recruiter actually opens it. */}
+      {phase === 'slot' && (
+        <Suspense fallback={null}>
+          <CommandPalette />
+        </Suspense>
+      )}
+
+      {/* V7.5 — Holographic cursor ring (desktop only via @media). */}
+      {phase === 'slot' && (
+        <Suspense fallback={null}>
+          <HoloCursor />
+        </Suspense>
+      )}
 
       {/* Hardware auto-detect toast (P1.12) — surfaces "new device
           detected, pair now?" when a USB/BLE device appears while

@@ -1,0 +1,245 @@
+/**
+ * CommandPalette — V7.5 fullscreen ⌘K navigator.
+ * Glass blur backdrop + futuristic command-line shell.
+ * Hidden on touch-only devices (no keyboard).
+ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  background: rgba(2, 4, 14, 0.62);
+  backdrop-filter: blur(14px) saturate(140%);
+          -webkit-backdrop-filter: blur(14px) saturate(140%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14vh;
+  animation: paletteFadeIn 0.18s ease-out;
+}
+
+@keyframes paletteFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.shell {
+  position: relative;
+  width: min(640px, 92vw);
+  background: linear-gradient(180deg, rgba(20, 14, 36, 0.96), rgba(8, 6, 22, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(122, 76, 255, 0.20),
+    0 0 60px rgba(122, 76, 255, 0.20);
+  overflow: hidden;
+  isolation: isolate;
+  animation: paletteSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--f-ui), 'Inter', sans-serif;
+  color: #e8e6ff;
+}
+
+@keyframes paletteSlideIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
+}
+
+/* Holographic conic rim */
+.shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 14px;
+  padding: 1.5px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(34, 232, 255, 0.55) 0%,
+    rgba(177, 76, 255, 0.10) 30%,
+    rgba(34, 232, 255, 0.55) 50%,
+    rgba(177, 76, 255, 0.10) 80%,
+    rgba(34, 232, 255, 0.55) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0.55;
+  animation: rimRotate 14s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rimRotate { to { transform: rotate(360deg); } }
+
+.header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.kbd {
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(220, 215, 255, 0.85);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  caret-color: rgba(34, 232, 255, 1);
+}
+.input::placeholder { color: rgba(180, 175, 220, 0.55); font-weight: 500; }
+
+.close {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(220, 215, 255, 0.65);
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.close:hover { color: #fff; border-color: rgba(34, 232, 255, 0.5); }
+
+.list {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 6px 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 76, 255, 0.4) transparent;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.12s;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.row[data-active='1'] {
+  background: linear-gradient(90deg, rgba(34, 232, 255, 0.08), rgba(177, 76, 255, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(122, 76, 255, 0.40);
+  transform: translateX(2px);
+}
+
+.group {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: rgba(34, 232, 255, 0.85);
+  padding: 3px 7px;
+  border: 1px solid rgba(34, 232, 255, 0.30);
+  border-radius: 3px;
+  text-align: center;
+}
+
+.label {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 175, 220, 0.65);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: rgba(180, 175, 220, 0.65);
+  font-size: 13px;
+  font-style: italic;
+}
+.empty strong { color: rgba(34, 232, 255, 0.95); font-style: normal; }
+
+.footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(180, 175, 220, 0.55);
+  background: rgba(0, 0, 0, 0.20);
+}
+.footer kbd {
+  font-family: var(--f-mono), 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  margin-right: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(220, 215, 255, 0.85);
+}
+
+@media (hover: none) {
+  /* Pure-touch device: keyboard unlikely. Hide entry path so users
+     don't accidentally trigger from gesture spam. (Cmd+K still
+     toggles via system keyboard if connected.) */
+  .overlay { /* keep, since shortcut still works with bluetooth kb */ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .shell, .shell::before { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .shell { width: 96vw; }
+  .header { padding: 12px 12px; }
+  .input { font-size: 15px; }
+  .row { grid-template-columns: 64px 1fr auto; padding: 10px; font-size: 13px; }
+  .hint { display: none; }
+}
