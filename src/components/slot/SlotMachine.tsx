@@ -28,6 +28,7 @@ import {
   CabinetWorld,
   CabinetAnticipation,
   CabinetCamera,
+  CabinetLensFlare,
 } from './cabinet'
 import styles from './SlotMachine.module.css'
 
@@ -1389,6 +1390,11 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
           spin/reel-stop/win/cell-click events; CSS in styles/index.css
           drives viewport-level shakes + idle-float. */}
       <CabinetCamera />
+
+      {/* V4.1 — anamorphic lens flare. Horizontal bright streak +
+          vertical bloom on final reel stop / win. Tier-scaled
+          intensity, jackpot adds radial sunburst. */}
+      <CabinetLensFlare />
     </div>
   )
 }
