@@ -758,17 +758,28 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     const inner = reelsInnerRef.current
     if (!inner) return
 
-    const cells = Array.from(
+    // V5.3 — UX simplification. Was: 5 cards (game/scope/work/tools/demo)
+    // fly into the takeover, recruiter clicks one to deep-dive. But all
+    // 5 describe the SAME project (different facets), so the picker step
+    // was redundant. Now: only the GAME card (col 0) flies into the
+    // takeover. Other 4 fade in place. Click on the game card opens
+    // the V5.2 detail panel directly with all the project info.
+    const allCenterCells = Array.from(
       inner.querySelectorAll('[data-center-cell]')
     ) as HTMLElement[]
-    if (!cells.length) return
+    if (!allCenterCells.length) return
+
+    // Cells that fly into the takeover (just the game card)
+    const cells = allCenterCells.slice(0, 1)
+    // Cells that stay behind, dimmed (cols 1-4 — scope/work/tools/demo)
+    const dimCells = allCenterCells.slice(1)
 
     const vw = window.innerWidth
     const vh = window.innerHeight
     const cRects = cells.map(c => c.getBoundingClientRect())
     const cW = cRects[0]!.width
     const cH = cRects[0]!.height
-    const n = cells.length
+    const n = cells.length  // always 1 now
 
     // ── Orientation ──
     const isPortrait = vh > vw
@@ -934,7 +945,14 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
     })
 
     // ── Step-back navigation ──
+    // V5.3 — with only 1 card, the "all → single" intermediate level
+    // is gone. BACK from detail goes straight to cleanup.
     function stepBack() {
+      if (cards.length === 1) {
+        // Single-card takeover: BACK always closes the whole thing
+        settleBack()
+        return
+      }
       if (typeof level === 'number') {
         unfocusCard()
       } else {
@@ -1144,7 +1162,8 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       window.removeEventListener('resize', onResize)
       overlay.remove()
       stage.remove()
-      cells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })
+      // V5.3 — reset all 5 (we dimmed allCenterCells in entry)
+      allCenterCells.forEach(c => { c.style.opacity = ''; c.style.filter = '' })
       window.removeEventListener('keydown', onKey)
       // V4.3 — release cinematic flags
       document.body.removeAttribute('data-letterbox')
@@ -1192,13 +1211,18 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
       duration: 0.45,
       ease: 'power3.out',
     })
-    enterTl.to(cells, {
+    // V5.3 — dim ALL center cells (game + scope/work/tools/demo)
+    // so the entire payline drops into shadow as the takeover takes
+    // over. Otherwise scope/tools cells would still glow behind the
+    // dim overlay — visible artifact.
+    enterTl.to(allCenterCells, {
       opacity: 0.03,
       filter: 'blur(5px) brightness(0.12)',
       duration: 0.38,
       stagger: 0.022,
       ease: 'power3.out',
     }, '<')
+    void dimCells  // referenced for clarity; dim handled via allCenterCells loop above
 
     // ── Camera punch AT t=0 — fires BEFORE overlay covers the machine ──
     // The brief jolt is visible for the first ~0.15s (while overlay is
@@ -1301,8 +1325,9 @@ export function SlotMachine({ locked = false, entering = false }: SlotMachinePro
         ease: 'power2.out',
       }, lastImplosionStart - 0.05)
 
-      // Original cells restore with a staggered bloom
-      exitTl.to(cells, {
+      // V5.3 — restore ALL center cells (was: just `cells`, now we
+      // dimmed all 5 in the entry, so all 5 must bloom back).
+      exitTl.to(allCenterCells, {
         opacity: 1,
         filter: 'none',
         duration: 0.30,
